@@ -6,7 +6,7 @@
 
 #include <unistd.h>
 
-namespace libyu {
+namespace yu {
 namespace stream {
 
 #define NO_INTR(res, func) \
@@ -81,6 +81,6 @@ class fdstream : public std::iostream {
 #undef NO_INTR
 
 }  // namespace stream
-}  // namespace libyu
+}  // namespace yu
 
 #endif  // YU_STREAM_FDSTREAM__

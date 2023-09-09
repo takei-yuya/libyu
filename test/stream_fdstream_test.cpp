@@ -27,14 +27,14 @@ TEST(FDStreamTest, testSimple) {
   {
     int fd = ::open(tmp_file.c_str(), O_WRONLY | O_CREAT, S_IRWXU);
     ASSERT(fd, >, 0);
-    libyu::stream::fdstream out(fd);
+    yu::stream::fdstream out(fd);
     out << "Hello World." << std::endl;
     ::close(fd);
   }
   {
     int fd = ::open(tmp_file.c_str(), O_RDONLY);
     ASSERT(fd, >, 0);
-    libyu::stream::fdstream in(fd);
+    yu::stream::fdstream in(fd);
     std::string s;
     in >> s;
     EXPECT("Hello", ==, s);
@@ -45,13 +45,13 @@ TEST(FDStreamTest, testSimple) {
 }
 
 TEST(FDStreamTest, invalidFileDescriptorGet) {
-  libyu::stream::fdstream fds(999);
+  yu::stream::fdstream fds(999);
   EXPECT(-1, ==, fds.get());
   EXPECT(false, ==, fds.good());
 }
 
 TEST(FDStreamTest, invalidFileDescriptorPut) {
-  libyu::stream::fdstream fds(999);
+  yu::stream::fdstream fds(999);
   fds.put('x');
   fds.flush();
   EXPECT(false, ==, fds.good());
