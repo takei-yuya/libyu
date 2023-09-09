@@ -80,7 +80,7 @@ class fdstream : public std::iostream {
 
 #undef NO_INTR
 
-}  // namespace
-}  // libyu
+}  // namespace stream
+}  // namespace libyu
 
 #endif  // YU_STREAM_FDSTREAM__
