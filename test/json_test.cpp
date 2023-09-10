@@ -294,14 +294,12 @@ class Klass {
     return true;
   }
 
- private:
   std::string s;
   int i;
   double d;
   std::vector<bool> vt;
   std::unordered_map<std::string, unsigned int> mu;
 
- public:
   void stringifyJson(yu::json::Stringifier& stringifier) const {
     yu::json::createMemberStringifier(stringifier, *this)
       << JSON_NAMED_GETTER("str", s)
@@ -345,10 +343,11 @@ class JSONObjectMappingTest : public yu::Test {
 
 TEST(JSONObjectMappingTest, testStringify) {
   Klass obj;
+  obj.s = "str\x01";
   std::ostringstream oss;
   yu::json::stringify(oss, obj);
   // Stringifier keep order
-  EXPECT(R"({"str":"str","i":42,"d":3.14,"vt":[true,false],"mu":{"a":1}})", ==, oss.str());
+  EXPECT(R"({"str":"str\u0001","i":42,"d":3.14,"vt":[true,false],"mu":{"a":1}})", ==, oss.str());
 }
 
 TEST(JSONObjectMappingTest, testParse) {

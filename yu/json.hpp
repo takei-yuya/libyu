@@ -62,7 +62,11 @@ class Stringifier {
       else if (ch == '\n') { out_ << "\\n"; }
       else if (ch == '\r') { out_ << "\\r"; }
       else if (ch == '\t') { out_ << "\\t"; }
-      else if (0x00 <= ch && ch <= 0x1f) { out_ << "\\u" << std::hex << std::setfill('0') << std::setw(4) << static_cast<int>(ch); }
+      else if (0x00 <= ch && ch <= 0x1f) {
+        std::ostringstream oss;  // do not set iomanip to out_, keep out_ default format
+        oss << "\\u" << std::hex << std::setfill('0') << std::setw(4) << static_cast<int>(ch);
+        out_ << oss.str();
+      }
       else { out_ << ch; }
     }
     out_ << '"';
