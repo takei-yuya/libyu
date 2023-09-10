@@ -1,5 +1,5 @@
-#ifndef YU_JSON_HTTP_
-#define YU_JSON_HTTP_
+#ifndef YU_JSON_HPP_
+#define YU_JSON_HPP_
 
 #include <cmath>
 #include <iomanip>
@@ -549,4 +549,4 @@ Parser<T> createParser(std::istream& in, T& obj) {
 }  // namespace json
 }  // namespace yu
 
-#endif  // YU_JSON_HTTP_
+#endif  // YU_JSON_HPP_
