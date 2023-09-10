@@ -57,7 +57,8 @@ TEST(JSONStringifyTest, testMapSimple) {
 
 std::string getNumberPart(const std::string& str) {
   std::istringstream iss(str);
-  std::string result = yu::json::getNumberPart(iss);
+  yu::json::Parser parser(iss);
+  std::string result = parser.getNumberPart();
   int ch = iss.get();
   if (!(ch == EOF || ch == ',')) throw std::runtime_error("unexpected rest part: ch = " + std::string(1, ch));
   return result;
@@ -301,8 +302,8 @@ class Klass {
   std::unordered_map<std::string, unsigned int> mu;
 
  public:
-  void stringifyJson(std::ostream& out) const {
-    yu::json::createStringifier(out, *this)
+  void stringifyJson(yu::json::Stringifier& stringifier) const {
+    yu::json::createMemberStringifier(stringifier, *this)
       << JSON_NAMED_GETTER("str", s)
       << JSON_GETTER(i)
       << JSON_GETTER(d)
@@ -310,8 +311,8 @@ class Klass {
       << JSON_GETTER(mu);
   }
 
-  void parseJson(std::istream& in) {
-    yu::json::createParser(in, *this)
+  void parseJson(yu::json::Parser& parser) {
+    yu::json::createMemberParser(parser, *this)
       << JSON_NAMED_SETTER("str", s)
       << JSON_SETTER(i)
       << JSON_SETTER(d)
@@ -331,11 +332,11 @@ class SuperKlass {
   std::vector<Klass> vec;
   std::unordered_map<std::string, Klass> map;
  public:
-  void stringifyJson(std::ostream& out) const {
-    yu::json::createStringifier(out, *this) << JSON_GETTER(obj) << JSON_GETTER(vec) << JSON_GETTER(map);
+  void stringifyJson(yu::json::Stringifier& stringifier) const {
+    yu::json::createMemberStringifier(stringifier, *this) << JSON_GETTER(obj) << JSON_GETTER(vec) << JSON_GETTER(map);
   }
-  void parseJson(std::istream& in) {
-    yu::json::createParser(in, *this) << JSON_SETTER(obj) << JSON_SETTER(vec) << JSON_SETTER(map);
+  void parseJson(yu::json::Parser& parser) {
+    yu::json::createMemberParser(parser, *this) << JSON_SETTER(obj) << JSON_SETTER(vec) << JSON_SETTER(map);
   }
 };
 
