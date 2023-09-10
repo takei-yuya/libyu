@@ -101,19 +101,7 @@ class Stringifier {
   template <class T>
   class MemberStringifier {
    public:
-    MemberStringifier(Stringifier& stringifier, T& obj) : stringifier_(stringifier), obj_(obj) {}
-
-    // デストラクタで処理するので例外が飛びうる
-    ~MemberStringifier() noexcept(false) {
-      stringifier_.beginObject();
-      for (auto& it : getters_) {
-        stringifier_.valueDelim();
-        stringifier_.stringify(it.first);
-        stringifier_.keyDelim();
-        it.second(stringifier_, obj_);
-      }
-      stringifier_.endObject();
-    }
+    MemberStringifier(Stringifier& stringifier) : stringifier_(stringifier), done_(false) {}
 
     class MemberGetter {
      public:
@@ -125,15 +113,38 @@ class Stringifier {
       void (*stringify)(Stringifier&, T&);
     };
 
-    MemberStringifier<T>& operator<<(MemberGetter&& getter) {
+    [[nodiscard]] MemberStringifier<T>& operator<<(MemberGetter&& getter) {
+      if (done_) throw std::runtime_error("Member stringifier was already executed");
       getters_.emplace_back(getter.name, getter.stringify);
       return *this;
     }
 
+    class Stringify {
+     public:
+      explicit Stringify(const T& obj) : obj_(obj) {}
+     private:
+      friend MemberStringifier<T>;
+      const T& obj_;
+    };
+
+    void operator<<(Stringify&& stringify) {
+      if (done_) throw std::runtime_error("Member stringifier was already executed");
+      done_ = true;
+
+      stringifier_.beginObject();
+      for (auto& it : getters_) {
+        stringifier_.valueDelim();
+        stringifier_.stringify(it.first);
+        stringifier_.keyDelim();
+        it.second(stringifier_, stringify.obj_);
+      }
+      stringifier_.endObject();
+    }
+
    private:
     Stringifier& stringifier_;
-    T& obj_;
     std::vector<std::pair<std::string, void (*)(Stringifier&, T&)>> getters_;
+    bool done_;
   };
 
  private:
@@ -181,56 +192,6 @@ class Parser {
   template <typename T>
   void parse(T& value) {
     value.parseJson(*this);
-  }
-
-  std::string getNumberPart() {
-    std::string result;
-    //  符号部
-    int ch = expectAny("-0123456789", true);
-    if (ch == '-') { result += ch; ch = expectAny("0123456789"); }
-
-    // 整数部
-    if (ch == '0') {
-      result += ch;
-      ch = in_.get();
-    } else {  // leading zeros are not allowed
-      result += ch;
-      while ((ch = in_.get()) != EOF) {
-        if (ch == '.') { break; }
-        if (ch == 'e' || ch == 'E') { break; }
-        if (!('0' <= ch && ch <= '9')) { break; }  // 数値の終わり
-        result += ch;
-      }
-    }
-
-    // 小数部
-    if (ch == '.') {
-      result += ch;
-      ch = expectAny("0123456789");  // 小数部は少なくとも1桁
-      result += ch;
-      while ((ch = in_.get()) != EOF) {
-        if (ch == 'e' || ch == 'E') { break; }
-        if (!('0' <= ch && ch <= '9')) { break; }  // 数値の終わり
-        result += ch;
-      }
-    }
-
-    // 指数部
-    if (ch == 'e' || ch == 'E') {
-      result += ch;
-      ch = expectAny("+-0123456789");  // 指数部は少なくとも1桁
-      if (ch == '+' || ch == '-') { result += ch; ch = expectAny("0123456789"); }
-      result += ch;
-      while ((ch = in_.get()) != EOF) {
-        if (!('0' <= ch && ch <= '9')) { break; }  // 数値の終わり
-        result += ch;
-      }
-    }
-
-    // 基本的に先読みしているのでungetが必要
-    in_.unget();
-    ws();
-    return result;
   }
 
   // TODO: 小数表記を整数としてパースしようとした時どうするか？エラーにする or 黙って小数点以下切り捨て
@@ -319,7 +280,7 @@ class Parser {
           }
           result += utf8::encode(cp);
         } else {
-          throw InvalidJson("unexpected espcape " + std::string(1, ch));
+          throw InvalidJson("unexpected escape " + std::string(1, ch));
         }
       } else {
         result += ch;
@@ -333,8 +294,8 @@ class Parser {
   void parse(std::vector<T>& vec) {
     std::vector<T> result;
     expect('[', true);
-    while (1) {
-      if (tryPeek(true) == ']') { tryGet(); break; }
+    if (tryPeek(true) == ']') { tryGet(); }
+    else while (1) {
       T value;
       parse(value);
       result.push_back(value);
@@ -348,9 +309,9 @@ class Parser {
   void parse(std::unordered_map<std::string, T>& map) {
     std::unordered_map<std::string, T> result;
     expect('{', true);
-    while (1) {
+    if (tryPeek(true) == '}') { tryGet(); }
+    else while (1) {
       // TODO: key重複の扱い
-      if (tryPeek(true) == '}') { tryGet(); break; }
       std::string key;
       parse(key);
       expect(':', true);
@@ -367,18 +328,18 @@ class Parser {
   void parseAny() {
     int ch = expectAny("{[\"-0123456789tf", true);
     if (ch == '{') {
-      while (1) {
-        if (tryPeek(true) == '}') { tryGet(); break; }
-        std::string key;  // keyは文字列固定
+      if (tryPeek(true) == '}') { tryGet(); }
+      else while (1) {
+        std::string key;  // key must be string
         parse(key);
         expect(':', true);
-        parseAny();  // 値は任意
+        parseAny();  // any value
         if (expectAny(",}", true) == '}') break;
       }
     } else if (ch == '[') {
-      while (1) {
-        if (tryPeek(true) == ']') { tryGet(); break; }
-        parseAny();  // 値は任意
+      if (tryPeek(true) == ']') { tryGet(); }
+      else while (1) {
+        parseAny();  // any value
         if (expectAny(",]", true) == ']') break;
       }
     } else if (ch == '"') {
@@ -400,26 +361,7 @@ class Parser {
   template <class T>
   class MemberParser {
    public:
-    MemberParser(Parser& parser, T& obj) : parser_(parser), obj_(obj) {}
-
-    // デストラクタで処理するので例外が飛びうる
-    ~MemberParser() noexcept(false) {
-      parser_.expect('{', true);
-      while (1) {
-        if (parser_.tryPeek(true) == '}') { parser_.tryGet(); break; }
-        std::string name;
-        parser_.parse(name);
-        parser_.expect(':', true);
-        auto it = setters_.find(name);
-        if (it != setters_.end()) {
-          it->second(parser_, obj_);
-        } else {
-          parser_.parseAny();  // 値を読み飛ばす
-        }
-        if (parser_.expectAny("},", true) == '}') break;
-      }
-      parser_.ws();
-    }
+    MemberParser(Parser& parser) : parser_(parser) {}
 
     class MemberSetter {
      public:
@@ -431,14 +373,39 @@ class Parser {
       void (*parse)(Parser&, T&);
     };
 
-    MemberParser<T>& operator<<(MemberSetter&& setter) {
+    [[nodiscard]] MemberParser<T>& operator<<(MemberSetter&& setter) {
       setters_[setter.name] = setter.parse;
       return *this;
     }
 
+    class Parse {
+     public:
+      explicit Parse(T& obj) : obj_(obj) {}
+     private:
+      friend MemberParser<T>;
+      T& obj_;
+    };
+
+    void operator<<(Parse&& parse) {
+      parser_.expect('{', true);
+      if (parser_.tryPeek(true) == '}') { parser_.tryGet(); }
+      else while (1) {
+        std::string name;
+        parser_.parse(name);
+        parser_.expect(':', true);
+        auto it = setters_.find(name);
+        if (it != setters_.end()) {
+          it->second(parser_, parse.obj_);
+        } else {
+          parser_.parseAny();  // 値を読み飛ばす
+        }
+        if (parser_.expectAny("},", true) == '}') break;
+      }
+      parser_.ws();
+    }
+
    private:
     Parser& parser_;
-    T& obj_;
     std::unordered_map<std::string, void (*)(Parser&, T&)> setters_;
   };
 
@@ -458,7 +425,7 @@ class Parser {
   }
 
   int tryPeek(bool skipPreWhiteSpace = false) {
-    ws();
+    if (skipPreWhiteSpace) ws();
     int ch = in_.peek();
     if (ch == EOF) throw InvalidJson("unexpected EOF");
     return ch;
@@ -476,6 +443,56 @@ class Parser {
     int ch = tryGet();
     if (expectedChars.find(ch) == std::string::npos) throw InvalidJson("expect one of '" + expectedChars + "', but '" + std::string(1, ch) + "'");
     return ch;
+  }
+
+  std::string getNumberPart() {
+    std::string result;
+    //  符号部
+    int ch = expectAny("-0123456789", true);
+    if (ch == '-') { result += ch; ch = expectAny("0123456789"); }
+
+    // 整数部
+    if (ch == '0') {
+      result += ch;
+      ch = in_.get();
+    } else {  // leading zeros are not allowed
+      result += ch;
+      while ((ch = in_.get()) != EOF) {
+        if (ch == '.') { break; }
+        if (ch == 'e' || ch == 'E') { break; }
+        if (!('0' <= ch && ch <= '9')) { break; }  // 数値の終わり
+        result += ch;
+      }
+    }
+
+    // 小数部
+    if (ch == '.') {
+      result += ch;
+      ch = expectAny("0123456789");  // 小数部は少なくとも1桁
+      result += ch;
+      while ((ch = in_.get()) != EOF) {
+        if (ch == 'e' || ch == 'E') { break; }
+        if (!('0' <= ch && ch <= '9')) { break; }  // 数値の終わり
+        result += ch;
+      }
+    }
+
+    // 指数部
+    if (ch == 'e' || ch == 'E') {
+      result += ch;
+      ch = expectAny("+-0123456789");  // 指数部は少なくとも1桁
+      if (ch == '+' || ch == '-') { result += ch; ch = expectAny("0123456789"); }
+      result += ch;
+      while ((ch = in_.get()) != EOF) {
+        if (!('0' <= ch && ch <= '9')) { break; }  // 数値の終わり
+        result += ch;
+      }
+    }
+
+    // 基本的に先読みしているのでungetが必要
+    in_.unget();
+    ws();
+    return result;
   }
 
   int parseHex() {
@@ -536,9 +553,8 @@ inline std::string to_json(const T& v) {
 template <typename T>
 inline T from_json(const std::string& str) {
   std::istringstream iss(str);
-  Parser parser(iss);
   T result;
-  parser.parse(result);
+  parse(iss, result);
   // check rest part
   char ch = iss.get();
   if (ch != EOF) {
@@ -549,10 +565,6 @@ inline T from_json(const std::string& str) {
   return result;
 }
 
-//
-// === Macro ===
-//
-
 // Usage
 // class Klass {
 //  private:
@@ -561,36 +573,36 @@ inline T from_json(const std::string& str) {
 //
 //  pubic;
 //   void stringifyJson(yu::json::Stringifier& stringifier) {
-//     yu::json::createMemberStringifier(stringifier, *this)
+//     JSON_MEMBER_STRINGIFIER(stringifier)
 //       << JSON_GETTER(str)
-//       << JSON_NAMED_GETTER("number", num);
+//       << JSON_NAMED_GETTER("number", num)
+//       << JSON_STRINGIFY;
 //   }
 //   void parseJson(yu::json::Parser& parser) {
-//     yu::json::createMemberParser(parser, *this)
+//     JSON_MEMBER_PARSER(parser)
 //       << JSON_SETTER(str)
-//       << JSON_NAMED_SETTER("number", num);
+//       << JSON_NAMED_SETTER("number", num)
+//       << JSON_PARSE;
 //   }
 // }
 
+#define JSON_MEMBER_STRINGIFIER(stringifier) \
+  yu::json::Stringifier::MemberStringifier<std::remove_reference<decltype(*this)>::type>(stringifier)
 #define JSON_GETTER(variable) \
   yu::json::Stringifier::MemberStringifier<std::remove_reference<decltype(*this)>::type>::MemberGetter(#variable, [](yu::json::Stringifier& stringifier, decltype(*this)& obj){ stringifier.stringify(obj.variable); })
 #define JSON_NAMED_GETTER(name, variable) \
   yu::json::Stringifier::MemberStringifier<std::remove_reference<decltype(*this)>::type>::MemberGetter(name, [](yu::json::Stringifier& stringifier, decltype(*this)& obj){ stringifier.stringify(obj.variable); })
+#define JSON_STRINGIFY \
+  yu::json::Stringifier::MemberStringifier<std::remove_reference<decltype(*this)>::type>::Stringify(*this)
 
+#define JSON_MEMBER_PARSER(parser) \
+  yu::json::Parser::MemberParser<std::remove_reference<decltype(*this)>::type>(parser)
 #define JSON_SETTER(variable) \
   yu::json::Parser::MemberParser<std::remove_reference<decltype(*this)>::type>::MemberSetter(#variable, [](yu::json::Parser& parser, decltype(*this)& obj){ parser.parse(obj.variable); })
 #define JSON_NAMED_SETTER(name, variable) \
   yu::json::Parser::MemberParser<std::remove_reference<decltype(*this)>::type>::MemberSetter(name, [](yu::json::Parser& parser, decltype(*this)& obj){ parser.parse(obj.variable); })
-
-template <class T>
-inline Stringifier::MemberStringifier<T> createMemberStringifier(Stringifier& out, T& obj) {
-  return Stringifier::MemberStringifier<T>(out, obj);
-}
-
-template <class T>
-inline Parser::MemberParser<T> createMemberParser(Parser& in, T& obj) {
-  return Parser::MemberParser<T>(in, obj);
-}
+#define JSON_PARSE \
+  yu::json::Parser::MemberParser<std::remove_reference<decltype(*this)>::type>::Parse(*this)
 
 }  // namespace json
 }  // namespace yu
