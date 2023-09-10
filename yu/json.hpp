@@ -7,6 +7,7 @@
 #include <sstream>
 #include <stdexcept>
 #include <unordered_map>
+#include <map>
 #include <vector>
 
 #include "utf8.hpp"
@@ -84,6 +85,18 @@ class Stringifier {
       stringify(it);
     }
     endArray();
+  }
+
+  template <typename T>
+  void stringify(const std::map<std::string, T>& map) {
+    beginObject();
+    for (const auto& it : map) {
+      valueDelim();
+      stringify(it.first);
+      keyDelim();
+      stringify(it.second);
+    }
+    endObject();
   }
 
   template <typename T>
@@ -303,6 +316,25 @@ class Parser {
     }
     ws();
     vec.swap(result);
+  }
+
+  template <typename T>
+  void parse(std::map<std::string, T>& map) {
+    std::map<std::string, T> result;
+    expect('{', true);
+    if (tryPeek(true) == '}') { tryGet(); }
+    else while (1) {
+      // TODO: key重複の扱い
+      std::string key;
+      parse(key);
+      expect(':', true);
+      T value;
+      parse(value);
+      result[key] = value;
+      if (expectAny(",}", true) == '}') break;
+    }
+    ws();
+    map.swap(result);
   }
 
   template <typename T>
