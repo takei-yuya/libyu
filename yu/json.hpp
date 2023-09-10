@@ -22,7 +22,7 @@ class InvalidJson : public std::runtime_error {
 
 class Stringifier {
  public:
-  explicit Stringifier(std::ostream& out) : out_(out) {}
+  explicit Stringifier(std::ostream& out, bool pretty = false) : out_(out), pretty_(pretty) {}
 
   template <typename T>
   void stringify(const T& value) {
@@ -164,25 +164,32 @@ class Stringifier {
   void beginObject() {
     out_ << "{";
     is_first_.push_back(true);
+    newline_indent();
   }
 
   void endObject() {
-    out_ << "}";
     is_first_.pop_back();
+    newline_indent();
+    out_ << "}";
   }
 
   void beginArray() {
     out_ << "[";
     is_first_.push_back(true);
+    newline_indent();
   }
 
   void endArray() {
-    out_ << "]";
     is_first_.pop_back();
+    newline_indent();
+    out_ << "]";
   }
 
   void valueDelim() {
-    if (!is_first_.back()) out_ << ",";
+    if (!is_first_.back()) {
+      out_ << ",";
+      newline_indent();
+    }
     is_first_.back() = false;
   }
 
@@ -190,9 +197,15 @@ class Stringifier {
     out_ << ":";
   }
 
+  void newline_indent() {
+    if (!pretty_) return;
+    out_ << "\n" << std::string(is_first_.size() * 2, ' ');
+  }
+
  private:
   std::vector<bool> is_first_;
   std::ostream& out_;
+  bool pretty_;
 };
 
 class Parser {

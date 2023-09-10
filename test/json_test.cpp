@@ -55,6 +55,49 @@ TEST(JSONStringifyTest, testMapSimple) {
   }
 }
 
+TEST(JSONStringifyTest, testPretty) {
+  std::map<std::string, std::vector<std::map<std::string, int>>> value = {
+    {
+      "x",
+      {
+        {
+          { "a", 1 },
+          { "b", 2 }
+        },
+        {
+          { "c", 3 }
+        },
+        {
+        }
+      }
+    },
+    { "y", {} },
+  };
+  std::string expected = R"({
+  "x":[
+    {
+      "a":1,
+      "b":2
+    },
+    {
+      "c":3
+    },
+    {
+      
+    }
+  ],
+  "y":[
+    
+  ]
+})";
+  std::ostringstream oss;
+  {
+    yu::json::Stringifier stringifier(oss, true);
+    stringifier.stringify(value);
+  }
+  EXPECT(expected, ==, oss.str());
+}
+
 class JSONParseTest : public yu::Test {
 };
 
