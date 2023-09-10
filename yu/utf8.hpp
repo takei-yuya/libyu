@@ -2,6 +2,7 @@
 #define YU_UTF8_HPP_
 
 #include <sstream>
+#include <cstdint>
 
 namespace yu {
 namespace utf8 {
