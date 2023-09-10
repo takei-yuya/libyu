@@ -1,6 +1,8 @@
 #ifndef YU_TEST_HPP_
 #define YU_TEST_HPP_
 
+#include "yu/json.hpp"
+
 #include <vector>
 #include <string>
 #include <iostream>
@@ -88,7 +90,11 @@ class TestRunner {
 #define EXPECT(expected, op, actual) \
   if (!((expected) op (actual))) { \
     std::ostringstream oss; \
-    oss << __FILE__ ":" << __LINE__ << ": expect '" << expected << "' " #op " '" << actual << "', but not"; \
+    oss << __FILE__ ":" << __LINE__ << ": expect "; \
+    yu::json::stringify(oss, expected); \
+    oss << " " #op " '"; \
+    yu::json::stringify(oss, actual); \
+    oss << "', but not"; \
     errors_.push_back(oss.str()); \
   }
 
@@ -100,16 +106,30 @@ class TestRunner {
     throw yu::TestFailure(); \
   }
 
-#define EXPECT_THROW(exp, exp_type) \
+#define EXPECT_THROW(expression, exception_type) \
   try { \
-    exp; \
+    (expression); \
     std::ostringstream oss; \
-    oss << __FILE__ ":" << __LINE__ << ": expect throw " #exp_type ", but not"; \
+    oss << __FILE__ ":" << __LINE__ << ": expect throw " #exception_type ", but not"; \
     errors_.push_back(oss.str()); \
-  } catch (const exp_type& e) { \
+  } catch (const exception_type& e) { \
   } catch (const std::exception& e) { \
     std::ostringstream oss; \
-    oss << __FILE__ ":" << __LINE__ << ": except throw " #exp_type ", but aother exception is thrown, e = " << e.what(); \
+    oss << __FILE__ ":" << __LINE__ << ": except throw " #exception_type ", but aother exception is thrown, e = " << e.what(); \
+    errors_.push_back(oss.str()); \
+  }
+
+#define EXPECT_THROW_WHAT(expression, exception_type, expected_what) \
+  try { \
+    (expression); \
+    std::ostringstream oss; \
+    oss << __FILE__ ":" << __LINE__ << ": expect throw " #exception_type ", but not"; \
+    errors_.push_back(oss.str()); \
+  } catch (const exception_type& e) { \
+    EXPECT(expected_what, ==, std::string(e.what())); \
+  } catch (const std::exception& e) { \
+    std::ostringstream oss; \
+    oss << __FILE__ ":" << __LINE__ << ": except throw " #exception_type ", but aother exception is thrown, e = " << e.what(); \
     errors_.push_back(oss.str()); \
   }
 

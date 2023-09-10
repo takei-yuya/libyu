@@ -11,7 +11,7 @@ all:
 
 .PHONY: check
 check: $(TESTS)
-	$(foreach test,$(TESTS),./$(test))
+	$(foreach test,$(TESTS),./$(test);)
 
 .PHONY: clean
 clean:
