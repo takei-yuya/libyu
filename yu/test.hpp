@@ -1,6 +1,8 @@
 #ifndef YU_TEST_HPP_
 #define YU_TEST_HPP_
 
+#include "yu/json.hpp"
+
 #include <vector>
 #include <string>
 #include <iostream>
@@ -87,30 +89,44 @@ class TestRunner {
 
 #define EXPECT(expected, op, actual) \
   if (!((expected) op (actual))) { \
-    std::ostringstream oss; \
-    oss << __FILE__ ":" << __LINE__ << ": expect '" << expected << "' " #op " '" << actual << "', but not"; \
-    errors_.push_back(oss.str()); \
+    std::ostringstream oss_; \
+    oss_ << __FILE__ ":" << __LINE__ << ": expect " << yu::json::to_json(expected) << " " #op " " << yu::json::to_json(actual) << ", but not"; \
+    errors_.push_back(oss_.str()); \
   }
 
 #define ASSERT(expected, op, actual) \
   if (!((expected) op (actual))) { \
-    std::ostringstream oss; \
-    oss << __FILE__ ":" << __LINE__ << ": expect '" << expected << "' " #op " '" << actual << "', but not"; \
-    errors_.push_back(oss.str()); \
+    std::ostringstream oss_; \
+    oss_ << __FILE__ ":" << __LINE__ << ": expect '" << yu::json::to_json(expected) << "' " #op " '" << yu::json::to_json(actual) << "', but not"; \
+    errors_.push_back(oss_.str()); \
     throw yu::TestFailure(); \
   }
 
-#define EXPECT_THROW(exp, exp_type) \
+#define EXPECT_THROW(expression, exception_type) \
   try { \
-    exp; \
-    std::ostringstream oss; \
-    oss << __FILE__ ":" << __LINE__ << ": expect throw " #exp_type ", but not"; \
-    errors_.push_back(oss.str()); \
-  } catch (const exp_type& e) { \
+    (expression); \
+    std::ostringstream oss_; \
+    oss_ << __FILE__ ":" << __LINE__ << ": expect throw " #exception_type ", but not"; \
+    errors_.push_back(oss_.str()); \
+  } catch (const exception_type& e) { \
   } catch (const std::exception& e) { \
-    std::ostringstream oss; \
-    oss << __FILE__ ":" << __LINE__ << ": except throw " #exp_type ", but aother exception is thrown, e = " << e.what(); \
-    errors_.push_back(oss.str()); \
+    std::ostringstream oss_; \
+    oss_ << __FILE__ ":" << __LINE__ << ": except throw " #exception_type ", but aother exception is thrown, e = " << e.what(); \
+    errors_.push_back(oss_.str()); \
+  }
+
+#define EXPECT_THROW_WHAT(expression, exception_type, expected_what) \
+  try { \
+    (expression); \
+    std::ostringstream oss_; \
+    oss_ << __FILE__ ":" << __LINE__ << ": expect throw " #exception_type ", but not"; \
+    errors_.push_back(oss_.str()); \
+  } catch (const exception_type& e) { \
+    EXPECT(expected_what, ==, std::string(e.what())); \
+  } catch (const std::exception& e) { \
+    std::ostringstream oss_; \
+    oss_ << __FILE__ ":" << __LINE__ << ": except throw " #exception_type ", but aother exception is thrown, e = " << e.what(); \
+    errors_.push_back(oss_.str()); \
   }
 
 #define TEST(class_name, test_name) \
