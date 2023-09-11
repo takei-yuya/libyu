@@ -5,7 +5,7 @@
 #include <vector>
 
 namespace yu {
-namespace string_utils {
+namespace string {
 
 inline std::string lstrip(const std::string& str, const std::string& spaces = "\r\n\t ") {
   size_t l = str.find_first_not_of(spaces);
@@ -55,7 +55,7 @@ inline bool ends_with(const std::string& str, const std::string& suffix) {
   return str.size() >= suffix.size() && str.substr(str.size() - suffix.size()) == suffix;
 }
 
-}  // namespace string_utils
+}  // namespace string
 }  // namespace yu
 
 #endif  // YU_STRING_UTILS_HPP_
