@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 
 exit_code=0
 for test in "$@"; do
