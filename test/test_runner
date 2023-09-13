@@ -1,0 +1,9 @@
+#!/bin/sh
+
+exit_code=0
+for test in "$@"; do
+  if ! ./${test}; then
+    exit_code=1
+  fi
+done
+exit ${exit_code}
