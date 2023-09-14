@@ -96,6 +96,7 @@ TEST(JSONStringifyTest, testPretty) {
     stringifier.stringify(value);
   }
   EXPECT(expected, ==, oss.str());
+  yu::json::from_json<decltype(value)>(oss.str());  // no throw
 }
 
 class JSONParseTest : public yu::Test {

@@ -213,7 +213,7 @@ class Parser {
   explicit Parser(std::istream& in) : in_(in) {}
 
   template <typename T>
-    void parse(std::ostream& out, const T& v);
+  void parse(std::ostream& out, const T& v);
 
   template <typename T>
   void parse(T& value) {
@@ -456,7 +456,7 @@ class Parser {
 
  private:
   bool isJsonWhiteSpace(char ch) {
-    return ch == ' ' || ch == '\t' || ch == '\r' || ch == '\r';
+    return ch == ' ' || ch == '\t' || ch == '\r' || ch == '\n';
   }
 
   void ws() {
