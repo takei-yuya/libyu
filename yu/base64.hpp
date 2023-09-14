@@ -6,6 +6,7 @@
 #include <stdexcept>
 #include <iostream>
 #include <sstream>
+#include <cstdint>
 
 namespace yu {
 namespace base64 {
