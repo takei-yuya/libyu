@@ -16,10 +16,10 @@ std::string yu::utf8::encode(uint32_t);
 }
 ```
 
-example: `sample/ut8_sample.cpp`
+example: `sample/utf8_sample.cpp`
 ```cpp
 uint32_t code_point = 0x1f363;
-std::string str = encode(code_point);
+std::string str = yu::utf8::encode(code_point);
 std::cout << str << std::endl;
 // 🍣
 ```
@@ -37,7 +37,7 @@ class fdstream : public std::iostream {
 
 example: `sample/fdstream_sample.cpp`
 ```cpp
-yu::stream::fdstream fds(0);
+yu::stream::fdstream fds(1);
 fds << "Hello World." << std::endl;
 // Hello World.
 ```
