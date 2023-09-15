@@ -42,6 +42,35 @@ fds << "Hello World." << std::endl;
 // Hello World.
 ```
 
+### stream/nullstream.hpp
+
+```cpp
+namespace yu {
+namespace utf8 {
+class nullstream : public std::iostream {
+ public:
+  nullstream(int fd);
+};
+}
+}
+```
+
+example: `sample/nullstream_sample.cpp`
+```cpp
+yu::stream::nullstream ns;
+std::vector<char> buffer(1024);
+ns.read(buffer.data(), buffer.size());
+std::cout << "read = " << ns.gcount() << ", eof = " << ns.eof() << std::endl;
+size_t write_count = 0;
+for (size_t i = 0; i < 1024 * 1024; ++i) {
+  ns.write(buffer.data(), buffer.size());
+  write_count += buffer.size();
+}
+std::cout << "write = " << write_count << std::endl;
+// read = 0, eof = 1
+// write = 1073741824
+```
+
 ### base64.hpp
 
 ```cpp
