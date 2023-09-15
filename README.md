@@ -30,6 +30,8 @@ std::cout << str << std::endl;
 namespace yu {
 namespace utf8 {
 class fdstream : public std::iostream {
+ public:
+  explicit fdstream(int fd);
 };
 }
 }

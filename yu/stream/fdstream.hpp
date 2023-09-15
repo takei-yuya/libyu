@@ -70,7 +70,7 @@ class fdstreambuf : public std::streambuf {
 
 class fdstream : public std::iostream {
  public:
-  fdstream(int fd) : std::iostream(new fdstreambuf(fd)) {
+  explicit fdstream(int fd) : std::iostream(new fdstreambuf(fd)) {
   }
   ~fdstream() {
     flush();
