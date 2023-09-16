@@ -43,8 +43,10 @@ std::cout << (yu::lang::lexical_cast<std::string>(42) + "0") << std::endl;
 
 ```cpp
 namespace yu {
-namespace utf8 {
+namespace stream {
 class fdstream : public std::iostream {
+ public:
+  explicit fdstream(int fd);
 };
 }
 }
@@ -55,6 +57,76 @@ example: `sample/fdstream_sample.cpp`
 yu::stream::fdstream fds(1);
 fds << "Hello World." << std::endl;
 // Hello World.
+```
+
+### stream/nullstream.hpp
+
+```cpp
+namespace yu {
+namespace stream {
+class nullstream : public std::iostream {
+ public:
+  nullstream();
+};
+}
+}
+```
+
+example: `sample/nullstream_sample.cpp`
+```cpp
+yu::stream::nullstream ns;
+std::vector<char> buffer(1024);
+ns.read(buffer.data(), buffer.size());
+std::cout << "read = " << ns.gcount() << ", eof = " << ns.eof() << std::endl;
+size_t write_count = 0;
+for (size_t i = 0; i < 1024 * 1024; ++i) {
+  ns.write(buffer.data(), buffer.size());
+  write_count += buffer.size();
+}
+std::cout << "write = " << write_count << std::endl;
+// read = 0, eof = 1
+// write = 1073741824
+```
+
+### stream/teestream.hpp
+
+```cpp
+namespace yu {
+namespace stream {
+class oteestream : public std::ostream {
+ public:
+  oteestream(std::ostream& out1, std::ostream& out2);
+};
+}
+}
+```
+
+example: `sample/teestream_sample.cpp`
+```cpp
+{
+  std::ostringstream out1;
+  std::ostringstream out2;
+  yu::stream::oteestream ots(out1, out2);
+  ots << "Hello " << "T-stream" << " World!";
+  std::cout << "out1 = " << out1.str() << std::endl;
+  std::cout << "out2 = " << out2.str() << std::endl;
+}
+{
+  std::istringstream iss("Hello World!");
+  std::ostringstream oss;
+  yu::stream::iteestream its(iss, oss);
+  std::string str;
+  its >> str;
+  std::cout << "str = " << str << std::endl;
+  std::cout << "oss = " << oss.str() << std::endl;  // ostream recieve whole buffer
+  its >> str;
+  std::cout << "str = " << str << std::endl;
+}
+// out1 = Hello T-stream World!
+// out2 = Hello T-stream World!
+// str = Hello
+// oss = Hello World!
+// str = World!
 ```
 
 ### base64.hpp
