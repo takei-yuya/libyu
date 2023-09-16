@@ -8,22 +8,14 @@ namespace yu {
 namespace stream {
 
 class nullstreambuf : public std::streambuf {
- public:
-  nullstreambuf() : buffer_(1024) {
-    setp(buffer_.data(), buffer_.data() + buffer_.size());
-  }
-
  private:
-  virtual int overflow(int ch = traits_type::eof()) {
-    size_t size = pptr() - pbase();
-    pbump(-size);
-    return ch;
+  virtual std::streamsize xsputn(const char* s, std::streamsize n) {
+    return n;
   }
 
   virtual int underflow() {
     return traits_type::eof();
   }
-  std::vector<char> buffer_;
 };
 
 class nullstream : public std::iostream {
