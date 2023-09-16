@@ -24,6 +24,21 @@ std::cout << str << std::endl;
 // 🍣
 ```
 
+### lang/lexical_cast.hpp
+
+```cpp
+template <typename T1, typename T2>
+T1 lexical_cast(const T2& val);
+```
+
+example: `sample/lexical_cast_sample.cpp`
+```cpp
+std::cout << yu::lang::lexical_cast<int>("42") << std::endl;
+std::cout << (yu::lang::lexical_cast<std::string>(42) + "0") << std::endl;
+// 42
+// 420
+```
+
 ### stream/fdstream.hpp
 
 ```cpp

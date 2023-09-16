@@ -1,6 +1,7 @@
 #include "yu/json.hpp"
 
 #include "yu/test.hpp"
+#include "yu/lang/lexical_cast.hpp"
 
 #include <sstream>
 #include <iostream>
@@ -156,16 +157,11 @@ TEST(JSONParseTest, testValueSimple) {
   // // TODO: エラーにすべき？
   EXPECT(299792458lu, ==, yu::json::from_json<uint64_t>(R"(2.99792458e8)"));
 
-  {
-    std::ostringstream oss;
-    oss << std::numeric_limits<uint64_t>::max();
-    EXPECT(std::numeric_limits<uint64_t>::max(), ==, yu::json::from_json<uint64_t>(oss.str()));
-  }
-  {
-    std::ostringstream oss;
-    oss << std::numeric_limits<uint64_t>::min();
-    EXPECT(std::numeric_limits<uint64_t>::min(), ==, yu::json::from_json<uint64_t>(oss.str()));
-  }
+  std::string num_max_str = yu::lang::lexical_cast<std::string>(std::numeric_limits<uint64_t>::max());
+  EXPECT(std::numeric_limits<uint64_t>::max(), ==, yu::json::from_json<uint64_t>(num_max_str));
+
+  std::string num_min_str = yu::lang::lexical_cast<std::string>(std::numeric_limits<uint64_t>::min());
+  EXPECT(std::numeric_limits<uint64_t>::min(), ==, yu::json::from_json<uint64_t>(num_min_str));
 }
 
 TEST(JSONParseTest, testInvalidValue) {
