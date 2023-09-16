@@ -1,3 +1,4 @@
+// Copyright 2023 TAKEI Yuya (https://github.com/takei-yuya/)
 #ifndef YU_BASE64_HPP_
 #define YU_BASE64_HPP_
 

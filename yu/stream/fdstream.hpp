@@ -1,3 +1,4 @@
+// Copyright 2023 TAKEI Yuya (https://github.com/takei-yuya/)
 #ifndef YU_STREAM_FDSTREAM__
 #define YU_STREAM_FDSTREAM__
 
