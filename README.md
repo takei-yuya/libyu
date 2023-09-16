@@ -1,4 +1,6 @@
-# misc library for C++
+# misc libraries for C++
+
+misc header only libiraries depend on only C++ standard libiraries.
 
 ## Install
 
@@ -262,11 +264,25 @@ std::cout << yu::json::to_json(obj) << std::endl;
 // {"str":"Hello World.","num":42,"map":{"a":3.14},"vec":[true,false]}
 ```
 
-
 ### test.hpp
 
 see `test/*_test.cpp`
 
+## Q&A
+
+- なんで今更C++?
+    - 書きたかったから
+- base64とかOpenSSLとかにあるよ？
+    - 書きたかったから書いた
+- 実装の優先度は？
+    - 書きたくなった順
+- バグを見つけた/実装がいけていない
+    - つ Pull Request
+
+## LICENSE
+
+see LICENSE file
+
 ## Author
 
-TAKEI Yuya (https://github.com/takei-yuya)
+Copyright 2023 TAKEI Yuya (https://github.com/takei-yuya)
