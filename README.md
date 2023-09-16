@@ -264,6 +264,101 @@ std::cout << yu::json::to_json(obj) << std::endl;
 // {"str":"Hello World.","num":42,"map":{"a":3.14},"vec":[true,false]}
 ```
 
+### http/server_stream.hpp
+
+```cpp
+namespace yu {
+namespace http {
+class RequestError : public std::runtime_error {};
+class ServerStream {
+ public:
+  explicit ServerStream(std::iostream& stream);
+
+  std::unique_ptr<std::istream> parse_request();
+  const std::string& request_method() const;
+  const std::string& request_target() const;
+  const std::string& request_version() const;
+  const std::unordered_map<std::string, std::string>& request_headers() const;
+
+  void set_status(int status, const std::string& messgae = "");
+  void set_header(const std::string& key, const std::string& value);
+  std::unique_ptr<chunked_ostream> send_header();
+};
+}
+}
+```
+
+example: `sample/server_stream_sample.cpp`
+```cpp
+int fds[2];
+::socketpair(AF_UNIX, SOCK_STREAM, 0, fds);
+
+yu::stream::fdstream user_agent(fds[0]);
+yu::stream::fdstream server(fds[1]);
+
+yu::http::ServerStream ss(server);
+
+user_agent
+  << "POST / HTTP/1.1\r\n"
+  << "Host: example.com\r\n"
+  << "Transfer-Encoding: chunked\r\n"
+  << "\r\n"
+  << "6\r\n"
+  << "Hello \r\n"
+  << "6\r\n"
+  << "World!\r\n"
+  << "0\r\n"
+  << "\r\n";
+user_agent.flush();
+
+std::unique_ptr<std::istream> request_body_stream = ss.parse_request();
+std::cout << ss.request_method() << " " << ss.request_target() << " " << ss.request_version() << std::endl;
+
+std::vector<char> buffer(1024);
+request_body_stream->read(buffer.data(), buffer.size());
+std::string request_body(buffer.data(), buffer.data() + request_body_stream->gcount());
+std::cout << request_body << std::endl;
+
+ss.set_status(200);
+ss.set_header("Server", "libyu http::ServerStream");
+ss.set_header("Set-Cookie", "foo=1; path=/");
+ss.set_header("Server", "version 0.0.0");
+ss.set_header("Set-Cookie", "bar=2; path=/");
+{
+  std::unique_ptr<std::ostream> response_body_stream = ss.send_header();
+  *response_body_stream << "It's ";
+  *response_body_stream << "wonderful ";
+  *response_body_stream << "wordl!!";
+}
+
+std::string line;
+// header
+while (std::getline(user_agent, line)) {
+  line = yu::string::rstrip(line, "\r");
+  if (line.empty()) break;
+  std::cout << line << std::endl;
+}
+// chunked body
+while (std::getline(user_agent, line)) {
+  line = yu::string::rstrip(line, "\r");
+  if (line.empty()) break;
+  std::cout << line << std::endl;
+}
+
+close(fds[0]);
+close(fds[1]);
+// POST / HTTP/1.1
+// Hello World!
+// HTTP/1.1 200 OK
+// Set-Cookie: foo=1; path=/
+// Set-Cookie: bar=2; path=/
+// Server: libyu http::ServerStream,version 0.0.0
+// Transfer-Encoding: chunked
+// 16
+// It's wonderful wordl!!
+// 0
+```
+
 ### test.hpp
 
 see `test/*_test.cpp`
