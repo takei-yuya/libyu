@@ -88,14 +88,30 @@ class oteestream : public std::ostream {
 
 example: `sample/teestream_sample.cpp`
 ```cpp
-std::ostringstream out1;
-std::ostringstream out2;
-yu::stream::oteestream ots(out1, out2);
-ots << "Hello " << "T-stream" << " World!";
-std::cout << "out1 = " << out1.str() << std::endl;
-std::cout << "out2 = " << out2.str() << std::endl;
+{
+  std::ostringstream out1;
+  std::ostringstream out2;
+  yu::stream::oteestream ots(out1, out2);
+  ots << "Hello " << "T-stream" << " World!";
+  std::cout << "out1 = " << out1.str() << std::endl;
+  std::cout << "out2 = " << out2.str() << std::endl;
+}
+{
+  std::istringstream iss("Hello World!");
+  std::ostringstream oss;
+  yu::stream::iteestream its(iss, oss);
+  std::string str;
+  its >> str;
+  std::cout << "str = " << str << std::endl;
+  std::cout << "oss = " << oss.str() << std::endl;  // ostream recieve whole buffer
+  its >> str;
+  std::cout << "str = " << str << std::endl;
+}
 // out1 = Hello T-stream World!
 // out2 = Hello T-stream World!
+// str = Hello
+// oss = Hello World!
+// str = World!
 ```
 
 ### base64.hpp
