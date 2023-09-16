@@ -28,7 +28,7 @@ std::cout << str << std::endl;
 
 ```cpp
 namespace yu {
-namespace utf8 {
+namespace stream {
 class fdstream : public std::iostream {
  public:
   explicit fdstream(int fd);
@@ -48,10 +48,10 @@ fds << "Hello World." << std::endl;
 
 ```cpp
 namespace yu {
-namespace utf8 {
+namespace stream {
 class nullstream : public std::iostream {
  public:
-  nullstream(int fd);
+  nullstream();
 };
 }
 }
@@ -71,6 +71,33 @@ for (size_t i = 0; i < 1024 * 1024; ++i) {
 std::cout << "write = " << write_count << std::endl;
 // read = 0, eof = 1
 // write = 1073741824
+```
+
+### stream/teestream.hpp
+
+```cpp
+namespace yu {
+namespace stream {
+class oteestream : public std::ostream {
+ public:
+  oteestream(std::ostream& out1, std::ostream& out2);
+};
+}
+}
+```
+
+example: `sample/teestream_sample.cpp`
+```cpp
+std::ostringstream out1;
+std::ostringstream out2;
+{
+  yu::stream::oteestream ots(out1, out2);
+  ots << "Hello " << "T-stream"<< " World!";
+}
+std::cout << "out1 = " << out1.str() << std::endl;
+std::cout << "out2 = " << out2.str() << std::endl;
+// out1 = Hello T-stream World!
+// out2 = Hello T-stream World!
 ```
 
 ### base64.hpp
