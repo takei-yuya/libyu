@@ -12,7 +12,6 @@ TEST(TeeStreamTest, testOTeeStream) {
 
   std::istringstream iss("Hello World!!");
   ots << iss.rdbuf();
-  ots.flush();
   EXPECT("Hello World!!", ==, out1.str());
   EXPECT("Hello World!!", ==, out2.str());
 }

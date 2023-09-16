@@ -9,37 +9,17 @@ namespace stream {
 
 class oteestreambuf : public std::streambuf {
  public:
-  oteestreambuf(std::ostream& out1, std::ostream& out2) : out1_(out1), out2_(out2), buffer_(1024) {
-    setp(buffer_.data(), buffer_.data() + buffer_.size());
-  }
-  ~oteestreambuf() {
-    sync();
+  oteestreambuf(std::ostream& out1, std::ostream& out2) : out1_(out1), out2_(out2) {
   }
  private:
-  virtual int overflow(int ch = traits_type::eof()) {
-    write_all();
-    if (ch != traits_type::eof()) {
-      pbump(1);
-      *pbase() = ch;
-    }
-    return ch;
-  }
-
-  bool write_all() {
-    size_t size = pptr() - pbase();
-    out1_.write(pbase(), size);
-    out2_.write(pbase(), size);
-    return true;
-  }
-
-  virtual int sync() {
-    if (write_all()) return 0;
-    return -1;
+  virtual std::streamsize xsputn(const char* s, std::streamsize n) {
+    out1_.write(s, n);
+    out2_.write(s, n);
+    return n;
   }
 
   std::ostream& out1_;
   std::ostream& out2_;
-  std::vector<char> buffer_;
 };
 
 class oteestream : public std::ostream {
