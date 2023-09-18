@@ -94,7 +94,7 @@ class App {
       try {
         yu::json::parse(*request_body, request);
       } catch (const std::runtime_error& e) {
-        throw yu::http::RequestError("Invalid request body: error = " + std::string(e.what()));
+        throw yu::http::TransferError("Invalid request body: error = " + std::string(e.what()));
       }
       reset_count(request.count);
       ss.set_status(200);
@@ -106,7 +106,7 @@ class App {
     ss.set_status(404, "Not Found");
     ErrorResponse response("Request path not found: method = " + ss.request_method() + ", target = " + ss.request_target());
     yu::json::stringify(*ss.send_header(), response);
-  } catch (const yu::http::RequestError& e) {
+  } catch (const yu::http::TransferError& e) {
     ss.set_status(400);
     ErrorResponse response("Request is invalid: error = " + std::string(e.what()));
     yu::json::stringify(*ss.send_header(), response);

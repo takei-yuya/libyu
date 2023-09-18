@@ -56,6 +56,29 @@ inline bool ends_with(const std::string& str, const std::string& suffix) {
   return str.size() >= suffix.size() && str.substr(str.size() - suffix.size()) == suffix;
 }
 
+inline int icompare(const std::string& lhs, const std::string& rhs) {
+  size_t len = std::min(lhs.size(), rhs.size());
+  for (size_t i = 0; i < len; ++i) {
+    if (std::toupper(lhs[i]) < std::toupper(rhs[i])) return -1;
+    if (std::toupper(lhs[i]) > std::toupper(rhs[i])) return 1;
+  }
+  if (lhs.size() < rhs.size()) return -1;
+  if (lhs.size() > rhs.size()) return 1;
+  return 0;
+}
+
+inline bool iless(const std::string& lhs, const std::string& rhs) {
+  return icompare(lhs, rhs) < 0;
+}
+
+class iLess {
+ public:
+  bool operator()(const std::string& lhs, const std::string& rhs) const { return iless(lhs, rhs); }
+  using first_argument_type  = std::string;
+  using second_argument_type = std::string;
+  using result_type          = bool;
+};
+
 }  // namespace string
 }  // namespace yu
 

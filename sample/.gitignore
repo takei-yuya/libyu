@@ -2,3 +2,4 @@
 
 echo_server
 simple_http_server
+simple_http_client

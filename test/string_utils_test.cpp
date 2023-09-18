@@ -67,3 +67,34 @@ TEST(StringTest, testEndsWith) {
   EXPECT(false, ==, yu::string::ends_with("foobar", "Bar"));
   EXPECT(false, ==, yu::string::ends_with("foobar", "__foobar"));
 }
+
+TEST(StringTest, testICompareSimple) {
+  EXPECT(0, ==, yu::string::icompare("abc", "abc"));
+  EXPECT(0, ==, yu::string::icompare("Abc", "abC"));
+  EXPECT(0, >, yu::string::icompare("Abc", "abCd"));
+  EXPECT(0, <, yu::string::icompare("AbcD", "abC"));
+}
+
+TEST(StringTest, testICompareNullChar) {
+  std::string s1("abc\0def", 7);
+  std::string s2("ABC\0def", 7);
+  std::string s3("ABC", 3);
+  EXPECT(0, ==, yu::string::icompare(s1, s2));
+  EXPECT(0, <, yu::string::icompare(s1, s3));
+}
+
+TEST(StringTest, testILess) {
+  EXPECT(false, ==, yu::string::iless("abc", "abc"));
+  EXPECT(false, ==, yu::string::iless("Abc", "abC"));
+  EXPECT(true, ==, yu::string::iless("Abc", "abCd"));
+  EXPECT(false, ==, yu::string::iless("AbcD", "abC"));
+}
+
+TEST(StringTest, testILessNullChar) {
+  std::string s1("abc\0def", 7);
+  std::string s2("ABC\0def", 7);
+  std::string s3("ABC", 3);
+  EXPECT(false, ==, yu::string::iless(s1, s2));
+  EXPECT(false, ==, yu::string::iless(s1, s3));
+  EXPECT(true, ==, yu::string::iless(s3, s1));
+}
