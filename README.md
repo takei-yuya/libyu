@@ -99,6 +99,11 @@ class oteestream : public std::ostream {
  public:
   oteestream(std::ostream& out1, std::ostream& out2);
 };
+
+class iteestream : public std::ostream {
+ public:
+  oteestream(std::istream& in, std::ostream& out);
+};
 }
 }
 ```
