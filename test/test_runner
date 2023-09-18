@@ -1,9 +1,17 @@
 #!/bin/sh
 
+tmpdir=`mktemp -d`
+trap "rm -rf '${tmpdir}'" EXIT
+
 exit_code=0
 for test in "$@"; do
-  if ! ./${test}; then
+  printf "# ${test}: "
+  if ! ./${test} >"${tmpdir}/${test}.txt" 2>&1; then
+    echo "NG"
+    cat "${tmpdir}/${test}.txt"
     exit_code=1
+  else
+    echo "OK"
   fi
 done
 exit ${exit_code}

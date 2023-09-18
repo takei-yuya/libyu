@@ -7,7 +7,7 @@
 
 #include "yu/stream/fdstream.hpp"
 
-class HTTPStreamTest : public yu::Test {
+class HTTPServerStreamTest : public yu::Test {
  public:
   virtual void prepare() {
     int ret = ::socketpair(AF_UNIX, SOCK_STREAM, 0, fds);
@@ -28,7 +28,8 @@ class HTTPStreamTest : public yu::Test {
   std::unique_ptr<yu::stream::fdstream> server;
 };
 
-TEST(HTTPStreamTest, testSimple) {
+TEST(HTTPServerStreamTest, testSimple) {
+  // Request
   *user_agent
     << "GET /test HTTP/1.1\r\n"
     << "Host: example.com\r\n"
@@ -36,22 +37,24 @@ TEST(HTTPStreamTest, testSimple) {
     << "\r\n";
   user_agent->flush();
 
-  yu::http::ServerStream hs(*server);
+  yu::http::ServerStream ss(*server);
 
-  hs.parse_request();
-  EXPECT("GET", ==, hs.request_method());
-  EXPECT("/test", ==, hs.request_target());
-  EXPECT("HTTP/1.1", ==, hs.request_version());
-  std::unordered_map<std::string, std::string> expected_headers = { { "Host", "example.com" }, { "User-Agent", "test" } };
-  EXPECT(expected_headers, ==, hs.request_headers());
+  ss.parse_request();
+  EXPECT("GET", ==, ss.request_method());
+  EXPECT("/test", ==, ss.request_target());
+  EXPECT("HTTP/1.1", ==, ss.request_version());
 
-  hs.set_status(200);
-  hs.set_header("Server", "libyu");
-  hs.set_header("Set-Cookie", "foo=1; Path=/");
-  hs.set_header("Server", "version 0.0.0");
-  hs.set_header("Set-Cookie", "bar=2; Path=/");
+  EXPECT("example.com", ==, ss.request_header().field("Host"));
+  EXPECT("test", ==, ss.request_header().field("User-Agent"));
+
+  // Response
+  ss.set_status(200);
+  ss.set_header("Server", "libyu");
+  ss.set_header("Set-Cookie", "foo=1; Path=/");
+  ss.set_header("Server", "version 0.0.0");
+  ss.set_header("Set-Cookie", "bar=2; Path=/");
   {
-    auto out = hs.send_header();
+    auto out = ss.send_header();
     *out << "Hello World!";
   }
 

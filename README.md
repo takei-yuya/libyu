@@ -264,12 +264,112 @@ std::cout << yu::json::to_json(obj) << std::endl;
 // {"str":"Hello World.","num":42,"map":{"a":3.14},"vec":[true,false]}
 ```
 
+### http/client_stream.hpp
+
+```cpp
+namespace yu {
+namespace http {
+class ClientStream {
+ public:
+  explicit ClientStream(std::iostream& stream);
+
+  void set_header(const std::string& key, const std::string& value);
+  std::unique_ptr<std::ostream> request(const std::string& request_method,
+                                        const std::string& request_target,
+                                        const std::string& request_version = "HTTP/1.1");
+
+  std::unique_ptr<std::istream> parse_respose();
+  const std::string& response_version() const;
+  int response_code() const;
+  const std::string& response_code_message() const;
+  const Header& response_header() const;
+};
+}
+}
+```
+
+example: `sample/http_client_stream_sample.cpp`
+```cpp
+int fds[2];
+::socketpair(AF_UNIX, SOCK_STREAM, 0, fds);
+
+yu::stream::fdstream user_agent(fds[0]);
+yu::stream::fdstream server(fds[1]);
+
+std::cout << "* Send request" << std::endl;
+yu::http::ClientStream cs(user_agent);
+cs.set_header("Host", "example.com");
+{
+  std::unique_ptr<std::ostream> request_body_stream = cs.request("POST", "/");
+  *request_body_stream << "Hello World!!";
+}
+
+std::cout << "* Recieve request" << std::endl;
+std::string line;
+// header
+while (std::getline(server, line)) {
+  line = yu::string::rstrip(line, "\r");
+  if (line.empty()) break;
+  std::cout << line << std::endl;
+}
+std::cout << std::endl;
+// body
+while (std::getline(server, line)) {
+  line = yu::string::rstrip(line, "\r");
+  if (line.empty()) break;
+  std::cout << line << std::endl;
+}
+
+std::cout << "* Send response" << std::endl;
+server
+  << "HTTP/1.1 200 OK\r\n"
+  << "Server: test\r\n"
+  << "Set-Cookie: foo=1; path=/\r\n"
+  << "Transfer-Encoding: chunked\r\n"
+  << "\r\n"
+  << "6\r\n"
+  << "Hello \r\n"
+  << "7\r\n"
+  << "World!!\r\n"
+  << "0\r\n"
+  << "\r\n";
+server.flush();
+
+std::cout << "* Recieve response" << std::endl;
+{
+  std::unique_ptr<std::istream> response_body_stream = cs.parse_respose();
+  std::cout << cs.response_version() << " " << cs.response_code() << " " << cs.response_code_message() << std::endl;
+  cs.response_header().write(std::cout);
+
+  std::vector<char> buffer(1024);
+  response_body_stream->read(buffer.data(), buffer.size());
+  std::string response_body(buffer.data(), buffer.data() + response_body_stream->gcount());
+  std::cout << response_body << std::endl;
+}
+// * Send request
+// * Recieve request
+// POST / HTTP/1.1
+// Host: example.com
+// Transfer-Encoding: chunked
+// 
+// D
+// Hello World!!
+// 0
+// * Send response
+// * Recieve response
+// HTTP/1.1 200 OK
+// Set-Cookie: foo=1; path=/
+// Server: test
+// Transfer-Encoding: chunked
+// 
+// Hello World!!
+```
+
 ### http/server_stream.hpp
 
 ```cpp
 namespace yu {
 namespace http {
-class RequestError : public std::runtime_error {};
 class ServerStream {
  public:
   explicit ServerStream(std::iostream& stream);
@@ -288,7 +388,7 @@ class ServerStream {
 }
 ```
 
-example: `sample/server_stream_sample.cpp`
+example: `sample/http_server_stream_sample.cpp`
 ```cpp
 int fds[2];
 ::socketpair(AF_UNIX, SOCK_STREAM, 0, fds);
@@ -298,9 +398,11 @@ yu::stream::fdstream server(fds[1]);
 
 yu::http::ServerStream ss(server);
 
+std::cout << "* Send request" << std::endl;
 user_agent
   << "POST / HTTP/1.1\r\n"
   << "Host: example.com\r\n"
+  << "User-Agent: test\r\n"
   << "Transfer-Encoding: chunked\r\n"
   << "\r\n"
   << "6\r\n"
@@ -311,14 +413,19 @@ user_agent
   << "\r\n";
 user_agent.flush();
 
-std::unique_ptr<std::istream> request_body_stream = ss.parse_request();
-std::cout << ss.request_method() << " " << ss.request_target() << " " << ss.request_version() << std::endl;
+std::cout << "* Recieve request" << std::endl;
+{
+  std::unique_ptr<std::istream> request_body_stream = ss.parse_request();
+  std::cout << ss.request_method() << " " << ss.request_target() << " " << ss.request_version() << std::endl;
+  ss.request_header().write(std::cout);
 
-std::vector<char> buffer(1024);
-request_body_stream->read(buffer.data(), buffer.size());
-std::string request_body(buffer.data(), buffer.data() + request_body_stream->gcount());
-std::cout << request_body << std::endl;
+  std::vector<char> buffer(1024);
+  request_body_stream->read(buffer.data(), buffer.size());
+  std::string request_body(buffer.data(), buffer.data() + request_body_stream->gcount());
+  std::cout << request_body << std::endl;
+}
 
+std::cout << "* Send response" << std::endl;
 ss.set_status(200);
 ss.set_header("Server", "libyu http::ServerStream");
 ss.set_header("Set-Cookie", "foo=1; path=/");
@@ -331,6 +438,7 @@ ss.set_header("Set-Cookie", "bar=2; path=/");
   *response_body_stream << "wordl!!";
 }
 
+std::cout << "* Recieve response" << std::endl;
 std::string line;
 // header
 while (std::getline(user_agent, line)) {
@@ -338,7 +446,8 @@ while (std::getline(user_agent, line)) {
   if (line.empty()) break;
   std::cout << line << std::endl;
 }
-// chunked body
+std::cout << std::endl;
+// body
 while (std::getline(user_agent, line)) {
   line = yu::string::rstrip(line, "\r");
   if (line.empty()) break;
@@ -347,13 +456,22 @@ while (std::getline(user_agent, line)) {
 
 close(fds[0]);
 close(fds[1]);
+// * Send request
+// * Recieve request
 // POST / HTTP/1.1
+// Host: example.com
+// Transfer-Encoding: chunked
+// User-Agent: test
+// 
 // Hello World!
+// * Send response
+// * Recieve response
 // HTTP/1.1 200 OK
 // Set-Cookie: foo=1; path=/
 // Set-Cookie: bar=2; path=/
 // Server: libyu http::ServerStream,version 0.0.0
 // Transfer-Encoding: chunked
+// 
 // 16
 // It's wonderful wordl!!
 // 0
