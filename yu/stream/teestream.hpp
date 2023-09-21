@@ -20,6 +20,18 @@ class oteestreambuf : public std::streambuf {
     return n;
   }
 
+  int sync() {
+    out1_.flush();
+    out2_.flush();
+    return 0;
+  }
+
+  int overflow(int ch = traits_type::eof()) {
+    out1_.put(ch);
+    out2_.put(ch);
+    return ch;
+  }
+
   std::ostream& out1_;
   std::ostream& out2_;
 };
