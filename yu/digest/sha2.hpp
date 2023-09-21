@@ -169,7 +169,7 @@ static const std::initializer_list<uint64_t> kSha512RoundConstants = {
 };
 
 
-template <typename word_type, typename message_length_type, int hashbit, int kChunkSize, int kRound>
+template <typename word_type, typename message_length_type, int kHashBit, int kChunkSize, int kRound>
 class sha2_base_streambuf : public std::streambuf {
  public:
   sha2_base_streambuf(std::initializer_list<word_type> init_status, std::initializer_list<word_type> round_constants)
@@ -182,7 +182,7 @@ class sha2_base_streambuf : public std::streambuf {
     int width = std::numeric_limits<word_type>::digits / 4;
     std::ostringstream oss;
     oss << std::hex << std::setfill('0');
-    for (int i = 0; i < hashbit / std::numeric_limits<word_type>::digits; ++i) {
+    for (int i = 0; i < kHashBit / std::numeric_limits<word_type>::digits; ++i) {
       oss << std::setw(width) << hs_[i];
     }
     return oss.str();
@@ -190,8 +190,8 @@ class sha2_base_streambuf : public std::streambuf {
 
   std::vector<char> hash_bin() {
     finish();
-    std::vector<char> result(hashbit / CHAR_BIT);
-    for (int i = 0; i < hashbit / std::numeric_limits<word_type>::digits; ++i) {
+    std::vector<char> result(kHashBit / CHAR_BIT);
+    for (int i = 0; i < kHashBit / std::numeric_limits<word_type>::digits; ++i) {
       write_as_bigendian(hs_[i], &result[i * sizeof(word_type)]);
     }
     return result;
