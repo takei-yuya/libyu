@@ -22,6 +22,35 @@ inline T rotr(T n, int s) {
   return (n >> s) | (n << (std::numeric_limits<T>::digits - s));
 }
 
+// TODO: move to numric_util? or something else
+typedef union u128 {
+  u128() : u64s() {}
+  char bytes[16];
+  struct u64s {
+    u64s() : hi(0), lo(0) {}
+    uint64_t hi;
+    uint64_t lo;
+  } u64s;
+} u128;
+static_assert(sizeof(u128) == 16);
+
+template <typename T>
+u128& operator+=(u128& lhs, T rhs) {
+  if (std::numeric_limits<uint64_t>::max() - lhs.u64s.lo < static_cast<uint64_t>(rhs)) {
+    ++lhs.u64s.hi;
+  }
+  lhs.u64s.lo += rhs;
+  return lhs;
+}
+
+template <typename T>
+u128 operator+(const u128& lhs, T rhs) {
+  u128 result(lhs);
+  result += rhs;
+  return result;
+}
+// TODO: add more operators
+
 // TODO: move to system? or lang? endian_utils?
 // buf must have 4 byte capacity
 inline char* write_as_bigendian(uint32_t n, char* buf) {
@@ -45,26 +74,11 @@ inline char* write_as_bigendian(uint64_t n, char* buf) {
   return buf + 8;
 }
 
-// TODO: __uint128_t
 // buf must have 16 byte capacity
-inline char* write_as_bigendian(__uint128_t n, char* buf) {
-  *(buf +  0) = ((n >> 120) & 0b11111111);
-  *(buf +  1) = ((n >> 112) & 0b11111111);
-  *(buf +  2) = ((n >> 104) & 0b11111111);
-  *(buf +  3) = ((n >>  96) & 0b11111111);
-  *(buf +  4) = ((n >>  88) & 0b11111111);
-  *(buf +  5) = ((n >>  80) & 0b11111111);
-  *(buf +  6) = ((n >>  72) & 0b11111111);
-  *(buf +  7) = ((n >>  64) & 0b11111111);
-  *(buf +  8) = ((n >>  56) & 0b11111111);
-  *(buf +  9) = ((n >>  48) & 0b11111111);
-  *(buf + 10) = ((n >>  40) & 0b11111111);
-  *(buf + 11) = ((n >>  32) & 0b11111111);
-  *(buf + 12) = ((n >>  24) & 0b11111111);
-  *(buf + 13) = ((n >>  16) & 0b11111111);
-  *(buf + 14) = ((n >>   8) & 0b11111111);
-  *(buf + 15) = ((n >>   0) & 0b11111111);
-  return buf + 8;
+inline char* write_as_bigendian(const u128 n, char* buf) {
+  buf = write_as_bigendian(n.u64s.hi, buf);
+  buf = write_as_bigendian(n.u64s.lo, buf);
+  return buf;
 }
 
 // buf must have 4 byte data
@@ -175,7 +189,7 @@ template <typename word_type, typename message_length_type, int kHashBit, int kC
 class sha2_base_streambuf : public std::streambuf {
  public:
   sha2_base_streambuf(std::initializer_list<word_type> init_status, std::initializer_list<word_type> round_constants)
-    : hs_(init_status), k_(round_constants), buffer_(kChunkSize / CHAR_BIT), message_size_(0), finished_(false) {
+    : hs_(init_status), k_(round_constants), buffer_(kChunkSize / CHAR_BIT), message_size_(), finished_(false) {
     setp(buffer_.data(), buffer_.data() + buffer_.size());
   }
 
@@ -296,22 +310,22 @@ class sha224_streambuf : public sha2_base_streambuf<uint32_t, uint64_t, 224, 512
   sha224_streambuf() : sha2_base_streambuf(kSha224InitStatus, kSha256RoundConstants) {}
 };
 
-class sha512_streambuf : public sha2_base_streambuf<uint64_t, __uint128_t, 512, 1024, 80> {
+class sha512_streambuf : public sha2_base_streambuf<uint64_t, u128, 512, 1024, 80> {
  public:
   sha512_streambuf() : sha2_base_streambuf(kSha512InitStatus, kSha512RoundConstants) {}
 };
 
-class sha384_streambuf : public sha2_base_streambuf<uint64_t, __uint128_t, 384, 1024, 80> {
+class sha384_streambuf : public sha2_base_streambuf<uint64_t, u128, 384, 1024, 80> {
  public:
   sha384_streambuf() : sha2_base_streambuf(kSha384InitStatus, kSha512RoundConstants) {}
 };
 
-class sha512_224_streambuf : public sha2_base_streambuf<uint64_t, __uint128_t, 224, 1024, 80> {
+class sha512_224_streambuf : public sha2_base_streambuf<uint64_t, u128, 224, 1024, 80> {
  public:
   sha512_224_streambuf() : sha2_base_streambuf(kSha512_224InitStatus, kSha512RoundConstants) {}
 };
 
-class sha512_256_streambuf : public sha2_base_streambuf<uint64_t, __uint128_t, 256, 1024, 80> {
+class sha512_256_streambuf : public sha2_base_streambuf<uint64_t, u128, 256, 1024, 80> {
  public:
   sha512_256_streambuf() : sha2_base_streambuf(kSha512_256InitStatus, kSha512RoundConstants) {}
 };

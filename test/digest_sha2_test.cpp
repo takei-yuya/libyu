@@ -17,6 +17,25 @@ TEST(SHA2Test, testRotR64) {
   EXPECT(0xF0123456789ABCDEULL, ==, yu::digest::rotr<uint64_t>(0x123456789ABCDEF0ULL, 8));
 }
 
+TEST(SHA2Test, testU128) {
+  yu::digest::u128 n;
+  EXPECT(0ULL, ==, n.u64s.hi);
+  EXPECT(0ULL, ==, n.u64s.lo);
+  n += 0x8000000000000000ULL;
+  EXPECT(0ULL, ==, n.u64s.hi);
+  EXPECT(0x8000000000000000ULL, ==, n.u64s.lo);
+  n += 0x8000000000000000ULL;
+  EXPECT(1ULL, ==, n.u64s.hi);
+  EXPECT(0ULL, ==, n.u64s.lo);
+  n += 0x8000000000000000ULL;
+  EXPECT(1ULL, ==, n.u64s.hi);
+  EXPECT(0x8000000000000000ULL, ==, n.u64s.lo);
+
+  yu::digest::u128 m = n + 0x8000000000000000ULL;
+  EXPECT(2ULL, ==, m.u64s.hi);
+  EXPECT(0ULL, ==, m.u64s.lo);
+}
+
 TEST(SHA2Test, testSHA256) {
   EXPECT("47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU=", ==, yu::digest::sha256_base64(""));
   EXPECT("e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855", ==, yu::digest::sha256_hex(""));
