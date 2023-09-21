@@ -103,3 +103,55 @@ TEST(SHA2Test, testSHA384) {
   EXPECT("275c20b0cd66b60ee77e650eda38ad2cb4204c1010e53588bff67fef95a0fe413e74393adacced7187a1ad5735cd7b4c", ==, yu::digest::sha384_hex(Xs(127)));
   EXPECT("81e3f90c8c6c8899581b1a04070b779b04011464c68a8b4377529ba9d6b49b45bde26a20acb5ba971da47baf3bca512d", ==, yu::digest::sha384_hex(Xs(128)));
 }
+
+TEST(SHA2Test, testSHA512_224) {
+  EXPECT("btDdAoBvqJ4l3gYMGdOshsq7h9ag3dBcMzuE9A==", ==, yu::digest::sha512_224_base64(""));
+  EXPECT("6ed0dd02806fa89e25de060c19d3ac86cabb87d6a0ddd05c333b84f4", ==, yu::digest::sha512_224_hex(""));
+  EXPECT("53a8f45fd2b7631b90d2c84b5dd223389b90ef503059f4c86fe6857d", ==, yu::digest::sha512_224_hex("Hello World."));
+  EXPECT("4634270f707b6a54daae7530460842e20e37ed265ceee9a43e8924aa", ==, yu::digest::sha512_224_hex("abc"));
+
+  // for (( i = 112; i < 129; ++i )); do yes X | paste -d '' -s | head -c ${i} | openssl sha512-224 | sed 's/.*= \(.*\)/  EXPECT("\1", ==, yu::digest::sha512_224_hex(Xs('${i}')));/'; done
+  EXPECT("1d818da21eddea9ec22f5dd989d632f58c1491cc461dcb0578d11985", ==, yu::digest::sha512_224_hex(Xs(112)));
+  EXPECT("8b3e91227f8cedc94a452aa6714e1272ed10605b6c18645d25412771", ==, yu::digest::sha512_224_hex(Xs(113)));
+  EXPECT("0c774444508532f0536a300679f36f5f124944c3835d6bca64d12fa3", ==, yu::digest::sha512_224_hex(Xs(114)));
+  EXPECT("f1d948a193b72bc6dd8a96b2cc650622f1d8307341c7dc3b4eaa840f", ==, yu::digest::sha512_224_hex(Xs(115)));
+  EXPECT("5f2f212271e0728d01a445f72b66419a8d8fc9c8cc5d2f579d62e7d5", ==, yu::digest::sha512_224_hex(Xs(116)));
+  EXPECT("c28114189d96e707993145bbe844ea5eb7fb2cbe1eb8d4de8daef652", ==, yu::digest::sha512_224_hex(Xs(117)));
+  EXPECT("26f2b97d02bb5739935e494e935d2f91ed6be5794e5b937f21cd7a80", ==, yu::digest::sha512_224_hex(Xs(118)));
+  EXPECT("77d2f7b15997176a2224dfe689bf5770ed8836f0da329f5be9b8b1d0", ==, yu::digest::sha512_224_hex(Xs(119)));
+  EXPECT("02a099478195e811b3c92d90f09e92bae770a5c623dd67d981a17921", ==, yu::digest::sha512_224_hex(Xs(120)));
+  EXPECT("914e1a132ff59da516faeec1c2caddc421a3a0af80d0f8646ffdd2c9", ==, yu::digest::sha512_224_hex(Xs(121)));
+  EXPECT("61c23dcc39b9d8cf65c86f8f37d25ec5a11b8fdf768c9331be00daed", ==, yu::digest::sha512_224_hex(Xs(122)));
+  EXPECT("8c384ef986b1cc3ad01738fa7bace70fb0fa78f10a38ed8169db19a1", ==, yu::digest::sha512_224_hex(Xs(123)));
+  EXPECT("ddd7d62704560eba642e8252f344b491ee8d433b94333d2230f504cc", ==, yu::digest::sha512_224_hex(Xs(124)));
+  EXPECT("f4b06b5192c21537c8f69c6bee98cf8a93e127933b7c2273fefec84b", ==, yu::digest::sha512_224_hex(Xs(125)));
+  EXPECT("81397256b2cc72ccb8584cc7b3a7848a5a7b23908a3b40089fa56818", ==, yu::digest::sha512_224_hex(Xs(126)));
+  EXPECT("a019d957512d57fddebd3d879ba07384438913cc0976b8bee052e8cd", ==, yu::digest::sha512_224_hex(Xs(127)));
+  EXPECT("5a60066cddb26a204817564f58a23b81a2142e9fabef769a7b779db8", ==, yu::digest::sha512_224_hex(Xs(128)));
+}
+
+TEST(SHA2Test, testSHA512_256) {
+  EXPECT("xnK40e9W7Sirh8NiLFEUBpvdOte4+XN0mNDAHs7wlno=", ==, yu::digest::sha512_256_base64(""));
+  EXPECT("c672b8d1ef56ed28ab87c3622c5114069bdd3ad7b8f9737498d0c01ecef0967a", ==, yu::digest::sha512_256_hex(""));
+  EXPECT("cc296ed308cbe384e0de66c8580b3373ac2ae88dd53a9bd8542df1431e87f01d", ==, yu::digest::sha512_256_hex("Hello World."));
+  EXPECT("53048e2681941ef99b2e29b76b4c7dabe4c2d0c634fc6d46e0e2f13107e7af23", ==, yu::digest::sha512_256_hex("abc"));
+
+  // for (( i = 112; i < 129; ++i )); do yes X | paste -d '' -s | head -c ${i} | openssl sha512-256 | sed 's/.*= \(.*\)/  EXPECT("\1", ==, yu::digest::sha512_256_hex(Xs('${i}')));/'; done
+  EXPECT("b3c8549d4cebcd8229ff2cdbc26e1460b3fec8727fd0ccefaaa8bf50c9c68d96", ==, yu::digest::sha512_256_hex(Xs(112)));
+  EXPECT("093c34acf07fdc107307064a407707f5d5ac18bb3e051c6f1ccf5584aa79533f", ==, yu::digest::sha512_256_hex(Xs(113)));
+  EXPECT("1988401a9acc91237313e8bab0307d646245557ef0e3cf5710b0b5259b819034", ==, yu::digest::sha512_256_hex(Xs(114)));
+  EXPECT("0797d9c472c1d1cad16a27cdd8a93f1aaf51ff9102eccefea0191693d0dbce6b", ==, yu::digest::sha512_256_hex(Xs(115)));
+  EXPECT("8e7c2dce8900b8dce29545329e42de140eb762054665441edf6bf98dfddeafc7", ==, yu::digest::sha512_256_hex(Xs(116)));
+  EXPECT("be29a08344e1ef221dbef179563970f6f8b112ca5f59614a9dd09eff69a0408d", ==, yu::digest::sha512_256_hex(Xs(117)));
+  EXPECT("b5fdf067694575ff60baa9870f445d9986759785e51aaac64fcbbba6b6e347c7", ==, yu::digest::sha512_256_hex(Xs(118)));
+  EXPECT("30dd15ee4eb6122237ea49d36e1bf5973652b1398022465b38141b2e84cf188c", ==, yu::digest::sha512_256_hex(Xs(119)));
+  EXPECT("db768c22d0d361121c607d6cb2105b52feb3729e1478d8732bab96ec30011d5f", ==, yu::digest::sha512_256_hex(Xs(120)));
+  EXPECT("c44d86bd7e1c9dcfa25a12e53f81100bff59232cc122bb59a10f3fdf07ee492b", ==, yu::digest::sha512_256_hex(Xs(121)));
+  EXPECT("b458721cccb44a529771fe57aebddcbd1d44e32a52443e16f33fa37b7495da55", ==, yu::digest::sha512_256_hex(Xs(122)));
+  EXPECT("ebbe22add7262a597fe14ae0ff2610882d53cd8d06b5f44b4924c9fbbfd05401", ==, yu::digest::sha512_256_hex(Xs(123)));
+  EXPECT("7f025399ac931a910385f91f7eea8d055413296de3e45ac97bb78080ec1a2d69", ==, yu::digest::sha512_256_hex(Xs(124)));
+  EXPECT("30246027d0b0511b1c6bf899715688a4b0e1bccafefd813b4df898550f81d65a", ==, yu::digest::sha512_256_hex(Xs(125)));
+  EXPECT("97b83cd15680c709a88dfd1258b34717d5fb9126f462f363967aaae73bbefc35", ==, yu::digest::sha512_256_hex(Xs(126)));
+  EXPECT("d417d20215cdc65351afec51e889fe9bcd5db93263c9afa2833bb90ab9487f6d", ==, yu::digest::sha512_256_hex(Xs(127)));
+  EXPECT("d16103e8a4e06a4b8cdaa552bf0a0f9297d68f89e5fcb092ab484ddf2db4519d", ==, yu::digest::sha512_256_hex(Xs(128)));
+}

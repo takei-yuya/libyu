@@ -55,10 +55,14 @@ std::cout << yu::digest::sha256_hex(message) << std::endl;
 std::cout << yu::digest::sha224_hex(message) << std::endl;
 std::cout << yu::digest::sha512_hex(message) << std::endl;
 std::cout << yu::digest::sha384_hex(message) << std::endl;
+std::cout << yu::digest::sha512_224_hex(message) << std::endl;
+std::cout << yu::digest::sha512_256_hex(message) << std::endl;
 // f4bb1975bf1f81f76ce824f7536c1e101a8060a632a52289d530a6f600d52c92
 // f871ab68ccdf47a7afb935f9f2f05365a61dee3aa6ebb7ef22be5de1
 // fee4e02329c0e1c9005d0590f4773d8e519e0cda859775ac9c83641e3a960c57e7ad461354e4860722b6e3c161e493e04f5ef07d9169ff7bdab659d6a57cc316
 // ded020e0ea23fd2d983f7d833c44811f9e3fa96e412f84f7427250af07a5630e26366a69c44bac94fd31ec73b1b847d1
+// 53a8f45fd2b7631b90d2c84b5dd223389b90ef503059f4c86fe6857d
+// cc296ed308cbe384e0de66c8580b3373ac2ae88dd53a9bd8542df1431e87f01d
 ```
 
 ### lang/lexical_cast.hpp
