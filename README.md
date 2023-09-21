@@ -43,7 +43,7 @@ std::string sha256_hex(const std::string& str);
 std::vector<char> sha256_bin(const std::string& str);
 std::string sha256_base64(const std::string& str);
 
-// same as 224, 512 and 384
+// same as 224, 512, 384, 512_224 and 512_256
 }
 }
 ```
