@@ -33,18 +33,22 @@ namespace yu {
 namespace digest {
 class sha256_stream : public std::ostream {
  public:
+  sha256_stream();
   std::string hash();
 };
 class sha224_stream : public std::ostream {
  public:
+  sha224_stream();
   std::string hash();
 };
 class sha512_stream : public std::ostream {
  public:
+  sha512_stream();
   std::string hash();
 };
 class sha384_stream : public std::ostream {
  public:
+  sha384_stream();
   std::string hash();
 };
 

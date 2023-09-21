@@ -88,6 +88,7 @@ inline const char* read_as_bigendian(uint64_t& n, const char* buf) {
   return buf + 8;
 }
 
+namespace detail {
 inline static uint32_t Ch(uint32_t e, uint32_t f, uint32_t g) {
   return (e & f) ^ ((~e) & g);
 }
@@ -210,7 +211,7 @@ class sha2_base_streambuf : public std::streambuf {
     message_size_ += n * CHAR_BIT;
 
     if (ch != traits_type::eof()) {
-      *pbase() = ch;
+      *pbase() = static_cast<char>(ch);
       pbump(1);
     }
     return ch;
@@ -283,20 +284,6 @@ class sha256_streambuf : public sha2_base_streambuf<uint32_t, uint64_t, 512, 64>
   }
 };
 
-class sha256_stream : public std::ostream {
- public:
-  sha256_stream() : std::ostream(&buf_), buf_() {}
-  std::string hash() { return buf_.hash(); }
- private:
-  sha256_streambuf buf_;
-};
-
-std::string sha256(const std::string& str) {
-  sha256_stream sha256s;
-  sha256s.write(str.c_str(), str.size());
-  return sha256s.hash();
-}
-
 class sha224_streambuf : public sha2_base_streambuf<uint32_t, uint64_t, 512, 64> {
  public:
   sha224_streambuf() : sha2_base_streambuf(kSha224InitStatus, kSha256RoundConstants) {}
@@ -311,20 +298,6 @@ class sha224_streambuf : public sha2_base_streambuf<uint32_t, uint64_t, 512, 64>
     return oss.str();
   }
 };
-
-class sha224_stream : public std::ostream {
- public:
-  sha224_stream() : std::ostream(&buf_), buf_() {}
-  std::string hash() { return buf_.hash(); }
- private:
-  sha224_streambuf buf_;
-};
-
-std::string sha224(const std::string& str) {
-  sha224_stream sha224s;
-  sha224s.write(str.c_str(), str.size());
-  return sha224s.hash();
-}
 
 class sha512_streambuf : public sha2_base_streambuf<uint64_t, __uint128_t, 1024, 80> {
  public:
@@ -341,20 +314,6 @@ class sha512_streambuf : public sha2_base_streambuf<uint64_t, __uint128_t, 1024,
   }
 };
 
-class sha512_stream : public std::ostream {
- public:
-  sha512_stream() : std::ostream(&buf_), buf_() {}
-  std::string hash() { return buf_.hash(); }
- private:
-  sha512_streambuf buf_;
-};
-
-std::string sha512(const std::string& str) {
-  sha512_stream sha512s;
-  sha512s.write(str.c_str(), str.size());
-  return sha512s.hash();
-}
-
 class sha384_streambuf : public sha2_base_streambuf<uint64_t, __uint128_t, 1024, 80> {
  public:
   sha384_streambuf() : sha2_base_streambuf(kSha384InitStatus, kSha512RoundConstants) {}
@@ -369,14 +328,59 @@ class sha384_streambuf : public sha2_base_streambuf<uint64_t, __uint128_t, 1024,
     return oss.str();
   }
 };
+}  // namespace detail
+
+// stream interface
+class sha256_stream : public std::ostream {
+ public:
+  sha256_stream() : std::ostream(&buf_), buf_() {}
+  std::string hash() { return buf_.hash(); }
+ private:
+  detail::sha256_streambuf buf_;
+};
+
+class sha224_stream : public std::ostream {
+ public:
+  sha224_stream() : std::ostream(&buf_), buf_() {}
+  std::string hash() { return buf_.hash(); }
+ private:
+  detail::sha224_streambuf buf_;
+};
+
+class sha512_stream : public std::ostream {
+ public:
+  sha512_stream() : std::ostream(&buf_), buf_() {}
+  std::string hash() { return buf_.hash(); }
+ private:
+  detail::sha512_streambuf buf_;
+};
 
 class sha384_stream : public std::ostream {
  public:
   sha384_stream() : std::ostream(&buf_), buf_() {}
   std::string hash() { return buf_.hash(); }
  private:
-  sha384_streambuf buf_;
+  detail::sha384_streambuf buf_;
 };
+
+// string interface
+std::string sha256(const std::string& str) {
+  sha256_stream sha256s;
+  sha256s.write(str.c_str(), str.size());
+  return sha256s.hash();
+}
+
+std::string sha224(const std::string& str) {
+  sha224_stream sha224s;
+  sha224s.write(str.c_str(), str.size());
+  return sha224s.hash();
+}
+
+std::string sha512(const std::string& str) {
+  sha512_stream sha512s;
+  sha512s.write(str.c_str(), str.size());
+  return sha512s.hash();
+}
 
 std::string sha384(const std::string& str) {
   sha384_stream sha384s;
