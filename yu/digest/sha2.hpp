@@ -172,7 +172,6 @@ class sha2_base_streambuf : public std::streambuf {
     : hs_(init_status), k_(round_constants), buffer_(kChunkSize / CHAR_BIT), message_size_(0), finished_(false) {
     setp(buffer_.data(), buffer_.data() + buffer_.size());
   }
-
   virtual std::string hash() = 0;
 
  protected:
@@ -182,12 +181,12 @@ class sha2_base_streambuf : public std::streambuf {
 
     std::streamsize n = pptr() - pbase();
     message_length_type message_size = message_size_ + n * CHAR_BIT;
-    std::streamsize free_byte_in_chunk = kChunkSize / CHAR_BIT - n;
+    size_t free_byte_in_chunk = kChunkSize / CHAR_BIT - n;
 
     overflow(0b10000000);
-    if (free_byte_in_chunk < 9) {
+    if (free_byte_in_chunk < (1 + sizeof(message_length_type))) {
       // no space for message length
-      for (int i = 0; i < free_byte_in_chunk; ++i) {  // ensure process current chunk, +1 for loop
+      for (size_t i = 0; i < free_byte_in_chunk; ++i) {  // ensure process current chunk, +1 for loop
         overflow(0b00000000);
       }
     }
