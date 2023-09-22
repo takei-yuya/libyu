@@ -9,7 +9,7 @@ class UTF8Test : public yu::Test {
 };
 
 TEST(UTF8Test, testEncodeASCII) {
-  for (int ch = '\x00'; ch < '\x80'; ++ch) {
+  for (uint32_t ch = 0x00; ch < 0x80; ++ch) {
     EXPECT(std::string(1, static_cast<char>(ch)), ==, yu::utf8::encode(ch));
   }
 }

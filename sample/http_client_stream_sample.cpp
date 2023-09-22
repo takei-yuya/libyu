@@ -58,7 +58,7 @@ int main() {
     cs.response_header().write(std::cout);
 
     std::vector<char> buffer(1024);
-    response_body_stream->read(buffer.data(), buffer.size());
+    response_body_stream->read(buffer.data(), static_cast<std::streamsize>(buffer.size()));
     std::string response_body(buffer.data(), buffer.data() + response_body_stream->gcount());
     std::cout << response_body << std::endl;
   }

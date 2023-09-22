@@ -105,7 +105,7 @@ TEST(HTTPCommonTest, testChunkedIStream) {
   std::istringstream iss("6\r\nHello \r\n7\r\nWorld!!\r\n0\r\n\r\n");
   yu::http::chunked_istream cis(iss);
   std::vector<char> buffer(1024);
-  cis.read(buffer.data(), buffer.size());
+  cis.read(buffer.data(), static_cast<std::streamsize>(buffer.size()));
   std::string actual(buffer.data(), buffer.data() + cis.gcount());
   EXPECT("Hello World!!", ==, actual);
 }
@@ -115,11 +115,11 @@ TEST(HTTPCommonTest, testSizedIStream) {
   yu::http::sized_istream sis(iss, 5);
 
   std::vector<char> buffer(1024);
-  sis.read(buffer.data(), buffer.size());
+  sis.read(buffer.data(), static_cast<std::streamsize>(buffer.size()));
   std::string actual(buffer.data(), buffer.data() + sis.gcount());
   EXPECT("Hello", ==, actual);
 
-  iss.read(buffer.data(), buffer.size());
+  iss.read(buffer.data(), static_cast<std::streamsize>(buffer.size()));
   std::string actual_rest(buffer.data(), buffer.data() + iss.gcount());
   EXPECT(" World!!", ==, actual_rest);
 }

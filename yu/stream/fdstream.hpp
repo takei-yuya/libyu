@@ -36,13 +36,13 @@ class fdstreambuf : public std::streambuf {
   }
 
   bool write_all() {
-    size_t size = pptr() - pbase();
+    size_t size = static_cast<size_t>(pptr() - pbase());
     size_t total_sent = 0;
     while (total_sent < size) {
       ssize_t ret;
       NO_INTR(ret, ::write(fd_, pbase() + total_sent, size - total_sent))
       if (ret < 0) return false;
-      total_sent += ret;
+      total_sent += static_cast<size_t>(ret);
     }
     pbump(static_cast<int>(-size));
     return true;

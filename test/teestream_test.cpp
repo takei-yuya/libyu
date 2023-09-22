@@ -40,8 +40,8 @@ TEST(TeeStreamTest, testITeeStreamLarge) {
   yu::stream::iteestream its(iss, oss);
 
   std::vector<char> read_buf(buf.size());
-  its.read(read_buf.data(), read_buf.size());
-  std::string actual(read_buf.data(), its.gcount());
+  its.read(read_buf.data(), static_cast<std::streamsize>(read_buf.size()));
+  std::string actual(read_buf.data(), static_cast<size_t>(its.gcount()));
 
   EXPECT(input, ==, actual);
   EXPECT(input, ==, oss.str());

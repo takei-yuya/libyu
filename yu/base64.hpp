@@ -24,7 +24,7 @@ class Radix64CRC24 {
   }
 
   Radix64CRC24& addChar(char ch) {
-    crc_ ^= (ch << 16);
+    crc_ ^= (static_cast<uint32_t>(ch) << 16);
     for (size_t i = 0; i < 8; ++i) {
       crc_ <<= 1;
       if (crc_ & 0x1000000L) {
@@ -58,19 +58,19 @@ class Encoder {
       crc24.addChar(static_cast<char>(ch));
       if ((read_count % 3) == 0) {
         output(out, alphabet_table_[((ch & 0b11111100) >> 2)], write_count);
-        buf = (ch & 0b00000011) << 4;
+        buf = static_cast<char>((ch & 0b00000011) << 4);
       } else if ((read_count % 3) == 1) {
-        output(out, alphabet_table_[buf | ((ch & 0b11110000) >> 4)], write_count);
-        buf = (ch & 0b00001111) << 2;
+        output(out, alphabet_table_[static_cast<size_t>(buf | ((ch & 0b11110000) >> 4))], write_count);
+        buf = static_cast<char>((ch & 0b00001111) << 2);
       } else {
-        output(out, alphabet_table_[buf | ((ch & 0b11000000) >> 6)], write_count);
+        output(out, alphabet_table_[static_cast<size_t>(buf | ((ch & 0b11000000) >> 6))], write_count);
         output(out, alphabet_table_[((ch & 0b00111111) >> 0)], write_count);
       }
       ++read_count;
     }
 
     if (read_count % 3 != 0) {
-      output(out, alphabet_table_[buf], write_count);
+      output(out, alphabet_table_[static_cast<size_t>(buf)], write_count);
       if (pad_ != kNoPadding) {
         for (size_t i = 0; i < 3 - (read_count % 3); ++i) output(out, pad_, write_count);
       }
@@ -133,13 +133,13 @@ class Decoder {
     char buf;
     int ch;
     while ((ch = in.get()) != EOF) {
-      char bits = bit_table_[ch];
+      char bits = bit_table_[static_cast<size_t>(ch)];
       if (bits == kInvalidChar) throw InvalidBase64("unexpected char: ch = '" + std::string(1, static_cast<char>(ch)) + "'");
       if (bits == kSkipChar) continue;
       if (bits == kPadChar) {
         ++read_count;
         while ((ch = in.get()) != EOF) {
-          char bits = bit_table_[ch];
+          char bits = bit_table_[static_cast<size_t>(ch)];
           if (bits == kSkipChar) continue;
           if (bits == kPadChar) { ++read_count; continue; }
           throw InvalidBase64("unexpected char after padding: ch = '" + std::string(1, static_cast<char>(ch)) + "'");
@@ -148,19 +148,19 @@ class Decoder {
       }
 
       if ((read_count % 4) == 0) {
-        buf = (bits & 0b00111111) << 2;
+        buf = static_cast<char>((bits & 0b00111111) << 2);
       } else if ((read_count % 4) == 1) {
-        char ch = buf | ((bits & 0b00110000) >> 4);
+        char ch = static_cast<char>(buf | ((bits & 0b00110000) >> 4));
         crc24.addChar(ch);
         out.put(ch);
-        buf = (bits & 0b00001111) << 4;
+        buf = static_cast<char>((bits & 0b00001111) << 4);
       } else if ((read_count % 4) == 2) {
-        char ch = buf | ((bits & 0b00111100) >> 2);
+        char ch = static_cast<char>(buf | ((bits & 0b00111100) >> 2));
         crc24.addChar(ch);
         out.put(ch);
-        buf = (bits & 0b00000011) << 6;
+        buf = static_cast<char>((bits & 0b00000011) << 6);
       } else {
-        char ch = buf | ((bits & 0b00111111) >> 0);
+        char ch = static_cast<char>(buf | ((bits & 0b00111111) >> 0));
         crc24.addChar(ch);
         out.put(ch);
         buf = 0;
@@ -181,13 +181,13 @@ class Decoder {
   void initialize_bit_table(char char62, char char63, char pad, const std::string& allowed_white_space) {
     bit_table_.resize(256, kInvalidChar);
     char i = 0;
-    for (char ch = 'A'; ch <= 'Z'; ++ch) bit_table_[ch] = i++;
-    for (char ch = 'a'; ch <= 'z'; ++ch) bit_table_[ch] = i++;
-    for (char ch = '0'; ch <= '9'; ++ch) bit_table_[ch] = i++;
-    bit_table_[char62] = i++;
-    bit_table_[char63] = i++;
-    bit_table_[pad] = kPadChar;
-    for (char ch : allowed_white_space) bit_table_[ch] = kSkipChar;
+    for (char ch = 'A'; ch <= 'Z'; ++ch) bit_table_[static_cast<size_t>(ch)] = i++;
+    for (char ch = 'a'; ch <= 'z'; ++ch) bit_table_[static_cast<size_t>(ch)] = i++;
+    for (char ch = '0'; ch <= '9'; ++ch) bit_table_[static_cast<size_t>(ch)] = i++;
+    bit_table_[static_cast<size_t>(char62)] = i++;
+    bit_table_[static_cast<size_t>(char63)] = i++;
+    bit_table_[static_cast<size_t>(pad)] = kPadChar;
+    for (char ch : allowed_white_space) bit_table_[static_cast<size_t>(ch)] = kSkipChar;
   }
 
   char pad_;

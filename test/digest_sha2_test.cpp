@@ -4,7 +4,7 @@
 
 class SHA2Test : public yu::Test {
  protected:
-  std::string Xs(int n) { return std::string(n, 'X'); }
+  std::string Xs(size_t n) { return std::string(n, 'X'); }
 };
 
 TEST(SHA2Test, testRotR32) {

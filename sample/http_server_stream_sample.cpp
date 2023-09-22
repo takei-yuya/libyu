@@ -36,7 +36,7 @@ int main() {
     ss.request_header().write(std::cout);
 
     std::vector<char> buffer(1024);
-    request_body_stream->read(buffer.data(), buffer.size());
+    request_body_stream->read(buffer.data(), static_cast<std::streamsize>(buffer.size()));
     std::string request_body(buffer.data(), buffer.data() + request_body_stream->gcount());
     std::cout << request_body << std::endl;
   }
