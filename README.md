@@ -93,7 +93,7 @@ class fdstream : public std::iostream {
 }
 ```
 
-example: `sample/fdstream_sample.cpp`
+example: `sample/stream_fdstream_sample.cpp`
 ```cpp
 yu::stream::fdstream fds(1);
 fds << "Hello World." << std::endl;
@@ -113,15 +113,15 @@ class nullstream : public std::iostream {
 }
 ```
 
-example: `sample/nullstream_sample.cpp`
+example: `sample/stream_nullstream_sample.cpp`
 ```cpp
 yu::stream::nullstream ns;
 std::vector<char> buffer(1024);
-ns.read(buffer.data(), buffer.size());
+ns.read(buffer.data(), static_cast<std::streamsize>(buffer.size()));
 std::cout << "read = " << ns.gcount() << ", eof = " << ns.eof() << std::endl;
 size_t write_count = 0;
 for (size_t i = 0; i < 1024 * 1024; ++i) {
-  ns.write(buffer.data(), buffer.size());
+  ns.write(buffer.data(), static_cast<std::streamsize>(buffer.size()));
   write_count += buffer.size();
 }
 std::cout << "write = " << write_count << std::endl;
@@ -147,7 +147,7 @@ class iteestream : public std::ostream {
 }
 ```
 
-example: `sample/teestream_sample.cpp`
+example: `sample/stream_teestream_sample.cpp`
 ```cpp
 {
   std::ostringstream out1;
@@ -191,7 +191,7 @@ class Encoder {
 // base64 encode
 std::string encode(const std::string& str, size_t wrap_width = 76);
 // base64 encode use '-' and '_' instead of '+' and '/'
-std::string encodeURL(const std::string& str, size_t wrap_width = 76);
+std::string encodeURL(const std::string& str);
 
 class Decoder {
  public:
@@ -386,7 +386,7 @@ std::cout << "* Recieve response" << std::endl;
   cs.response_header().write(std::cout);
 
   std::vector<char> buffer(1024);
-  response_body_stream->read(buffer.data(), buffer.size());
+  response_body_stream->read(buffer.data(), static_cast<std::streamsize>(buffer.size()));
   std::string response_body(buffer.data(), buffer.data() + response_body_stream->gcount());
   std::cout << response_body << std::endl;
 }
@@ -464,7 +464,7 @@ std::cout << "* Recieve request" << std::endl;
   ss.request_header().write(std::cout);
 
   std::vector<char> buffer(1024);
-  request_body_stream->read(buffer.data(), buffer.size());
+  request_body_stream->read(buffer.data(), static_cast<std::streamsize>(buffer.size()));
   std::string request_body(buffer.data(), buffer.data() + request_body_stream->gcount());
   std::cout << request_body << std::endl;
 }
