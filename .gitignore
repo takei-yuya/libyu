@@ -31,5 +31,4 @@
 *.out
 *.app
 
-*_test
 dep.Makefile
