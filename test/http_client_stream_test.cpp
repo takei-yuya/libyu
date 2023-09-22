@@ -72,7 +72,7 @@ TEST(HTTPClientStreamTest, testChunked) {
     EXPECT(200, ==, cs.response_code());
     EXPECT("OK", ==, cs.response_code_message());
     std::vector<char> buffer(1024);
-    response_body->read(buffer.data(), buffer.size());
+    response_body->read(buffer.data(), static_cast<std::streamsize>(buffer.size()));
     std::string actual(buffer.data(), buffer.data() + response_body->gcount());
     EXPECT("Hello World!!", ==, actual);
   }
@@ -121,7 +121,7 @@ TEST(HTTPClientStreamTest, testChunked_trail) {
     EXPECT(200, ==, cs.response_code());
     EXPECT("OK", ==, cs.response_code_message());
     std::vector<char> buffer(1024);
-    response_body->read(buffer.data(), buffer.size());
+    response_body->read(buffer.data(), static_cast<std::streamsize>(buffer.size()));
     std::string actual(buffer.data(), buffer.data() + response_body->gcount());
     EXPECT("Hello World!!", ==, actual);
   }
@@ -146,7 +146,7 @@ TEST(HTTPClientStreamTest, testContentLength) {
     EXPECT(200, ==, cs.response_code());
     EXPECT("OK", ==, cs.response_code_message());
     std::vector<char> buffer(1024);
-    response_body->read(buffer.data(), buffer.size());
+    response_body->read(buffer.data(), static_cast<std::streamsize>(buffer.size()));
     std::string actual(buffer.data(), buffer.data() + response_body->gcount());
     EXPECT("Hello World!!", ==, actual);
   }
@@ -171,7 +171,7 @@ TEST(HTTPClientStreamTest, testContentLength_extradata) {
     EXPECT(200, ==, cs.response_code());
     EXPECT("OK", ==, cs.response_code_message());
     std::vector<char> buffer(1024);
-    response_body->read(buffer.data(), buffer.size());
+    response_body->read(buffer.data(), static_cast<std::streamsize>(buffer.size()));
     std::string actual(buffer.data(), buffer.data() + response_body->gcount());
     EXPECT("Hello World!!", ==, actual);
   }

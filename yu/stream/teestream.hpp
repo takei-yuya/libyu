@@ -54,7 +54,7 @@ class iteestreambuf : public std::streambuf {
   int underflow() override {
     if (gptr() < egptr()) return *gptr();
 
-    in_.read(buffer_.data(), buffer_.size());
+    in_.read(buffer_.data(), static_cast<std::streamsize>(buffer_.size()));
     std::streamsize size = in_.gcount();
     if (size == 0) return traits_type::eof();
     out_.write(buffer_.data(), size);

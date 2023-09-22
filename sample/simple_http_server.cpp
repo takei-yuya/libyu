@@ -114,12 +114,12 @@ class App {
 
  private:
   int get_count() {
-    std::unique_lock lock(counter_mutex_);
+    std::unique_lock<std::mutex> lock(counter_mutex_);
     return ++counter_;
   }
 
   void reset_count(int n) {
-    std::unique_lock lock(counter_mutex_);
+    std::unique_lock<std::mutex> lock(counter_mutex_);
     counter_ = n;
   }
 

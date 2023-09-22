@@ -123,12 +123,12 @@ class chunked_ostreambuf : public std::streambuf {
   }
 
   bool send_all() {
-    size_t size = pptr() - pbase();
+    size_t size = static_cast<size_t>(pptr() - pbase());
     if (size == 0) return true;  // do not send empty chunk
     std::ostringstream oss;
     oss << std::hex << std::uppercase << size;
     out_ << oss.str() << "\r\n";  // chunk size
-    out_.write(pbase(), size);  // chunk
+    out_.write(pbase(), static_cast<std::streamsize>(size));  // chunk
     out_ << "\r\n";  // chunk boundary
     out_.flush();
     pbump(static_cast<int>(-size));
@@ -181,9 +181,9 @@ class chunked_istreambuf : public std::streambuf {
         return traits_type::eof();
       }
     }
-    in_.read(buffer_.data(), std::min(buffer_.size(), unread_size_));
+    in_.read(buffer_.data(), static_cast<std::streamsize>(std::min(buffer_.size(), unread_size_)));
     std::streamsize read_count = in_.gcount();
-    unread_size_ -= read_count;
+    unread_size_ -= static_cast<size_t>(read_count);
     if (unread_size_ == 0) {  // end of chunk
       // read skip \r\n
       if (in_.get() != '\r') throw TransferError("Invalid chunk end: expect '\\r', but not");
@@ -218,7 +218,7 @@ class sized_istreambuf : public std::streambuf {
     if (size_ == 0) return traits_type::eof();
 
     in_.read(buffer_.data(), size_);
-    size_t read_count = in_.gcount();
+    std::streamsize read_count = in_.gcount();
     size_ -= read_count;
     setg(buffer_.data(), buffer_.data(), buffer_.data() + read_count);
     return traits_type::to_int_type(*gptr());

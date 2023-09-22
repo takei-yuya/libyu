@@ -21,6 +21,12 @@ class InvalidJson : public std::runtime_error {
   explicit InvalidJson(const std::string& message) : std::runtime_error(message.c_str()) {}
 };
 
+#if __cplusplus >= 201703L
+#define NO_DISCARD [[nodiscard]]
+#else
+#define NO_DISCARD
+#endif
+
 class Stringifier {
  public:
   explicit Stringifier(std::ostream& out, bool pretty = false) : is_first_(), out_(out), pretty_(pretty) {}
@@ -127,7 +133,7 @@ class Stringifier {
       void (*stringify)(Stringifier&, T&);
     };
 
-    [[nodiscard]] MemberStringifier<T>& operator<<(MemberGetter&& getter) {
+    NO_DISCARD MemberStringifier<T>& operator<<(MemberGetter&& getter) {
       if (done_) throw std::runtime_error("Member stringifier was already executed");
       getters_.emplace_back(getter.name, getter.stringify);
       return *this;
@@ -291,12 +297,12 @@ class Parser {
         else if (ch == 'r') { result += '\r'; }
         else if (ch == 't') { result += '\t'; }
         else if (ch == 'u') {
-          int cp = parse4Hexs();
+          uint32_t cp = parse4Hexs();
           // surrogate
           if (0xD800 <= cp && cp <= 0xDBFF) {
             expect('\\');
             expect('u');
-            int cp2 = parse4Hexs();
+            uint32_t cp2 = parse4Hexs();
             if (0xDC00 <= cp2 && cp2 <= 0xDFFF) {
               cp = 0x10000 + ((cp - 0xD800) << 10) + (cp2 - 0xDC00);
             } else {
@@ -419,7 +425,7 @@ class Parser {
       void (*parse)(Parser&, T&);
     };
 
-    [[nodiscard]] MemberParser<T>& operator<<(MemberSetter&& setter) {
+    NO_DISCARD MemberParser<T>& operator<<(MemberSetter&& setter) {
       if (done_) throw std::runtime_error("Member parse was already executed");
       setters_[setter.name] = setter.parse;
       return *this;
@@ -558,7 +564,7 @@ class Parser {
     uint16_t ch2 = parseHex();
     uint16_t ch3 = parseHex();
     uint16_t ch4 = parseHex();
-    return ch1 << 12 | ch2 << 8 | ch3 << 4 | ch4;
+    return static_cast<uint16_t>(ch1 << 12 | ch2 << 8 | ch3 << 4 | ch4);
   }
 
   // なぜstd::stou が標準にないのか……。
@@ -572,6 +578,8 @@ class Parser {
 
   std::istream& in_;
 };
+
+#undef NO_DISCARD
 
 //
 // === stream interface ===
