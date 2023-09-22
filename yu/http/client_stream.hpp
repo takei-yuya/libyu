@@ -14,7 +14,9 @@ namespace http {
 
 class ClientStream {
  public:
-  explicit ClientStream(std::iostream& stream) : stream_(stream) {}
+  explicit ClientStream(std::iostream& stream)
+    : stream_(stream), request_header_(),
+      response_version_(), response_code_(), response_code_message_(), response_header_() {}
 
   // Request
   void set_header(const std::string& key, const std::string& value) {

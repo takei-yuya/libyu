@@ -27,11 +27,11 @@ class FDCloser {
 
 class App {
  public:
-  App() : counter_(0) {}
+  App() : counter_mutex_(), counter_(0) {}
 
   class GreetingResponse {
    public:
-    explicit GreetingResponse(int n) {
+    explicit GreetingResponse(int n) : message() {
       std::ostringstream oss;
       oss << "Hello! You are " << n << number_suffix(n) << " visiter!";
       message = oss.str();
@@ -149,11 +149,11 @@ int main() {
     return 1;
   }
 
-  struct sockaddr_in addr = { 0 };
+  struct sockaddr_in addr {};
   addr.sin_family = PF_INET;
   addr.sin_addr.s_addr = htonl(INADDR_ANY);
   addr.sin_port = htons(kPort);
-  if (::bind(sock, (struct sockaddr *)&addr, sizeof(addr)) < 0) {
+  if (::bind(sock, reinterpret_cast<struct sockaddr *>(&addr), sizeof(addr)) < 0) {
     std::cerr << "bind failure: " << strerror(errno) << std::endl;
     return 1;
   }

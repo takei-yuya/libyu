@@ -1,6 +1,4 @@
 LANG=C  # say "Entering directory" in English for some editors
-CXXFLAGS=-Wall -g3
-CC=$(CXX)
 
 .PHONY: all
 all:

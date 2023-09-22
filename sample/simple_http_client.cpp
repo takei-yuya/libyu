@@ -34,7 +34,7 @@ int main(int argc, char** argv) {
   std::string method = argv[3];
   std::string target = argv[4];
 
-  struct addrinfo ai = { 0 };
+  struct addrinfo ai {};
   ai.ai_family = AF_INET;  // ipv4
   ai.ai_socktype = SOCK_STREAM;
   ai.ai_protocol = 0;

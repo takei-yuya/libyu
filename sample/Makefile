@@ -1,5 +1,5 @@
 CPPFLAGS=-I..
-CXXFLAGS=-Wall -g3
+CXXFLAGS=-Wall -Wextra -Werror -Wcast-align -Wcast-qual -Wconversion -Wdelete-non-virtual-dtor -Wdouble-promotion -Weffc++ -Wfloat-equal -Wlogical-op -Wold-style-cast -Woverloaded-virtual -Wpedantic -Wreorder -Wsign-promo -Wsuggest-final-methods -Wsuggest-final-types -Wsuggest-override -Wswitch-enum
 CC=$(CXX)
 
 SRCS=$(wildcard *.cpp)

@@ -20,6 +20,8 @@ class Header {
  public:
   using Fields = std::map<std::string, std::string, yu::string::iLess>;  // ignore case key
 
+  Header() : set_cookies_(), fields_() {}
+
   void read(std::istream& in) {
     std::vector<std::string> set_cookies;
     Fields fields;
@@ -111,10 +113,10 @@ class chunked_ostreambuf : public std::streambuf {
   }
 
  private:
-  virtual int overflow(int ch = traits_type::eof()) {
+  int overflow(int ch = traits_type::eof()) override {
     send_all();
     if (ch != traits_type::eof()) {
-      *pbase() = ch;
+      *pbase() = static_cast<char>(ch);
       pbump(1);
     }
     return ch;
@@ -129,11 +131,11 @@ class chunked_ostreambuf : public std::streambuf {
     out_.write(pbase(), size);  // chunk
     out_ << "\r\n";  // chunk boundary
     out_.flush();
-    pbump(-size);
+    pbump(static_cast<int>(-size));
     return true;
   }
 
-  int sync() {
+  int sync() override {
     if (send_all()) return 0;
     return -1;
   }
@@ -145,9 +147,10 @@ class chunked_ostreambuf : public std::streambuf {
 
 class chunked_ostream : public std::ostream {
  public:
-  explicit chunked_ostream(std::ostream& out) : std::ostream(new chunked_ostreambuf(out)) {}
-  ~chunked_ostream() { delete rdbuf(); }
-  void finish() { reinterpret_cast<chunked_ostreambuf*>(rdbuf())->finish(); }
+  explicit chunked_ostream(std::ostream& out) : std::ostream(&buf_), buf_(out) {}
+  void finish() { buf_.finish(); }
+ private:
+  chunked_ostreambuf buf_;
 };
 
 class chunked_istreambuf : public std::streambuf {
@@ -156,7 +159,7 @@ class chunked_istreambuf : public std::streambuf {
     setg(buffer_.data(), buffer_.data() + buffer_.size(), buffer_.data() + buffer_.size());
   }
  private:
-  virtual int underflow() {
+  int underflow() override {
     if (eof_) return traits_type::eof();
     if (gptr() < egptr()) return *gptr();
 
@@ -187,7 +190,7 @@ class chunked_istreambuf : public std::streambuf {
       if (in_.get() != '\n') throw TransferError("Invalid chunk end: expect '\\n', but not");
     }
     setg(buffer_.data(), buffer_.data(), buffer_.data() + read_count);
-    return *gptr();
+    return traits_type::to_int_type(*gptr());
   }
 
   std::istream& in_;
@@ -198,8 +201,9 @@ class chunked_istreambuf : public std::streambuf {
 
 class chunked_istream : public std::istream {
  public:
-  explicit chunked_istream(std::istream& in) : std::istream(new chunked_istreambuf(in)) {}
-  ~chunked_istream() { delete rdbuf(); }
+  explicit chunked_istream(std::istream& in) : std::istream(&buf_), buf_(in) {}
+ private:
+  chunked_istreambuf buf_;
 };
 
 class sized_istreambuf : public std::streambuf {
@@ -209,7 +213,7 @@ class sized_istreambuf : public std::streambuf {
   }
 
  private:
-  virtual int underflow() {
+  int underflow() override {
     if (gptr() < egptr()) return *gptr();
     if (size_ == 0) return traits_type::eof();
 
@@ -217,7 +221,7 @@ class sized_istreambuf : public std::streambuf {
     size_t read_count = in_.gcount();
     size_ -= read_count;
     setg(buffer_.data(), buffer_.data(), buffer_.data() + read_count);
-    return *gptr();
+    return traits_type::to_int_type(*gptr());
   }
 
   std::istream& in_;
@@ -227,8 +231,9 @@ class sized_istreambuf : public std::streambuf {
 
 class sized_istream : public std::istream {
  public:
-  sized_istream(std::istream& in, std::streamsize n) : std::istream(new sized_istreambuf(in, n)) {}
-  ~sized_istream() { delete rdbuf(); }
+  sized_istream(std::istream& in, std::streamsize n) : std::istream(&buf_), buf_(in, n) {}
+ private:
+  sized_istreambuf buf_;
 };
 
 }  // namespace http

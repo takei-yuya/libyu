@@ -36,11 +36,11 @@ int main() {
     return 1;
   }
 
-  struct sockaddr_in addr = { 0 };
+  struct sockaddr_in addr {};
   addr.sin_family = PF_INET;
   addr.sin_addr.s_addr = htonl(INADDR_ANY);
   addr.sin_port = htons(kPort);
-  if (::bind(sock, (struct sockaddr *)&addr, sizeof(addr)) < 0) {
+  if (::bind(sock, reinterpret_cast<struct sockaddr *>(&addr), sizeof(addr)) < 0) {
     std::cerr << "bind failure: " << strerror(errno) << std::endl;
     return 1;
   }
@@ -64,7 +64,7 @@ int main() {
     size_t count = 0;
     int ch;
     while ((ch = fds.get()) != EOF) {
-      fds.put(ch);
+      fds.put(static_cast<char>(ch));
       ++count;
     }
     std::cerr << "read/write " << count << "bytes" << std::endl;

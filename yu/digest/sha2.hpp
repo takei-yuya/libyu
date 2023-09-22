@@ -2,14 +2,14 @@
 #ifndef YU_DIGEST_SHA2_HPP_
 #define YU_DIGEST_SHA2_HPP_
 
+#include <climits>
 #include <cstdint>
-#include <iostream>
-#include <sstream>
-#include <vector>
 #include <cstring>
 #include <iomanip>
+#include <iostream>
 #include <limits>
-#include <climits>
+#include <sstream>
+#include <vector>
 
 #include "yu/base64.hpp"
 
@@ -54,23 +54,23 @@ u128 operator+(const u128& lhs, T rhs) {
 // TODO: move to system? or lang? endian_utils?
 // buf must have 4 byte capacity
 inline char* write_as_bigendian(uint32_t n, char* buf) {
-  *(buf + 0) = ((n >> 24) & 0b11111111);
-  *(buf + 1) = ((n >> 16) & 0b11111111);
-  *(buf + 2) = ((n >>  8) & 0b11111111);
-  *(buf + 3) = ((n >>  0) & 0b11111111);
+  *(buf + 0) = static_cast<char>((n >> 24) & 0b11111111);
+  *(buf + 1) = static_cast<char>((n >> 16) & 0b11111111);
+  *(buf + 2) = static_cast<char>((n >>  8) & 0b11111111);
+  *(buf + 3) = static_cast<char>((n >>  0) & 0b11111111);
   return buf + 4;
 }
 
 // buf must have 8 byte capacity
 inline char* write_as_bigendian(uint64_t n, char* buf) {
-  *(buf + 0) = ((n >> 56) & 0b11111111);
-  *(buf + 1) = ((n >> 48) & 0b11111111);
-  *(buf + 2) = ((n >> 40) & 0b11111111);
-  *(buf + 3) = ((n >> 32) & 0b11111111);
-  *(buf + 4) = ((n >> 24) & 0b11111111);
-  *(buf + 5) = ((n >> 16) & 0b11111111);
-  *(buf + 6) = ((n >>  8) & 0b11111111);
-  *(buf + 7) = ((n >>  0) & 0b11111111);
+  *(buf + 0) = static_cast<char>((n >> 56) & 0b11111111);
+  *(buf + 1) = static_cast<char>((n >> 48) & 0b11111111);
+  *(buf + 2) = static_cast<char>((n >> 40) & 0b11111111);
+  *(buf + 3) = static_cast<char>((n >> 32) & 0b11111111);
+  *(buf + 4) = static_cast<char>((n >> 24) & 0b11111111);
+  *(buf + 5) = static_cast<char>((n >> 16) & 0b11111111);
+  *(buf + 6) = static_cast<char>((n >>  8) & 0b11111111);
+  *(buf + 7) = static_cast<char>((n >>  0) & 0b11111111);
   return buf + 8;
 }
 
@@ -268,12 +268,12 @@ class sha2_base_streambuf : public std::streambuf {
     finished_ = true;
   }
 
-  virtual int overflow(int ch = traits_type::eof()) {
+  int overflow(int ch = traits_type::eof()) override {
     if (finished_) return traits_type::eof();
 
-    std::streamsize n = pptr() - pbase();
+    size_t n = pptr() - pbase();
     if (pptr() < epptr()) {
-      *pptr() = ch;
+      *pptr() = static_cast<char>(ch);
       pbump(1);
       // FIXME: invoke process when pptr() == epptr()?
       return ch;
@@ -281,7 +281,7 @@ class sha2_base_streambuf : public std::streambuf {
 
     process();
 
-    pbump(-n);
+    pbump(static_cast<int>(-n));
     message_size_ += n * CHAR_BIT;
 
     if (ch != traits_type::eof()) {
@@ -316,10 +316,8 @@ class sha2_base_streambuf : public std::streambuf {
     hs_[0] += a; hs_[1] += b; hs_[2] += c; hs_[3] += d; hs_[4] += e; hs_[5] += f; hs_[6] += g; hs_[7] += h;
   }
 
- protected:
-  std::vector<word_type> hs_;
-
  private:
+  std::vector<word_type> hs_;
   const std::vector<word_type> k_;
   std::vector<char> buffer_;
   message_length_type message_size_;
