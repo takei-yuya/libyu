@@ -7,14 +7,17 @@
 #include <fcntl.h>
 
 class FDStreamTest : public yu::Test {
+ public:
+  FDStreamTest() : yu::Test(), tmpdir_() {}
+
  protected:
-  void prepare() {
+  void prepare() override {
     const char tmp_template[] = "fdstream_test_XXXXXX";
     std::vector<char> tmpdir_name(tmp_template, tmp_template + sizeof(tmp_template));
     tmpdir_ = mkdtemp(tmpdir_name.data());
   }
 
-  void teardown() {
+  void teardown() override {
     // TODO: system
     system(("rm -rf " + tmpdir_).c_str());
   }

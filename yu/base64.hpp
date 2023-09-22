@@ -2,12 +2,12 @@
 #ifndef YU_BASE64_HPP_
 #define YU_BASE64_HPP_
 
-#include <vector>
-#include <string>
-#include <stdexcept>
+#include <cstdint>
 #include <iostream>
 #include <sstream>
-#include <cstdint>
+#include <stdexcept>
+#include <string>
+#include <vector>
 
 namespace yu {
 namespace base64 {
@@ -20,7 +20,7 @@ class InvalidBase64 : public std::runtime_error {
 // RFC4880: for Radix-64
 class Radix64CRC24 {
  public:
-  Radix64CRC24(uint32_t init = 0xB704CEL, uint32_t poly = 0x1864CFBL) : crc_(init), poly_(poly) {
+  explicit Radix64CRC24(uint32_t init = 0xB704CEL, uint32_t poly = 0x1864CFBL) : crc_(init), poly_(poly) {
   }
 
   Radix64CRC24& addChar(char ch) {
@@ -44,8 +44,8 @@ class Radix64CRC24 {
 class Encoder {
  public:
   const static char kNoPadding = '\0';
-  Encoder(size_t wrap_width = 76, char char62 = '+', char char63 = '/', char pad = '=', const std::string& newline = "\n")
-    : wrap_width_(wrap_width), pad_(pad), newline_(newline)
+  explicit Encoder(size_t wrap_width = 76, char char62 = '+', char char63 = '/', char pad = '=', const std::string& newline = "\n")
+    : alphabet_table_(), wrap_width_(wrap_width), pad_(pad), newline_(newline)
   {
     initialize_alphabet_table(char62, char63);
   }
@@ -55,7 +55,7 @@ class Encoder {
     size_t read_count = 0, write_count = 0;
     char buf;
     for (int ch = in.get(); ch != EOF; ch = in.get()) {
-      crc24.addChar(ch);
+      crc24.addChar(static_cast<char>(ch));
       if ((read_count % 3) == 0) {
         output(out, alphabet_table_[((ch & 0b11111100) >> 2)], write_count);
         buf = (ch & 0b00000011) << 4;
@@ -110,7 +110,7 @@ inline std::string encode(const std::string& str, size_t wrap_width = 76) {
   return oss.str();
 }
 
-inline std::string encodeURL(const std::string& str, size_t wrap_width = 76) {
+inline std::string encodeURL(const std::string& str) {
   std::istringstream iss(str);
   std::ostringstream oss;
   Encoder encoder(0, '-', '_', Encoder::kNoPadding);
@@ -121,8 +121,8 @@ inline std::string encodeURL(const std::string& str, size_t wrap_width = 76) {
 class Decoder {
  public:
   const static char kNoPadding = '\0';
-  Decoder(char char62 = '+', char char63 = '/', char pad = '=', const std::string& allowed_white_space = " \r\n")
-    : pad_(pad)
+  explicit Decoder(char char62 = '+', char char63 = '/', char pad = '=', const std::string& allowed_white_space = " \r\n")
+    : pad_(pad), bit_table_()
   {
     initialize_bit_table(char62, char63, pad, allowed_white_space);
   }
@@ -131,10 +131,10 @@ class Decoder {
     Radix64CRC24 crc24;
     size_t read_count = 0;
     char buf;
-    char ch;
+    int ch;
     while ((ch = in.get()) != EOF) {
       char bits = bit_table_[ch];
-      if (bits == kInvalidChar) throw InvalidBase64("unexpected char: ch = '" + std::string(1, ch) + "'");
+      if (bits == kInvalidChar) throw InvalidBase64("unexpected char: ch = '" + std::string(1, static_cast<char>(ch)) + "'");
       if (bits == kSkipChar) continue;
       if (bits == kPadChar) {
         ++read_count;
@@ -142,7 +142,7 @@ class Decoder {
           char bits = bit_table_[ch];
           if (bits == kSkipChar) continue;
           if (bits == kPadChar) { ++read_count; continue; }
-          throw InvalidBase64("unexpected char after padding: ch = '" + std::string(1, ch) + "'");
+          throw InvalidBase64("unexpected char after padding: ch = '" + std::string(1, static_cast<char>(ch)) + "'");
         }
         break;
       }
@@ -180,7 +180,7 @@ class Decoder {
   const char kPadChar = '\xfd';
   void initialize_bit_table(char char62, char char63, char pad, const std::string& allowed_white_space) {
     bit_table_.resize(256, kInvalidChar);
-    size_t i = 0;
+    char i = 0;
     for (char ch = 'A'; ch <= 'Z'; ++ch) bit_table_[ch] = i++;
     for (char ch = 'a'; ch <= 'z'; ++ch) bit_table_[ch] = i++;
     for (char ch = '0'; ch <= '9'; ++ch) bit_table_[ch] = i++;

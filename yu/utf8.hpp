@@ -2,8 +2,8 @@
 #ifndef YU_UTF8_HPP_
 #define YU_UTF8_HPP_
 
-#include <sstream>
 #include <cstdint>
+#include <sstream>
 
 namespace yu {
 namespace utf8 {
@@ -15,7 +15,7 @@ inline std::string encode(uint32_t cp) {
     oss << "UTF-8 not allow to encode surruogate code point: code_point = U+" << std::hex << std::uppercase << cp;
     throw std::runtime_error(oss.str());
   }
-  if (0 <= cp && cp <= 0x7f) {
+  if (cp <= 0x7f) {
     result += static_cast<char>(cp);
   } else if (cp <= 0x7ff) {
     result += 0b11000000 | ((cp & 0b11111000000) >> 6);

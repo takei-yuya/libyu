@@ -5,10 +5,10 @@
 #include <cmath>
 #include <iomanip>
 #include <limits>
+#include <map>
 #include <sstream>
 #include <stdexcept>
 #include <unordered_map>
-#include <map>
 #include <vector>
 
 #include "utf8.hpp"
@@ -18,12 +18,12 @@ namespace json {
 
 class InvalidJson : public std::runtime_error {
  public:
-  InvalidJson(const std::string& message) : std::runtime_error(message.c_str()) {}
+  explicit InvalidJson(const std::string& message) : std::runtime_error(message.c_str()) {}
 };
 
 class Stringifier {
  public:
-  explicit Stringifier(std::ostream& out, bool pretty = false) : out_(out), pretty_(pretty) {}
+  explicit Stringifier(std::ostream& out, bool pretty = false) : is_first_(), out_(out), pretty_(pretty) {}
 
   template <typename T>
   void stringify(const T& value) {
@@ -115,7 +115,7 @@ class Stringifier {
   template <class T>
   class MemberStringifier {
    public:
-    MemberStringifier(Stringifier& stringifier) : stringifier_(stringifier), done_(false) {}
+    MemberStringifier(Stringifier& stringifier) : stringifier_(stringifier), getters_(), done_(false) {}
 
     class MemberGetter {
      public:
@@ -407,7 +407,7 @@ class Parser {
   template <class T>
   class MemberParser {
    public:
-    MemberParser(Parser& parser) : parser_(parser) {}
+    MemberParser(Parser& parser) : parser_(parser), setters_(), done_(false) {}
 
     class MemberSetter {
      public:
@@ -420,6 +420,7 @@ class Parser {
     };
 
     [[nodiscard]] MemberParser<T>& operator<<(MemberSetter&& setter) {
+      if (done_) throw std::runtime_error("Member parse was already executed");
       setters_[setter.name] = setter.parse;
       return *this;
     }
@@ -433,6 +434,8 @@ class Parser {
     };
 
     void operator<<(Parse&& parse) {
+      if (done_) throw std::runtime_error("Member parse was already executed");
+      done_ = true;
       parser_.expect('{', true);
       if (parser_.tryPeek(true) == '}') { parser_.tryGet(); }
       else while (1) {
@@ -453,6 +456,7 @@ class Parser {
    private:
     Parser& parser_;
     std::unordered_map<std::string, void (*)(Parser&, T&)> setters_;
+    bool done_;
   };
 
  private:
@@ -461,32 +465,32 @@ class Parser {
   }
 
   void ws() {
-    while (isJsonWhiteSpace(in_.peek())) in_.get();
+    while (in_.peek() != EOF && isJsonWhiteSpace(static_cast<char>(in_.peek()))) in_.get();
   }
 
-  int tryGet() {
+  char tryGet() {
     int ch = in_.get();
     if (ch == EOF) throw InvalidJson("unexpected EOF");
-    return ch;
+    return static_cast<char>(ch);
   }
 
-  int tryPeek(bool skipPreWhiteSpace = false) {
+  char tryPeek(bool skipPreWhiteSpace = false) {
     if (skipPreWhiteSpace) ws();
     int ch = in_.peek();
     if (ch == EOF) throw InvalidJson("unexpected EOF");
-    return ch;
+    return static_cast<char>(ch);
   }
 
-  int expect(char expectedChar, bool skipPreWhiteSpace = false) {
+  char expect(char expectedChar, bool skipPreWhiteSpace = false) {
     if (skipPreWhiteSpace) ws();
-    int ch = tryGet();
+    char ch = tryGet();
     if (ch != expectedChar) throw InvalidJson("expect '" + std::string(1, expectedChar) + "', but '" + std::string(1, ch) + "'");
     return ch;
   }
 
-  int expectAny(const std::string& expectedChars, bool skipPreWhiteSpace = false) {
+  char expectAny(const std::string& expectedChars, bool skipPreWhiteSpace = false) {
     if (skipPreWhiteSpace) ws();
-    int ch = tryGet();
+    char ch = tryGet();
     if (expectedChars.find(ch) == std::string::npos) throw InvalidJson("expect one of '" + expectedChars + "', but '" + std::string(1, ch) + "'");
     return ch;
   }
@@ -495,43 +499,43 @@ class Parser {
     std::string result;
     //  符号部
     int ch = expectAny("-0123456789", true);
-    if (ch == '-') { result += ch; ch = expectAny("0123456789"); }
+    if (ch == '-') { result += static_cast<char>(ch); ch = expectAny("0123456789"); }
 
     // 整数部
     if (ch == '0') {
-      result += ch;
+      result += static_cast<char>(ch);
       ch = in_.get();
     } else {  // leading zeros are not allowed
-      result += ch;
+      result += static_cast<char>(ch);
       while ((ch = in_.get()) != EOF) {
         if (ch == '.') { break; }
         if (ch == 'e' || ch == 'E') { break; }
         if (!('0' <= ch && ch <= '9')) { break; }  // 数値の終わり
-        result += ch;
+        result += static_cast<char>(ch);
       }
     }
 
     // 小数部
     if (ch == '.') {
-      result += ch;
+      result += static_cast<char>(ch);
       ch = expectAny("0123456789");  // 小数部は少なくとも1桁
-      result += ch;
+      result += static_cast<char>(ch);
       while ((ch = in_.get()) != EOF) {
         if (ch == 'e' || ch == 'E') { break; }
         if (!('0' <= ch && ch <= '9')) { break; }  // 数値の終わり
-        result += ch;
+        result += static_cast<char>(ch);
       }
     }
 
     // 指数部
     if (ch == 'e' || ch == 'E') {
-      result += ch;
+      result += static_cast<char>(ch);
       ch = expectAny("+-0123456789");  // 指数部は少なくとも1桁
-      if (ch == '+' || ch == '-') { result += ch; ch = expectAny("0123456789"); }
-      result += ch;
+      if (ch == '+' || ch == '-') { result += static_cast<char>(ch); ch = expectAny("0123456789"); }
+      result += static_cast<char>(ch);
       while ((ch = in_.get()) != EOF) {
         if (!('0' <= ch && ch <= '9')) { break; }  // 数値の終わり
-        result += ch;
+        result += static_cast<char>(ch);
       }
     }
 
@@ -541,19 +545,19 @@ class Parser {
     return result;
   }
 
-  int parseHex() {
-    int ch = tryGet();
-    if ('0' <= ch && ch <= '9') return ch - '0';
-    if ('a' <= ch && ch <= 'f') return ch - 'a' + 10;
-    if ('A' <= ch && ch <= 'F') return ch - 'A' + 10;
-    throw InvalidJson("expect HEX, but '" + std::string(1,ch) + "'");
+  uint16_t parseHex() {
+    char ch = tryGet();
+    if ('0' <= ch && ch <= '9') return static_cast<uint16_t>(ch - '0');
+    if ('a' <= ch && ch <= 'f') return static_cast<uint16_t>(ch - 'a' + 10);
+    if ('A' <= ch && ch <= 'F') return static_cast<uint16_t>(ch - 'A' + 10);
+    throw InvalidJson("expect HEX, but '" + std::string(1, ch) + "'");
   }
 
   uint16_t parse4Hexs() {
-    int ch1 = parseHex();
-    int ch2 = parseHex();
-    int ch3 = parseHex();
-    int ch4 = parseHex();
+    uint16_t ch1 = parseHex();
+    uint16_t ch2 = parseHex();
+    uint16_t ch3 = parseHex();
+    uint16_t ch4 = parseHex();
     return ch1 << 12 | ch2 << 8 | ch3 << 4 | ch4;
   }
 
@@ -563,7 +567,7 @@ class Parser {
     if (std::numeric_limits<unsigned int>::max() < ul) {
       throw std::out_of_range("stou");
     }
-    return ul;
+    return static_cast<unsigned int>(ul);
   }
 
   std::istream& in_;
@@ -602,10 +606,10 @@ inline T from_json(const std::string& str) {
   T result;
   parse(iss, result);
   // check rest part
-  char ch = iss.get();
+  int ch = iss.get();
   if (ch != EOF) {
-    std::string trails(1, ch);
-    while ((ch = iss.get()) != EOF) trails += ch;
+    std::string trails(1, static_cast<char>(ch));
+    while ((ch = iss.get()) != EOF) trails += static_cast<char>(ch);
     throw InvalidJson("unexpected rest part: rest = " + trails);
   }
   return result;

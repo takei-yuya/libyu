@@ -9,13 +9,15 @@
 
 class HTTPServerStreamTest : public yu::Test {
  public:
-  virtual void prepare() {
+  HTTPServerStreamTest() : yu::Test(), user_agent(), server() {}
+
+  void prepare() override {
     int ret = ::socketpair(AF_UNIX, SOCK_STREAM, 0, fds);
     if (ret < 0) throw std::runtime_error(strerror(errno));
     user_agent.reset(new yu::stream::fdstream(fds[0]));
     server.reset(new yu::stream::fdstream(fds[1]));
   }
-  virtual void teardown() {
+  void teardown() override {
     user_agent.reset();
     server.reset();
     close(fds[0]);

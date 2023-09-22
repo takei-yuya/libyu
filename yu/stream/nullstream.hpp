@@ -10,22 +10,24 @@ namespace stream {
 
 class nullstreambuf : public std::streambuf {
  private:
-  virtual std::streamsize xsputn(const char* s, std::streamsize n) {
+  std::streamsize xsputn(const char*, std::streamsize n) override {
     return n;
   }
 
-  virtual int underflow() {
+  int overflow(int ch = traits_type::eof()) override {
+    return ch;
+  }
+
+  int underflow() override {
     return traits_type::eof();
   }
 };
 
 class nullstream : public std::iostream {
  public:
-  nullstream() : std::iostream(new nullstreambuf()) {
-  }
-  ~nullstream() {
-    delete rdbuf();
-  }
+  nullstream() : std::iostream(&buf_), buf_() {}
+ private:
+  nullstreambuf buf_;
 };
 
 }  // namespace stream

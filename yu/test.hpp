@@ -2,24 +2,26 @@
 #ifndef YU_TEST_HPP_
 #define YU_TEST_HPP_
 
-#include "yu/json.hpp"
-
-#include <vector>
-#include <string>
 #include <iostream>
 #include <sstream>
+#include <string>
+#include <vector>
+
+#include "yu/json.hpp"
 
 namespace yu {
+namespace test {
 
 class TestFailure : public std::exception {
  public:
   TestFailure() {}
-  virtual const char* what() const noexcept { return "Failure"; }
+  const char* what() const noexcept override { return "Failure"; }
 };
 
 class Test {
  public:
   Test() : errors_() {}
+  virtual ~Test() {}
 
   virtual void run() = 0;
   virtual void prepare() {}
@@ -34,7 +36,7 @@ class Test {
 
 class TestRunner {
  private:
-  TestRunner() {}
+  TestRunner() : tests_() {}
 
  public:
   static TestRunner& getInstance() {
@@ -98,9 +100,33 @@ class TestRunner {
 #define ASSERT(expected, op, actual) \
   if (!((expected) op (actual))) { \
     std::ostringstream oss_; \
-    oss_ << __FILE__ ":" << __LINE__ << ": expect '" << yu::json::to_json(expected) << "' " #op " '" << yu::json::to_json(actual) << "', but not"; \
+    oss_ << __FILE__ ":" << __LINE__ << ": assert '" << yu::json::to_json(expected) << "' " #op " '" << yu::json::to_json(actual) << "', but not"; \
     errors_.push_back(oss_.str()); \
-    throw yu::TestFailure(); \
+    throw yu::test::TestFailure(); \
+  }
+
+// TODO: move or redefine in another namespace like numeric, float_util or something else.
+template <typename T>
+int float_compare(T lhs, T rhs) {
+  T epsilon = std::numeric_limits<T>::epsilon();
+  if (lhs > rhs + epsilon) return 1;
+  if (lhs + epsilon < rhs) return -1;
+  return 0;
+}
+
+#define EXPECT_F(expected, op, actual) \
+  if (!(yu::test::float_compare((expected), (actual)) op 0)) { \
+    std::ostringstream oss_; \
+    oss_ << __FILE__ ":" << __LINE__ << ": expect " << yu::json::to_json(expected) << " " #op " " << yu::json::to_json(actual) << ", but not"; \
+    errors_.push_back(oss_.str()); \
+  }
+
+#define ASSERT_F(expected, op, actual) \
+  if (!(yu::test::float_compare((expected), (actual)) op 0)) { \
+    std::ostringstream oss_; \
+    oss_ << __FILE__ ":" << __LINE__ << ": assert '" << yu::json::to_json(expected) << "' " #op " '" << yu::json::to_json(actual) << "', but not"; \
+    errors_.push_back(oss_.str()); \
+    throw yu::test::TestFailure(); \
   }
 
 #define EXPECT_THROW(expression, exception_type) \
@@ -133,17 +159,19 @@ class TestRunner {
 #define TEST(class_name, test_name) \
   class class_name ## _ ## test_name : public class_name { \
    public: \
-    class_name ## _ ## test_name() { yu::TestRunner::getInstance().registerTest(#class_name "::" #test_name, this); } \
-    virtual void run() { test_name(); } \
+    class_name ## _ ## test_name() { yu::test::TestRunner::getInstance().registerTest(#class_name "::" #test_name, this); } \
+    void run() override { test_name(); } \
    private: \
     void test_name(); \
   }; \
   static class_name ## _ ## test_name class_name ## _ ## test_name ## _instance; \
   void class_name ## _ ## test_name :: test_name()
 
+}  // namespace test
+using Test = test::Test;
 }  // namespace yu
 
 int main() {
-  return yu::TestRunner::getInstance().run() ? 0 : 1;
+  return yu::test::TestRunner::getInstance().run() ? 0 : 1;
 }
 #endif  // YU_TEST_HPP_

@@ -105,46 +105,46 @@ class JSONParseTest : public yu::Test {
 
 TEST(JSONParseTest, testParseNumber) {
   EXPECT_THROW_WHAT(yu::json::from_json<double>("x"), yu::json::InvalidJson, "expect one of '-0123456789', but 'x'");
-  EXPECT(0, ==, yu::json::from_json<double>("0"));
+  EXPECT_F(0.0, ==, yu::json::from_json<double>("0"));
   EXPECT_THROW_WHAT(yu::json::from_json<double>("0X"), yu::json::InvalidJson, "unexpected rest part: rest = X");
-  EXPECT(-0, ==, yu::json::from_json<double>("-0"));
+  EXPECT_F(-0.0, ==, yu::json::from_json<double>("-0"));
   EXPECT_THROW_WHAT(yu::json::from_json<double>("-0X"), yu::json::InvalidJson, "unexpected rest part: rest = X");
   EXPECT_THROW_WHAT(yu::json::from_json<double>("--"), yu::json::InvalidJson, "expect one of '0123456789', but '-'");
   EXPECT_THROW_WHAT(yu::json::from_json<double>("+0"), yu::json::InvalidJson, "expect one of '-0123456789', but '+'");  //  先頭 + は許容しない
   EXPECT_THROW_WHAT(yu::json::from_json<double>("01"), std::runtime_error, "unexpected rest part: rest = 1");  // 先頭 0 は許容しないので、0まで読んで1が残る
-  EXPECT(1, ==, yu::json::from_json<double>("1"));
+  EXPECT_F(1.0, ==, yu::json::from_json<double>("1"));
   EXPECT_THROW_WHAT(yu::json::from_json<double>("1X"), yu::json::InvalidJson, "unexpected rest part: rest = X");
-  EXPECT(12, ==, yu::json::from_json<double>("12"));
+  EXPECT_F(12.0, ==, yu::json::from_json<double>("12"));
   EXPECT_THROW_WHAT(yu::json::from_json<double>("12X"), yu::json::InvalidJson, "unexpected rest part: rest = X");
   // 小数部
   EXPECT_THROW_WHAT(yu::json::from_json<double>("0."), yu::json::InvalidJson, "unexpected EOF");
   EXPECT_THROW_WHAT(yu::json::from_json<double>("0.,"), yu::json::InvalidJson, "expect one of '0123456789', but ','");
-  EXPECT(-12.3, ==, yu::json::from_json<double>("-12.3"));
+  EXPECT_F(-12.3, ==, yu::json::from_json<double>("-12.3"));
   EXPECT_THROW_WHAT(yu::json::from_json<double>("-12.3X"), yu::json::InvalidJson, "unexpected rest part: rest = X");
   // 指数部
   EXPECT_THROW_WHAT(yu::json::from_json<double>("0e"), yu::json::InvalidJson, "unexpected EOF");
   EXPECT_THROW_WHAT(yu::json::from_json<double>("0e,"), yu::json::InvalidJson, "expect one of '+-0123456789', but ','");
-  EXPECT(-0e0, ==, yu::json::from_json<double>("-0e0"));
+  EXPECT_F(-0e0, ==, yu::json::from_json<double>("-0e0"));
   EXPECT_THROW_WHAT(yu::json::from_json<double>("-0e0X"), yu::json::InvalidJson, "unexpected rest part: rest = X");
-  EXPECT(1e0, ==, yu::json::from_json<double>("1e0"));
+  EXPECT_F(1e0, ==, yu::json::from_json<double>("1e0"));
   EXPECT_THROW_WHAT(yu::json::from_json<double>("1e0X"), yu::json::InvalidJson, "unexpected rest part: rest = X");
   EXPECT_THROW_WHAT(yu::json::from_json<double>("0e+"), yu::json::InvalidJson, "unexpected EOF");
   EXPECT_THROW_WHAT(yu::json::from_json<double>("0e+,"), yu::json::InvalidJson, "expect one of '0123456789', but ','");
   EXPECT_THROW_WHAT(yu::json::from_json<double>("0e-"), yu::json::InvalidJson, "unexpected EOF");
   EXPECT_THROW_WHAT(yu::json::from_json<double>("0e-,"), yu::json::InvalidJson, "expect one of '0123456789', but ','");
-  EXPECT(1e+0, ==, yu::json::from_json<double>("1e+0"));
+  EXPECT_F(1e+0, ==, yu::json::from_json<double>("1e+0"));
   EXPECT_THROW_WHAT(yu::json::from_json<double>("1e-0X"), yu::json::InvalidJson, "unexpected rest part: rest = X");
-  EXPECT(1E+0, ==, yu::json::from_json<double>("1E+0"));
+  EXPECT_F(1E+0, ==, yu::json::from_json<double>("1E+0"));
   EXPECT_THROW_WHAT(yu::json::from_json<double>("1E-0X"), yu::json::InvalidJson, "unexpected rest part: rest = X");
   // 小数部 + 指数部
   EXPECT_THROW_WHAT(yu::json::from_json<double>("0.e"), yu::json::InvalidJson, "expect one of '0123456789', but 'e'");
   EXPECT_THROW_WHAT(yu::json::from_json<double>("0.1e"), yu::json::InvalidJson, "unexpected EOF");
   EXPECT_THROW_WHAT(yu::json::from_json<double>("0.1e,"), yu::json::InvalidJson, "expect one of '+-0123456789', but ','");
-  EXPECT(12.34e56, ==, yu::json::from_json<double>("12.34e56"));
+  EXPECT_F(12.34e56, ==, yu::json::from_json<double>("12.34e56"));
   EXPECT_THROW_WHAT(yu::json::from_json<double>("12.34e56X"), yu::json::InvalidJson, "unexpected rest part: rest = X");
-  EXPECT(12.3e+4, ==, yu::json::from_json<double>("12.3e+4"));
+  EXPECT_F(12.3e+4, ==, yu::json::from_json<double>("12.3e+4"));
   EXPECT_THROW_WHAT(yu::json::from_json<double>("12.3e+4X"), yu::json::InvalidJson, "unexpected rest part: rest = X");
-  EXPECT(12.3e-4, ==, yu::json::from_json<double>("12.3e-4"));
+  EXPECT_F(12.3e-4, ==, yu::json::from_json<double>("12.3e-4"));
   EXPECT_THROW_WHAT(yu::json::from_json<double>("12.3e-4X"), yu::json::InvalidJson, "unexpected rest part: rest = X");
 }
 
@@ -153,7 +153,7 @@ TEST(JSONParseTest, testValueSimple) {
   EXPECT(false, ==, yu::json::from_json<bool>(R"(false)"));
   EXPECT_THROW_WHAT(yu::json::from_json<bool>(R"(truE)"), yu::json::InvalidJson, "expect 'e', but 'E'");
   EXPECT_THROW_WHAT(yu::json::from_json<bool>(R"(False)"), yu::json::InvalidJson, "expect one of 'tf', but 'F'");
-  EXPECT(6.022e23, ==, yu::json::from_json<double>(R"(6.022e+23)"));
+  EXPECT_F(6.022e23, ==, yu::json::from_json<double>(R"(6.022e+23)"));
   // // TODO: エラーにすべき？
   EXPECT(299792458lu, ==, yu::json::from_json<uint64_t>(R"(2.99792458e8)"));
 
@@ -344,7 +344,7 @@ class Klass {
   bool operator==(const Klass& rhs) const {
     if (s != rhs.s) return false;
     if (i != rhs.i) return false;
-    if (d != rhs.d) return false;
+    if (yu::test::float_compare(d, rhs.d) != 0) return false;
     if (vt != rhs.vt) return false;
     if (mu != rhs.mu) return false;
 

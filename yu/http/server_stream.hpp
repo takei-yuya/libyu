@@ -2,13 +2,13 @@
 #ifndef YU_HTTP_SERVER_STREAM_HPP_
 #define YU_HTTP_SERVER_STREAM_HPP_
 
+#include <iostream>
+#include <memory>
+#include <sstream>
 #include <stdexcept>
-#include <vector>
 #include <string>
 #include <unordered_map>
-#include <iostream>
-#include <sstream>
-#include <memory>
+#include <vector>
 
 #include "yu/http/common.hpp"
 #include "yu/string/utils.hpp"
@@ -30,7 +30,10 @@ const static std::unordered_map<int,std::string> kResponseStatusMessage = {
 class ServerStream {
  public:
   explicit ServerStream(std::iostream& stream)
-    : stream_(stream), request_parsed_(false), response_header_sent_(false), response_status_(200) {}
+    : stream_(stream),
+      request_parsed_(false), request_method_(), request_target_(), request_version_(), request_header_(),
+      response_header_sent_(false),
+      response_status_(200), response_status_message_("OK"), response_cookies_(), response_header_() {}
   // Request
   std::unique_ptr<std::istream> parse_request() {
     request_parsed_ = true;

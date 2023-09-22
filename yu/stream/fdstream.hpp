@@ -2,8 +2,8 @@
 #ifndef YU_STREAM_FDSTREAM__
 #define YU_STREAM_FDSTREAM__
 
-#include <vector>
 #include <iostream>
+#include <vector>
 
 #include <unistd.h>
 
@@ -15,7 +15,7 @@ namespace stream {
 
 class fdstreambuf : public std::streambuf {
  public:
-  fdstreambuf(int fd)
+  explicit fdstreambuf(int fd)
    : fd_(fd), read_buffer_(1024), write_buffer_(1024) {
     setp(write_buffer_.data(), write_buffer_.data() + write_buffer_.size());
     setg(read_buffer_.data(), read_buffer_.data() + read_buffer_.size(), read_buffer_.data() + read_buffer_.size());
@@ -26,11 +26,11 @@ class fdstreambuf : public std::streambuf {
   }
 
  private:
-  virtual int overflow(int ch = traits_type::eof()) {
+  int overflow(int ch = traits_type::eof()) override {
     if (!write_all()) return 0;
     if (ch != traits_type::eof()) {
       pbump(1);
-      *pbase() = ch;
+      *pbase() = static_cast<char>(ch);
     }
     return ch;
   }
@@ -39,27 +39,27 @@ class fdstreambuf : public std::streambuf {
     size_t size = pptr() - pbase();
     size_t total_sent = 0;
     while (total_sent < size) {
-      int ret;
+      ssize_t ret;
       NO_INTR(ret, ::write(fd_, pbase() + total_sent, size - total_sent))
       if (ret < 0) return false;
       total_sent += ret;
     }
-    pbump(-size);
+    pbump(static_cast<int>(-size));
     return true;
   }
 
-  virtual int underflow() {
+  int underflow() override {
     if (gptr() < egptr()) return *gptr();
 
-    int ret;
+    ssize_t ret;
     NO_INTR(ret, ::read(fd_, read_buffer_.data(), read_buffer_.size()))
     if (ret < 0) return traits_type::eof();
     if (ret == 0) return traits_type::eof();
     setg(read_buffer_.data(), read_buffer_.data(), read_buffer_.data() + ret);
-    return *gptr();
+    return traits_type::to_int_type(*gptr());
   }
 
-  virtual int sync() {
+  int sync() override {
     if (write_all()) return 0;
     return -1;
   }
@@ -71,12 +71,9 @@ class fdstreambuf : public std::streambuf {
 
 class fdstream : public std::iostream {
  public:
-  explicit fdstream(int fd) : std::iostream(new fdstreambuf(fd)) {
-  }
-  ~fdstream() {
-    flush();
-    delete rdbuf();
-  }
+  explicit fdstream(int fd) : std::iostream(&buf_), buf_(fd) {}
+ private:
+  fdstreambuf buf_;
 };
 
 #undef NO_INTR
