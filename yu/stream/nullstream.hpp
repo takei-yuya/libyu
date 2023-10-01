@@ -15,7 +15,7 @@ class nullstreambuf : public std::streambuf {
   }
 
   int overflow(int ch = traits_type::eof()) override {
-    return ch;
+    return traits_type::not_eof(ch);
   }
 
   int underflow() override {

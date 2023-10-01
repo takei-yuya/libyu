@@ -119,7 +119,7 @@ class chunked_ostreambuf : public std::streambuf {
       *pbase() = static_cast<char>(ch);
       pbump(1);
     }
-    return ch;
+    return traits_type::not_eof(ch);
   }
 
   bool send_all() {

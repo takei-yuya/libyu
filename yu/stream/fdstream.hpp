@@ -27,12 +27,12 @@ class fdstreambuf : public std::streambuf {
 
  private:
   int overflow(int ch = traits_type::eof()) override {
-    if (!write_all()) return 0;
+    if (!write_all()) return traits_type::eof();
     if (ch != traits_type::eof()) {
       pbump(1);
       *pbase() = static_cast<char>(ch);
     }
-    return ch;
+    return traits_type::not_eof(ch);
   }
 
   bool write_all() {

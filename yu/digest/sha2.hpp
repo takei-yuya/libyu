@@ -282,7 +282,7 @@ class sha2_base_streambuf : public std::streambuf {
       *pptr() = static_cast<char>(ch);
       pbump(1);
       // FIXME: invoke process when pptr() == epptr()?
-      return ch;
+      return traits_type::not_eof(ch);
     }
 
     process();
@@ -294,7 +294,7 @@ class sha2_base_streambuf : public std::streambuf {
       *pbase() = static_cast<char>(ch);
       pbump(1);
     }
-    return ch;
+    return traits_type::not_eof(ch);
   };
 
   void process() {
