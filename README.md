@@ -196,7 +196,8 @@ namespace yu {
 namespace stream {
 class oteestream : public std::ostream {
  public:
-  oteestream(std::ostream& out1, std::ostream& out2);
+  template<class.. Args>
+  oteestream(Args&&... ostreams);
 };
 
 class iteestream : public std::ostream {
@@ -212,10 +213,12 @@ example: `sample/stream_teestream_sample.cpp`
 {
   std::ostringstream out1;
   std::ostringstream out2;
-  yu::stream::oteestream ots(out1, out2);
+  std::ostringstream out3;
+  yu::stream::oteestream ots(out1, out2, out3);
   ots << "Hello " << "T-stream" << " World!";
   std::cout << "out1 = " << out1.str() << std::endl;
   std::cout << "out2 = " << out2.str() << std::endl;
+  std::cout << "out3 = " << out3.str() << std::endl;
 }
 {
   std::istringstream iss("Hello World!");
@@ -230,10 +233,13 @@ example: `sample/stream_teestream_sample.cpp`
 }
 // out1 = Hello T-stream World!
 // out2 = Hello T-stream World!
+// out3 = Hello T-stream World!
 // str = Hello
 // oss = Hello World!
 // str = World!
 ```
+
+see also: `app/sha2.cpp`
 
 ### base64.hpp
 

@@ -12,16 +12,10 @@ void print_digest(const std::string& filename, std::istream& in) {
   yu::digest::sha512_stream sha512s;
   yu::digest::sha512_224_stream sha512_224s;
   yu::digest::sha512_256_stream sha512_256s;
-  {
-    yu::stream::oteestream t1(sha224s, sha256s);
-    yu::stream::oteestream t2(sha384s, sha512s);
-    yu::stream::oteestream t3(sha512_224s, sha512_256s);
-    yu::stream::oteestream t4(t1, t2);
-    yu::stream::oteestream tos(t3, t4);
-    tos << in.rdbuf();
-    in.sync();
-    tos.flush();
-  }
+
+  yu::stream::oteestream tos(sha224s, sha256s, sha384s, sha512s, sha512_224s, sha512_256s);
+  tos << in.rdbuf() << std::flush;
+
   std::cout << "SHA224(" << filename << ")= " << sha224s.hash_hex() << std::endl;
   std::cout << "SHA256(" << filename << ")= " << sha256s.hash_hex() << std::endl;
   std::cout << "SHA384(" << filename << ")= " << sha384s.hash_hex() << std::endl;
