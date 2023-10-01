@@ -65,6 +65,33 @@ std::cout << yu::digest::sha512_256_hex(message) << std::endl;
 // cc296ed308cbe384e0de66c8580b3373ac2ae88dd53a9bd8542df1431e87f01d
 ```
 
+### digest/bcrypt.hpp
+
+TODO: `$1$` `$2b$`
+
+```cpp
+namespace yu {
+namespace digest {
+std::string bcrypt_sha256(const std::string& salt, const std::string& password);
+std::string bcrypt_sha512(const std::string& salt, const std::string& password);
+bool bcrypt_check(const std::string& digest, const std::string& password);
+}
+}
+```
+
+example: `sample/digest_bcrypt_sample.cpp`
+```cpp
+std::cout << yu::digest::bcrypt_sha256("salt", "password") << std::endl;
+std::cout << yu::digest::bcrypt_sha512("salt", "password") << std::endl;
+std::string digest = yu::digest::bcrypt_sha512("", "password");
+std::cout << yu::digest::bcrypt_check(digest, "password") << std::endl;
+std::cout << yu::digest::bcrypt_check(digest, "Password") << std::endl;
+// $5$salt$Gcm6FsVtF/Qa77ZKD.iwsJlCVPY0XSMgLJL0Hnww/c1
+// $6$salt$IxDD3jeSOb5eB1CX5LBsqZFVkJdido3OUILO5Ifz5iwMuTS4XMS130MTSuDDl3aCI6WouIL9AjRbLCelDCy.g.
+// 1
+// 0
+```
+
 ### lang/lexical_cast.hpp
 
 ```cpp

@@ -211,11 +211,13 @@ static const std::initializer_list<uint64_t> kSha512RoundConstants = {
 };
 
 
-template <typename word_type, typename message_length_type, int kHashBit, int kChunkSize, int kRound>
+template <typename word_type, typename message_length_type, size_t kHashBit, size_t kChunkSizeInBit, size_t kRound>
 class sha2_base_streambuf : public std::streambuf {
  public:
+  const static size_t kChunkSize = kChunkSizeInBit / 8;
+
   sha2_base_streambuf(std::initializer_list<word_type> init_status, std::initializer_list<word_type> round_constants)
-    : hs_(init_status), k_(round_constants), buffer_(kChunkSize / CHAR_BIT), message_size_(), finished_(false) {
+    : hs_(init_status), original_hs_(hs_), k_(round_constants), buffer_(kChunkSize), message_size_(), finished_(false) {
     setp(buffer_.data(), buffer_.data() + buffer_.size());
   }
 
@@ -230,20 +232,25 @@ class sha2_base_streambuf : public std::streambuf {
     return oss.str().substr(0, kHashBit / 4);
   }
 
-  std::vector<char> hash_bin() {
+  std::string hash_bin() {
     finish();
     std::vector<char> result(sizeof(word_type) * hs_.size());
     for (size_t i = 0; i < hs_.size(); ++i) {
       write_as_bigendian(hs_[i], &result[i * sizeof(word_type)]);
     }
     result.resize(kHashBit / CHAR_BIT);
-    return result;
+    return std::string(result.data(), result.data() + result.size());
   }
 
   std::string hash_base64() {
-    std::vector<char> bin = hash_bin();
-    std::string s(bin.data(), bin.data() + bin.size());
-    return yu::base64::encode(s);
+    return yu::base64::encode(hash_bin());
+  }
+
+  void reset() {
+    hs_ = original_hs_;
+    setp(buffer_.data(), buffer_.data() + buffer_.size());
+    message_size_ = {};
+    finished_ = false;
   }
 
  private:
@@ -252,7 +259,7 @@ class sha2_base_streambuf : public std::streambuf {
 
     size_t n = static_cast<size_t>(pptr() - pbase());
     message_length_type message_size = message_size_ + static_cast<size_t>(n * CHAR_BIT);
-    size_t free_byte_in_chunk = kChunkSize / CHAR_BIT - n;
+    size_t free_byte_in_chunk = kChunkSize - n;
 
     // tarminal '1' bit and paddings
     overflow(0b10000000);
@@ -263,7 +270,7 @@ class sha2_base_streambuf : public std::streambuf {
       }
     }
     memset(pptr(), 0, static_cast<size_t>(epptr() - pptr()));
-    write_as_bigendian(message_size, &buffer_[kChunkSize / CHAR_BIT - sizeof(message_length_type)]);
+    write_as_bigendian(message_size, &buffer_[kChunkSize - sizeof(message_length_type)]);
     process();
     finished_ = true;
   }
@@ -271,7 +278,6 @@ class sha2_base_streambuf : public std::streambuf {
   int overflow(int ch = traits_type::eof()) override {
     if (finished_) return traits_type::eof();
 
-    size_t n = static_cast<size_t>(pptr() - pbase());
     if (pptr() < epptr()) {
       *pptr() = static_cast<char>(ch);
       pbump(1);
@@ -281,8 +287,8 @@ class sha2_base_streambuf : public std::streambuf {
 
     process();
 
+    size_t n = static_cast<size_t>(pptr() - pbase());
     pbump(static_cast<int>(-n));
-    message_size_ += static_cast<size_t>(n * CHAR_BIT);
 
     if (ch != traits_type::eof()) {
       *pbase() = static_cast<char>(ch);
@@ -299,6 +305,7 @@ class sha2_base_streambuf : public std::streambuf {
     for (size_t i = 16; i < kRound; ++i) {
       w[i] = w[i-16] + sigma0(w[i-15]) + w[i-7] + sigma1(w[i-2]);
     }
+    message_size_ += kChunkSizeInBit;
 
     word_type a = hs_[0], b = hs_[1], c = hs_[2], d = hs_[3], e = hs_[4], f = hs_[5], g = hs_[6], h = hs_[7];
     for (size_t i = 0; i < kRound; ++i) {
@@ -318,6 +325,7 @@ class sha2_base_streambuf : public std::streambuf {
 
  private:
   std::vector<word_type> hs_;
+  const std::vector<word_type> original_hs_;
   const std::vector<word_type> k_;
   std::vector<char> buffer_;
   message_length_type message_size_;
@@ -355,175 +363,29 @@ class sha512_256_streambuf : public sha2_base_streambuf<uint64_t, u128, 256, 102
 };
 }  // namespace detail
 
-// stream interface
-class sha256_stream : public std::ostream {
- public:
-  sha256_stream() : std::ostream(&buf_), buf_() {}
-  std::string hash_hex() { return buf_.hash_hex(); }
-  std::vector<char> hash_bin() { return buf_.hash_bin(); }
-  std::string hash_base64() { return buf_.hash_base64(); }
- private:
-  detail::sha256_streambuf buf_;
-};
+#define DEFINE_SHA_INTERFACES(bit) \
+  class sha##bit##_stream : public std::ostream { \
+   public: \
+    sha##bit##_stream() : std::ostream(&buf_), buf_() {} \
+    std::string hash_hex() { return buf_.hash_hex(); } \
+    std::string hash_bin() { return buf_.hash_bin(); } \
+    std::string hash_base64() { return buf_.hash_base64(); } \
+    void reset() { buf_.reset(); } \
+   private: \
+    detail::sha##bit##_streambuf buf_; \
+  }; \
+  std::string sha##bit##_hex(const std::string& str)    { sha##bit##_stream s; s.write(str.data(), static_cast<std::streamsize>(str.size())); return s.hash_hex(); } \
+  std::string sha##bit##_bin(const std::string& str)    { sha##bit##_stream s; s.write(str.data(), static_cast<std::streamsize>(str.size())); return s.hash_bin(); } \
+  std::string sha##bit##_base64(const std::string& str) { sha##bit##_stream s; s.write(str.data(), static_cast<std::streamsize>(str.size())); return s.hash_base64(); }
 
-class sha224_stream : public std::ostream {
- public:
-  sha224_stream() : std::ostream(&buf_), buf_() {}
-  std::string hash_hex() { return buf_.hash_hex(); }
-  std::vector<char> hash_bin() { return buf_.hash_bin(); }
-  std::string hash_base64() { return buf_.hash_base64(); }
- private:
-  detail::sha224_streambuf buf_;
-};
+DEFINE_SHA_INTERFACES(256)
+DEFINE_SHA_INTERFACES(224)
+DEFINE_SHA_INTERFACES(512)
+DEFINE_SHA_INTERFACES(384)
+DEFINE_SHA_INTERFACES(512_224)
+DEFINE_SHA_INTERFACES(512_256)
 
-class sha512_stream : public std::ostream {
- public:
-  sha512_stream() : std::ostream(&buf_), buf_() {}
-  std::string hash_hex() { return buf_.hash_hex(); }
-  std::vector<char> hash_bin() { return buf_.hash_bin(); }
-  std::string hash_base64() { return buf_.hash_base64(); }
- private:
-  detail::sha512_streambuf buf_;
-};
-
-class sha384_stream : public std::ostream {
- public:
-  sha384_stream() : std::ostream(&buf_), buf_() {}
-  std::string hash_hex() { return buf_.hash_hex(); }
-  std::vector<char> hash_bin() { return buf_.hash_bin(); }
-  std::string hash_base64() { return buf_.hash_base64(); }
- private:
-  detail::sha384_streambuf buf_;
-};
-
-class sha512_224_stream : public std::ostream {
- public:
-  sha512_224_stream() : std::ostream(&buf_), buf_() {}
-  std::string hash_hex() { return buf_.hash_hex(); }
-  std::vector<char> hash_bin() { return buf_.hash_bin(); }
-  std::string hash_base64() { return buf_.hash_base64(); }
- private:
-  detail::sha512_224_streambuf buf_;
-};
-
-class sha512_256_stream : public std::ostream {
- public:
-  sha512_256_stream() : std::ostream(&buf_), buf_() {}
-  std::string hash_hex() { return buf_.hash_hex(); }
-  std::vector<char> hash_bin() { return buf_.hash_bin(); }
-  std::string hash_base64() { return buf_.hash_base64(); }
- private:
-  detail::sha512_256_streambuf buf_;
-};
-
-// string interface
-std::string sha256_hex(const std::string& str) {
-  sha256_stream sha256s;
-  sha256s.write(str.c_str(), static_cast<std::streamsize>(str.size()));
-  return sha256s.hash_hex();
-}
-
-std::string sha224_hex(const std::string& str) {
-  sha224_stream sha224s;
-  sha224s.write(str.c_str(), static_cast<std::streamsize>(str.size()));
-  return sha224s.hash_hex();
-}
-
-std::string sha512_hex(const std::string& str) {
-  sha512_stream sha512s;
-  sha512s.write(str.c_str(), static_cast<std::streamsize>(str.size()));
-  return sha512s.hash_hex();
-}
-
-std::string sha384_hex(const std::string& str) {
-  sha384_stream sha384s;
-  sha384s.write(str.c_str(), static_cast<std::streamsize>(str.size()));
-  return sha384s.hash_hex();
-}
-
-std::string sha512_224_hex(const std::string& str) {
-  sha512_224_stream sha512_224s;
-  sha512_224s.write(str.c_str(), static_cast<std::streamsize>(str.size()));
-  return sha512_224s.hash_hex();
-}
-
-std::string sha512_256_hex(const std::string& str) {
-  sha512_256_stream sha512_256s;
-  sha512_256s.write(str.c_str(), static_cast<std::streamsize>(str.size()));
-  return sha512_256s.hash_hex();
-}
-
-std::vector<char> sha256_bin(const std::string& str) {
-  sha256_stream sha256s;
-  sha256s.write(str.c_str(), static_cast<std::streamsize>(str.size()));
-  return sha256s.hash_bin();
-}
-
-std::vector<char> sha224_bin(const std::string& str) {
-  sha224_stream sha224s;
-  sha224s.write(str.c_str(), static_cast<std::streamsize>(str.size()));
-  return sha224s.hash_bin();
-}
-
-std::vector<char> sha512_bin(const std::string& str) {
-  sha512_stream sha512s;
-  sha512s.write(str.c_str(), static_cast<std::streamsize>(str.size()));
-  return sha512s.hash_bin();
-}
-
-std::vector<char> sha384_bin(const std::string& str) {
-  sha384_stream sha384s;
-  sha384s.write(str.c_str(), static_cast<std::streamsize>(str.size()));
-  return sha384s.hash_bin();
-}
-
-std::vector<char> sha512_224_bin(const std::string& str) {
-  sha512_224_stream sha512_224s;
-  sha512_224s.write(str.c_str(), static_cast<std::streamsize>(str.size()));
-  return sha512_224s.hash_bin();
-}
-
-std::vector<char> sha512_256_bin(const std::string& str) {
-  sha512_256_stream sha512_256s;
-  sha512_256s.write(str.c_str(), static_cast<std::streamsize>(str.size()));
-  return sha512_256s.hash_bin();
-}
-
-std::string sha256_base64(const std::string& str) {
-  sha256_stream sha256s;
-  sha256s.write(str.c_str(), static_cast<std::streamsize>(str.size()));
-  return sha256s.hash_base64();
-}
-
-std::string sha224_base64(const std::string& str) {
-  sha224_stream sha224s;
-  sha224s.write(str.c_str(), static_cast<std::streamsize>(str.size()));
-  return sha224s.hash_base64();
-}
-
-std::string sha512_base64(const std::string& str) {
-  sha512_stream sha512s;
-  sha512s.write(str.c_str(), static_cast<std::streamsize>(str.size()));
-  return sha512s.hash_base64();
-}
-
-std::string sha384_base64(const std::string& str) {
-  sha384_stream sha384s;
-  sha384s.write(str.c_str(), static_cast<std::streamsize>(str.size()));
-  return sha384s.hash_base64();
-}
-
-std::string sha512_224_base64(const std::string& str) {
-  sha512_224_stream sha512_224s;
-  sha512_224s.write(str.c_str(), static_cast<std::streamsize>(str.size()));
-  return sha512_224s.hash_base64();
-}
-
-std::string sha512_256_base64(const std::string& str) {
-  sha512_256_stream sha512_256s;
-  sha512_256s.write(str.c_str(), static_cast<std::streamsize>(str.size()));
-  return sha512_256s.hash_base64();
-}
+#undef DEFINE_SHA_INTERFACES
 
 }  // namespace digest
 }  // namespace yu
