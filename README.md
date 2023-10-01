@@ -127,6 +127,39 @@ fds << "Hello World." << std::endl;
 // Hello World.
 ```
 
+### stream/repeatstream.hpp
+
+```cpp
+namespace yu {
+namespace stream {
+class repeatstream : public std::iostream {
+ public:
+  explicit repeatstream(const std::string&);
+};
+}
+}
+```
+
+example: `sample/stream_repeatstream_sample.cpp`
+```cpp
+yu::stream::repeatstream repeat("yes\n");
+std::string line;
+for (size_t i = 0; i < 10; ++i) {
+  std::getline(repeat, line);
+  std::cout << line << std::endl;
+}
+// yes
+// yes
+// yes
+// yes
+// yes
+// yes
+// yes
+// yes
+// yes
+// yes
+```
+
 ### stream/nullstream.hpp
 
 ```cpp
