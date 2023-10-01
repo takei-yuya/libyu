@@ -160,7 +160,7 @@ std::string bcrypt_sha(const std::string& magic, const std::string& input_salt, 
   std::string s;
   {
     sha.reset();
-    for (size_t i = 0; i < 16 + static_cast<unsigned char>(x[0]); ++i) {
+    for (size_t i = 0; i < static_cast<size_t>(16 + static_cast<unsigned char>(x[0])); ++i) {
       sha << salt;
     }
     std::string hash = sha.hash_bin();
