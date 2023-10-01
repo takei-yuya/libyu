@@ -14,7 +14,7 @@ auto lexical_cast(const T2& val) -> typename std::enable_if<std::is_same<T1, T2>
 
 template <typename T1, typename T2>
 auto lexical_cast(const T2& val) -> typename std::enable_if<!std::is_same<T1, T2>::value, T1>::type {
-  T1 result;
+  T1 result {};
   std::ostringstream oss;
   oss << val;
   std::istringstream iss(oss.str());
@@ -24,7 +24,7 @@ auto lexical_cast(const T2& val) -> typename std::enable_if<!std::is_same<T1, T2
 
 template<typename T>
 T lexical_cast(const std::string& val) {
-  T result;
+  T result {};
   std::istringstream iss(val);
   iss >> result;
   return result;

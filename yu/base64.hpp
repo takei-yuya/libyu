@@ -53,7 +53,7 @@ class Encoder {
   uint32_t encode(std::istream& in, std::ostream& out) const {
     Radix64CRC24 crc24;
     size_t read_count = 0, write_count = 0;
-    char buf;
+    char buf = 0;
     for (int ch = in.get(); ch != EOF; ch = in.get()) {
       crc24.addChar(static_cast<char>(ch));
       if ((read_count % 3) == 0) {
