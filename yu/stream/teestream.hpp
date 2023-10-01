@@ -10,37 +10,56 @@ namespace stream {
 
 class oteestreambuf : public std::streambuf {
  public:
-  oteestreambuf(std::ostream& out1, std::ostream& out2) : out1_(out1), out2_(out2) {
-  }
+  oteestreambuf() : bufs_() {}
+  void add_buffer(std::streambuf* buf) { bufs_.push_back(buf); }
 
  private:
   std::streamsize xsputn(const char* s, std::streamsize n) override {
-    out1_.write(s, n);
-    out2_.write(s, n);
-    return n;
+    std::streamsize ret = n;
+    for (auto& buf : bufs_) {
+      std::streamsize sz;
+      if ((sz = buf->sputn(s, n)) != n) ret = std::min(sz, ret);
+    }
+    return ret;
   }
 
   int sync() override {
-    out1_.flush();
-    out2_.flush();
-    return 0;
+    int ret = 0;
+    for (auto& buf : bufs_) {
+      if (buf->pubsync() < 0) ret = -1;
+    }
+    return ret;
   }
 
   int overflow(int ch = traits_type::eof()) override {
-    if (ch == traits_type::eof()) return ch;
-    out1_.put(static_cast<char>(ch));
-    out2_.put(static_cast<char>(ch));
-    return ch;
+    if (ch == traits_type::eof()) return traits_type::not_eof(ch);
+    int ret = ch;
+    for (auto& buf : bufs_) {
+      if (buf->sputc(traits_type::to_char_type(ch)) == traits_type::eof()) ret = traits_type::eof();
+    }
+    return ret;
   }
 
-  std::ostream& out1_;
-  std::ostream& out2_;
+  std::vector<std::streambuf*> bufs_;
 };
 
 class oteestream : public std::ostream {
  public:
-  oteestream(std::ostream& out1, std::ostream& out2) : std::ostream(&buf_), buf_(out1, out2) {}
+  template <class... Args>
+  explicit oteestream(Args&&... args) : std::ostream(&buf_), buf_() {
+    initialize(args...);
+  }
+
  private:
+  void initialize(std::ostream& out) {
+    buf_.add_buffer(out.rdbuf());
+  }
+  template <class... Args>
+  void initialize(std::ostream& out, Args&&... args) {
+    buf_.add_buffer(out.rdbuf());
+    initialize(args...);
+  }
+
   oteestreambuf buf_;
 };
 
