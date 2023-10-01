@@ -35,7 +35,7 @@ class sha256_stream : public std::ostream {
  public:
   sha256_stream();
   std::string hash_hex();
-  std::vector<char> hash_bin();
+  std::string hash_bin();
   std::string hash_base64();
 };
 
@@ -278,13 +278,13 @@ template <typename T>
 inline T from_json(const std::string& str);
 
 // Macros: Object mappring
-Usage
+// Usage
 class Klass {
  private:
   std::string str;
   int num;
 
- pubic;
+ public:
   void stringifyJson(yu::json::Stringifier& stringifier) {
     JSON_MEMBER_STRINGIFIER(stringifier)
       << JSON_GETTER(str)
