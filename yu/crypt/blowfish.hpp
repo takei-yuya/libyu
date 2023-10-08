@@ -196,7 +196,7 @@ class blowfish_streambuf : public std::streambuf {
   }
 
   void finish() {
-    size_t padding_size = (kBlockSize - ((pptr() - pbase()) % kBlockSize)) % kBlockSize;
+    size_t padding_size = (kBlockSize - (static_cast<size_t>(pptr() - pbase()) % kBlockSize)) % kBlockSize;
     padding(padding_size);
     overflow(traits_type::eof());
   }

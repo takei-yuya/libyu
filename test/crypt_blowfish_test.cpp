@@ -14,7 +14,7 @@ class BlowFishTest : public yu::Test {
   std::string hex2bin(const std::string& hex_str) {
     std::string result;
     for (size_t i = 0; i + 1 < hex_str.size(); i += 2) {
-      result += (hexchar2bin(hex_str[i]) << 4 | hexchar2bin(hex_str[i+1]));
+      result += static_cast<char>(hexchar2bin(hex_str[i]) << 4 | hexchar2bin(hex_str[i+1]));
     }
     return result;
   }
