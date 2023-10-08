@@ -26,6 +26,39 @@ std::cout << str << std::endl;
 // 🍣
 ```
 
+### yu/crypt/blowfish.hpp
+
+```cpp
+namespace yu {
+namespace crypt {
+class blowfish_enc_ostream : public std::ostream {
+ public:
+  blowfish_enc_ostream(std::ostream& out, const std::string& key);
+  void finish();
+};
+
+class blowfish_dec_ostream : public std::ostream {
+ public:
+  blowfish_dec_ostream(std::ostream& out, const std::string& key);
+  void finish();
+};
+}
+}
+```
+
+example: `sample/crypt_blowfish_sample.cpp`
+```cpp
+std::ostringstream oss;
+yu::crypt::blowfish_dec_ostream ds(oss, "key");
+yu::crypt::blowfish_enc_ostream es(ds, "key");
+es << "Hello blowfish!!";
+es.finish();
+ds.finish();
+
+std::cout << oss.str() << std::endl;
+// Hello blowfish!!
+```
+
 ### digest/sha2.hpp
 
 ```cpp
