@@ -105,6 +105,12 @@ class TestRunner {
     throw yu::test::TestFailure(); \
   }
 
+#define FAIL(msg) \
+  { \
+    errors_.push_back(msg); \
+    throw yu::test::TestFailure(); \
+  }
+
 // TODO: move or redefine in another namespace like numeric, float_util or something else.
 template <typename T>
 int float_compare(T lhs, T rhs) {
