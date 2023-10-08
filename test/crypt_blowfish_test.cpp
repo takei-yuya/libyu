@@ -5,9 +5,9 @@
 class BlowFishTest : public yu::Test {
  protected:
   char hexchar2bin(char ch) {
-    if ('0' <= ch && ch <= '9') return ch - '0';
-    if ('a' <= ch && ch <= 'f') return ch - 'a' + 0xa;
-    if ('A' <= ch && ch <= 'F') return ch - 'A' + 0xA;
+    if ('0' <= ch && ch <= '9') return static_cast<char>(ch - '0');
+    if ('a' <= ch && ch <= 'f') return static_cast<char>(ch - 'a' + 0xa);
+    if ('A' <= ch && ch <= 'F') return static_cast<char>(ch - 'A' + 0xA);
     FAIL("Invalid char for hex");
   }
 
