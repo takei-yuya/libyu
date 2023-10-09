@@ -15,8 +15,8 @@ int main() {
   }
   {
     std::ostringstream oss;
-    yu::crypt::blowfish_cbc_enc_ostream ds(oss, "key", "Initial Vector 1");
-    yu::crypt::blowfish_cbc_dec_ostream es(ds, "key", "Initial Vector 1");
+    yu::crypt::blowfish_cbc_enc_ostream ds(oss, "key", "Init Vec");
+    yu::crypt::blowfish_cbc_dec_ostream es(ds, "key", "Init Vec");
     es << "Hello blowfish!!";
     es.finish();
     ds.finish();

@@ -31,31 +31,56 @@ std::cout << str << std::endl;
 ```cpp
 namespace yu {
 namespace crypt {
-class blowfish_enc_ostream : public std::ostream {
+class blowfish_ecb_enc_ostream {
  public:
-  blowfish_enc_ostream(std::ostream& out, const std::string& key);
+  blowfish_ecb_enc_ostream(std::ostream out, const std::string& key);
   void finish();
 };
 
-class blowfish_dec_ostream : public std::ostream {
+class blowfish_ecb_dec_ostream {
  public:
-  blowfish_dec_ostream(std::ostream& out, const std::string& key);
+  blowfish_ecb_enc_ostream(std::ostream out, const std::string& key);
   void finish();
 };
+
+class blowfish_cbc_enc_ostream {
+ public:
+  blowfish_cbc_enc_ostream(std::ostream out, const std::string& key, const std::string& iv);
+  void finish();
+};
+
+class blowfish_cbc_dec_ostream {
+ public:
+  blowfish_cbc_enc_ostream(std::ostream out, const std::string& key, const std::string& iv);
+  void finish();
+};
+
+// same as cfb and ofb
 }
 }
 ```
 
 example: `sample/crypt_blowfish_sample.cpp`
 ```cpp
-std::ostringstream oss;
-yu::crypt::blowfish_dec_ostream ds(oss, "key");
-yu::crypt::blowfish_enc_ostream es(ds, "key");
-es << "Hello blowfish!!";
-es.finish();
-ds.finish();
-
-std::cout << oss.str() << std::endl;
+{
+  std::ostringstream oss;
+  yu::crypt::blowfish_ecb_enc_ostream ds(oss, "key");
+  yu::crypt::blowfish_ecb_dec_ostream es(ds, "key");
+  es << "Hello blowfish!!";
+  es.finish();
+  ds.finish();
+  std::cout << oss.str() << std::endl;
+}
+{
+  std::ostringstream oss;
+  yu::crypt::blowfish_cbc_enc_ostream ds(oss, "key", "Init Vec");
+  yu::crypt::blowfish_cbc_dec_ostream es(ds, "key", "Init Vec");
+  es << "Hello blowfish!!";
+  es.finish();
+  ds.finish();
+  std::cout << oss.str() << std::endl;
+}
+// Hello blowfish!!
 // Hello blowfish!!
 ```
 
