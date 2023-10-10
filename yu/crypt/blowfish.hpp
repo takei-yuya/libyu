@@ -185,12 +185,8 @@ const static std::initializer_list<uint32_t> kInitSbox4 = {
 class Blowfish {
  public:
   const static size_t kBlockSize = 8;  // 64bit
-  Blowfish(bool decrypt, const std::string& key) {
-    subkeys_ = detail::kInitSubkey;
-    s1_ = detail::kInitSbox1;
-    s2_ = detail::kInitSbox2;
-    s3_ = detail::kInitSbox3;
-    s4_ = detail::kInitSbox4;
+  Blowfish(bool decrypt, const std::string& key)
+    : subkeys_(detail::kInitSubkey), s1_(detail::kInitSbox1), s2_(detail::kInitSbox2), s3_(detail::kInitSbox3), s4_(detail::kInitSbox4) {
 
     for (size_t i = 0; i < subkeys_.size(); ++i) {
       uint32_t k =
