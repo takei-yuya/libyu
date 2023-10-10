@@ -277,7 +277,7 @@ class CBC {
     if (!decrypt_) {
       // Encrypt
       for (size_t i = 0; i < kBlockSize; ++i) {
-        *(p + i) ^= iv_[i];
+        *(p + i) = *(p + i) ^ iv_[i];
       }
       ecb_.process(p);
       for (size_t i = 0; i < kBlockSize; ++i) {
@@ -288,7 +288,7 @@ class CBC {
       std::string next_iv(p, p + kBlockSize);
       ecb_.process(p);
       for (size_t i = 0; i < kBlockSize; ++i) {
-        *(p + i) ^= iv_[i];
+        *(p + i) = *(p + i) iv_[i];
       }
       iv_.swap(next_iv);
     }
@@ -314,14 +314,14 @@ class CFB {
       // Encrypt
       ecb_.process(iv_.data());
       for (size_t i = 0; i < kBlockSize; ++i) {
-        iv_[i] = *(p + i) ^= iv_[i];
+        iv_[i] = *(p + i) = *(p + i) ^ iv_[i];
       }
     } else {
       // Decript
       std::vector<char> next_iv(p, p + kBlockSize);
       ecb_.process(iv_.data());
       for (size_t i = 0; i < kBlockSize; ++i) {
-        *(p + i) ^= iv_[i];
+        *(p + i) = *(p + i) ^ iv_[i];
       }
       iv_.swap(next_iv);
     }
@@ -345,7 +345,7 @@ class OFB {
   void process(char *p) {
     ecb_.process(iv_.data());
     for (size_t i = 0; i < kBlockSize; ++i) {
-      *(p + i) ^= iv_[i];
+      *(p + i) = *(p + i) ^ iv_[i];
     }
   }
 
