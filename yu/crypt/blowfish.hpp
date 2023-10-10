@@ -288,7 +288,7 @@ class CBC {
       std::string next_iv(p, p + kBlockSize);
       ecb_.process(p);
       for (size_t i = 0; i < kBlockSize; ++i) {
-        *(p + i) = *(p + i) iv_[i];
+        *(p + i) = *(p + i) ^ iv_[i];
       }
       iv_.swap(next_iv);
     }
