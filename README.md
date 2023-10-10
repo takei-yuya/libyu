@@ -33,25 +33,25 @@ namespace yu {
 namespace crypt {
 class blowfish_ecb_enc_ostream {
  public:
-  blowfish_ecb_enc_ostream(std::ostream out, const std::string& key);
+  blowfish_ecb_enc_ostream(std::ostream& out, const std::string& key);
   void finish();
 };
 
 class blowfish_ecb_dec_ostream {
  public:
-  blowfish_ecb_enc_ostream(std::ostream out, const std::string& key);
+  blowfish_ecb_enc_ostream(std::ostream& out, const std::string& key);
   void finish();
 };
 
 class blowfish_cbc_enc_ostream {
  public:
-  blowfish_cbc_enc_ostream(std::ostream out, const std::string& key, const std::string& iv);
+  blowfish_cbc_enc_ostream(std::ostream& out, const std::string& key, const std::string& iv);
   void finish();
 };
 
 class blowfish_cbc_dec_ostream {
  public:
-  blowfish_cbc_enc_ostream(std::ostream out, const std::string& key, const std::string& iv);
+  blowfish_cbc_enc_ostream(std::ostream& out, const std::string& key, const std::string& iv);
   void finish();
 };
 
