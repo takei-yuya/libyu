@@ -364,6 +364,9 @@ class cipher_streambuf : public std::streambuf {
     : out_(out), buffer_(1024), cipher_(args...) {
     setp(buffer_.data(), buffer_.data() + buffer_.size());
   }
+  ~cipher_streambuf() {
+    finish();
+  }
 
   void finish() {
     size_t padding_size = (kBlockSize - (static_cast<size_t>(pptr() - pbase()) % kBlockSize)) % kBlockSize;
