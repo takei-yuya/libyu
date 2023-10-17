@@ -20,10 +20,87 @@ class BlowFishTest : public yu::Test {
   }
 };
 
+TEST(BlowFishTest, test_zero_padding) {
+  std::vector<char> buf = { '0', '1', '2', '3', '4', '5', '6', '7' };
+
+  EXPECT(0, ==, yu::crypt::ZeroPadding::padding(buf.data(), buf.data() + 8, buf.data() + 8));
+  EXPECT(std::string("01234567", 8), ==, std::string(buf.data(), buf.size()));
+  EXPECT(0, ==, yu::crypt::ZeroPadding::unpadding(buf.data(), buf.data() + 8, buf.data() + 8));
+
+  EXPECT(1, ==, yu::crypt::ZeroPadding::padding(buf.data(), buf.data() + 7, buf.data() + 8));
+  EXPECT(std::string("0123456\0", 8), ==, std::string(buf.data(), buf.size()));
+  EXPECT(1, ==, yu::crypt::ZeroPadding::unpadding(buf.data(), buf.data() + 8, buf.data() + 8));
+
+  EXPECT(2, ==, yu::crypt::ZeroPadding::padding(buf.data(), buf.data() + 6, buf.data() + 8));
+  EXPECT(std::string("012345\0\0", 8), ==, std::string(buf.data(), buf.size()));
+  EXPECT(2, ==, yu::crypt::ZeroPadding::unpadding(buf.data(), buf.data() + 8, buf.data() + 8));
+
+  EXPECT(3, ==, yu::crypt::ZeroPadding::padding(buf.data(), buf.data() + 5, buf.data() + 8));
+  EXPECT(std::string("01234\0\0\0", 8), ==, std::string(buf.data(), buf.size()));
+  EXPECT(3, ==, yu::crypt::ZeroPadding::unpadding(buf.data(), buf.data() + 8, buf.data() + 8));
+
+  EXPECT(4, ==, yu::crypt::ZeroPadding::padding(buf.data(), buf.data() + 4, buf.data() + 8));
+  EXPECT(std::string("0123\0\0\0\0", 8), ==, std::string(buf.data(), buf.size()));
+  EXPECT(4, ==, yu::crypt::ZeroPadding::unpadding(buf.data(), buf.data() + 8, buf.data() + 8));
+
+  EXPECT(5, ==, yu::crypt::ZeroPadding::padding(buf.data(), buf.data() + 3, buf.data() + 8));
+  EXPECT(std::string("012\0\0\0\0\0", 8), ==, std::string(buf.data(), buf.size()));
+  EXPECT(5, ==, yu::crypt::ZeroPadding::unpadding(buf.data(), buf.data() + 8, buf.data() + 8));
+
+  EXPECT(6, ==, yu::crypt::ZeroPadding::padding(buf.data(), buf.data() + 2, buf.data() + 8));
+  EXPECT(std::string("01\0\0\0\0\0\0", 8), ==, std::string(buf.data(), buf.size()));
+  EXPECT(6, ==, yu::crypt::ZeroPadding::unpadding(buf.data(), buf.data() + 8, buf.data() + 8));
+
+  EXPECT(7, ==, yu::crypt::ZeroPadding::padding(buf.data(), buf.data() + 1, buf.data() + 8));
+  EXPECT(std::string("0\0\0\0\0\0\0\0", 8), ==, std::string(buf.data(), buf.size()));
+  EXPECT(7, ==, yu::crypt::ZeroPadding::unpadding(buf.data(), buf.data() + 8, buf.data() + 8));
+
+  EXPECT(8, ==, yu::crypt::ZeroPadding::padding(buf.data(), buf.data() + 0, buf.data() + 8));
+  EXPECT(std::string("\0\0\0\0\0\0\0\0", 8), ==, std::string(buf.data(), buf.size()));
+  EXPECT(8, ==, yu::crypt::ZeroPadding::unpadding(buf.data(), buf.data() + 8, buf.data() + 8));
+}
+
+TEST(BlowFishTest, test_pksc7_padding) {
+  std::vector<char> buf = { '0', '1', '2', '3', '4', '5', '6', '7' };
+
+  EXPECT(1, ==, yu::crypt::PKCS7Padding::padding(buf.data(), buf.data() + 7, buf.data() + 8));
+  EXPECT(std::string("0123456\x01", 8), ==, std::string(buf.data(), buf.size()));
+  EXPECT(1, ==, yu::crypt::PKCS7Padding::unpadding(buf.data(), buf.data() + 8, buf.data() + 8));
+
+  EXPECT(2, ==, yu::crypt::PKCS7Padding::padding(buf.data(), buf.data() + 6, buf.data() + 8));
+  EXPECT(std::string("012345\x02\x02", 8), ==, std::string(buf.data(), buf.size()));
+  EXPECT(2, ==, yu::crypt::PKCS7Padding::unpadding(buf.data(), buf.data() + 8, buf.data() + 8));
+
+  EXPECT(3, ==, yu::crypt::PKCS7Padding::padding(buf.data(), buf.data() + 5, buf.data() + 8));
+  EXPECT(std::string("01234\x03\x03\x03", 8), ==, std::string(buf.data(), buf.size()));
+  EXPECT(3, ==, yu::crypt::PKCS7Padding::unpadding(buf.data(), buf.data() + 8, buf.data() + 8));
+
+  EXPECT(4, ==, yu::crypt::PKCS7Padding::padding(buf.data(), buf.data() + 4, buf.data() + 8));
+  EXPECT(std::string("0123\x04\x04\x04\x04", 8), ==, std::string(buf.data(), buf.size()));
+  EXPECT(4, ==, yu::crypt::PKCS7Padding::unpadding(buf.data(), buf.data() + 8, buf.data() + 8));
+
+  EXPECT(5, ==, yu::crypt::PKCS7Padding::padding(buf.data(), buf.data() + 3, buf.data() + 8));
+  EXPECT(std::string("012\x05\x05\x05\x05\x05", 8), ==, std::string(buf.data(), buf.size()));
+  EXPECT(5, ==, yu::crypt::PKCS7Padding::unpadding(buf.data(), buf.data() + 8, buf.data() + 8));
+
+  EXPECT(6, ==, yu::crypt::PKCS7Padding::padding(buf.data(), buf.data() + 2, buf.data() + 8));
+  EXPECT(std::string("01\x06\x06\x06\x06\x06\x06", 8), ==, std::string(buf.data(), buf.size()));
+  EXPECT(6, ==, yu::crypt::PKCS7Padding::unpadding(buf.data(), buf.data() + 8, buf.data() + 8));
+
+  EXPECT(7, ==, yu::crypt::PKCS7Padding::padding(buf.data(), buf.data() + 1, buf.data() + 8));
+  EXPECT(std::string("0\x07\x07\x07\x07\x07\x07\x07", 8), ==, std::string(buf.data(), buf.size()));
+  EXPECT(7, ==, yu::crypt::PKCS7Padding::unpadding(buf.data(), buf.data() + 8, buf.data() + 8));
+
+  EXPECT(8, ==, yu::crypt::PKCS7Padding::padding(buf.data(), buf.data() + 0, buf.data() + 8));
+  EXPECT(std::string("\x08\x08\x08\x08\x08\x08\x08\x08", 8), ==, std::string(buf.data(), buf.size()));
+  EXPECT(8, ==, yu::crypt::PKCS7Padding::unpadding(buf.data(), buf.data() + 8, buf.data() + 8));
+}
+
+
 TEST(BlowFishTest, test_ecb_enc_dec) {
   std::ostringstream oss;
-  yu::crypt::blowfish_ecb_enc_ostream ds(oss, "key");
-  yu::crypt::blowfish_ecb_dec_ostream es(ds, "key");
+  yu::crypt::blowfish_ecb_dec_ostream ds(oss, "key");
+  yu::crypt::blowfish_ecb_enc_ostream es(ds, "key");
   es << "Hello blowfish!!";
   es.finish();
   ds.finish();
@@ -31,7 +108,7 @@ TEST(BlowFishTest, test_ecb_enc_dec) {
   EXPECT("Hello blowfish!!", ==, oss.str());
 }
 
-TEST(BlowFishTest, testECBTestCases) {
+TEST(BlowFishTest, testECBTestCases_nopadding) {
   // echo '0000000000000000' | xxd -ps -r | openssl bf-ecb -provider legacy -K 00000000000000000000000000000000 -nopad | xxd -ps
   std::vector<std::pair<std::string, std::pair<std::string, std::string>>> test_cases = {
     { "00000000000000000000000000000000", { "0000000000000000", "4ef997456198dd78" } },
@@ -66,14 +143,14 @@ TEST(BlowFishTest, testECBTestCases) {
     const std::string& enc = hex2bin(test_cases[i].second.second);
     {
       std::ostringstream oss;
-      yu::crypt::blowfish_ecb_enc_ostream es(oss, key);
+      yu::crypt::cipher_enc_ostream<yu::crypt::Blowfish_ECB, yu::crypt::NoPadding> es(oss, key);
       es.write(plain.data(), static_cast<std::streamsize>(plain.size()));
       es.finish();
       EXPECT(enc, ==, oss.str());
     }
     {
       std::ostringstream oss;
-      yu::crypt::blowfish_ecb_dec_ostream es(oss, key);
+      yu::crypt::cipher_dec_ostream<yu::crypt::Blowfish_ECB, yu::crypt::NoPadding> es(oss, key);
       es.write(enc.data(), static_cast<std::streamsize>(enc.size()));
       es.finish();
       EXPECT(plain, ==, oss.str());
@@ -81,7 +158,7 @@ TEST(BlowFishTest, testECBTestCases) {
   }
 }
 
-TEST(BlowFishTest, testCBCTestCases) {
+TEST(BlowFishTest, testCBCTestCases_nopadding) {
   // echo '0000000000000000' | xxd -ps -r | openssl bf-cbc -provider legacy -K 00000000000000000000000000000000 -iv 0000000000000000 -nopad | xxd -ps
   std::vector<std::pair<std::pair<std::string, std::string>, std::pair<std::string, std::string>>> test_cases = {
     { { "00000000000000000000000000000000", "0000000000000000" }, { "00000000000000000000000000000000", "4ef997456198dd78e1c030e74c14d261" } },
@@ -237,14 +314,14 @@ TEST(BlowFishTest, testCBCTestCases) {
     const std::string& enc = hex2bin(test_cases[i].second.second);
     {
       std::ostringstream oss;
-      yu::crypt::blowfish_cbc_enc_ostream es(oss, key, iv);
+      yu::crypt::cipher_enc_ostream<yu::crypt::Blowfish_CBC, yu::crypt::NoPadding> es(oss, key, iv);
       es.write(plain.data(), static_cast<std::streamsize>(plain.size()));
       es.finish();
       EXPECT(enc, ==, oss.str());
     }
     {
       std::ostringstream oss;
-      yu::crypt::blowfish_cbc_dec_ostream es(oss, key, iv);
+      yu::crypt::cipher_dec_ostream<yu::crypt::Blowfish_CBC, yu::crypt::NoPadding> es(oss, key, iv);
       es.write(enc.data(), static_cast<std::streamsize>(enc.size()));
       es.finish();
       EXPECT(plain, ==, oss.str());
@@ -252,7 +329,7 @@ TEST(BlowFishTest, testCBCTestCases) {
   }
 }
 
-TEST(BlowFishTest, testCFBTestCases) {
+TEST(BlowFishTest, testCFBTestCases_nopadding) {
   // echo '0000000000000000' | xxd -ps -r | openssl bf-cfb -provider legacy -K 00000000000000000000000000000000 -iv 0000000000000000 -nopad | xxd -ps
   std::vector<std::pair<std::pair<std::string, std::string>, std::pair<std::string, std::string>>> test_cases = {
     { { "00000000000000000000000000000000", "0000000000000000" }, { "00000000000000000000000000000000", "4ef997456198dd78e1c030e74c14d261" } },
@@ -408,14 +485,14 @@ TEST(BlowFishTest, testCFBTestCases) {
     const std::string& enc = hex2bin(test_cases[i].second.second);
     {
       std::ostringstream oss;
-      yu::crypt::blowfish_cfb_enc_ostream es(oss, key, iv);
+      yu::crypt::cipher_enc_ostream<yu::crypt::Blowfish_CFB, yu::crypt::NoPadding> es(oss, key, iv);
       es.write(plain.data(), static_cast<std::streamsize>(plain.size()));
       es.finish();
       EXPECT(enc, ==, oss.str());
     }
     {
       std::ostringstream oss;
-      yu::crypt::blowfish_cfb_dec_ostream es(oss, key, iv);
+      yu::crypt::cipher_dec_ostream<yu::crypt::Blowfish_CFB, yu::crypt::NoPadding> es(oss, key, iv);
       es.write(enc.data(), static_cast<std::streamsize>(enc.size()));
       es.finish();
       EXPECT(plain, ==, oss.str());
@@ -423,7 +500,7 @@ TEST(BlowFishTest, testCFBTestCases) {
   }
 }
 
-TEST(BlowFishTest, testOFBTestCases) {
+TEST(BlowFishTest, testOFBTestCases_nopadding) {
   // echo '0000000000000000' | xxd -ps -r | openssl bf-ofb -provider legacy -K 00000000000000000000000000000000 -iv 0000000000000000 -nopad | xxd -ps
   std::vector<std::pair<std::pair<std::string, std::string>, std::pair<std::string, std::string>>> test_cases = {
     { { "00000000000000000000000000000000", "0000000000000000" }, { "00000000000000000000000000000000", "4ef997456198dd78e1c030e74c14d261" } },
@@ -570,6 +647,596 @@ TEST(BlowFishTest, testOFBTestCases) {
     { { "fedcba9876543210fedcba9876543210", "fedcba9876543210" }, { "ffeeddccbbaa99887766554433221100", "bf29111bc3329c7d5c201dc4d5078e02" } },
     { { "fedcba9876543210fedcba9876543210", "fedcba9876543210" }, { "0123456789abcdef0123456789abcdef", "41e489b0f133c81a2a650de76f8e52ed" } },
     { { "fedcba9876543210fedcba9876543210", "fedcba9876543210" }, { "fedcba9876543210fedcba9876543210", "be1b764f0ecc37e5d59af2189071ad12" } },
+  };
+
+  for (size_t i = 0; i < test_cases.size(); ++i) {
+    const std::string& key = hex2bin(test_cases[i].first.first);
+    const std::string& iv = hex2bin(test_cases[i].first.second);
+    const std::string& plain = hex2bin(test_cases[i].second.first);
+    const std::string& enc = hex2bin(test_cases[i].second.second);
+    {
+      std::ostringstream oss;
+      yu::crypt::cipher_enc_ostream<yu::crypt::Blowfish_OFB, yu::crypt::NoPadding> es(oss, key, iv);
+      es.write(plain.data(), static_cast<std::streamsize>(plain.size()));
+      es.finish();
+      EXPECT(enc, ==, oss.str());
+    }
+    {
+      std::ostringstream oss;
+      yu::crypt::cipher_dec_ostream<yu::crypt::Blowfish_OFB, yu::crypt::NoPadding> es(oss, key, iv);
+      es.write(enc.data(), static_cast<std::streamsize>(enc.size()));
+      es.finish();
+      EXPECT(plain, ==, oss.str());
+    }
+    // OFB encrypt and decrypt is same
+    {
+      std::ostringstream oss;
+      yu::crypt::cipher_dec_ostream<yu::crypt::Blowfish_OFB, yu::crypt::NoPadding> es(oss, key, iv);
+      es.write(plain.data(), static_cast<std::streamsize>(plain.size()));
+      es.finish();
+      EXPECT(enc, ==, oss.str());
+    }
+    {
+      std::ostringstream oss;
+      yu::crypt::cipher_enc_ostream<yu::crypt::Blowfish_OFB, yu::crypt::NoPadding> es(oss, key, iv);
+      es.write(enc.data(), static_cast<std::streamsize>(enc.size()));
+      es.finish();
+      EXPECT(plain, ==, oss.str());
+    }
+  }
+}
+
+TEST(BlowFishTest, testECBTestCases_with_padding) {
+  // echo '0000000000000000' | xxd -ps -r | openssl bf-ecb -provider legacy -K 00000000000000000000000000000000 | xxd -ps
+  std::vector<std::pair<std::string, std::pair<std::string, std::string>>> test_cases = {
+    { "00000000000000000000000000000000", { "0000000000000000000000000000", "4ef997456198dd782b885e6900141caf" } },
+    { "00000000000000000000000000000000", { "ffffffffffffffffffffffffffff", "014933e0cdaff6e48f852be9142dff26" } },
+    { "00000000000000000000000000000000", { "00112233445566778899aabbccdd", "6b650d96ecd76d014ab6c1c5035de4d4" } },
+    { "00000000000000000000000000000000", { "ffeeddccbbaa9988776655443322", "f440f377e21c8cd74932308990bcb9c4" } },
+    { "00000000000000000000000000000000", { "0123456789abcdef0123456789ab", "19f40a0d847f51c3b5b764f844c9fb89" } },
+    { "00000000000000000000000000000000", { "fedcba9876543210fedcba987654", "09a5aa8371843981577b5d37120d2a55" } },
+    { "ffffffffffffffffffffffffffffffff", { "0000000000000000000000000000", "f21e9a77b71c49bc45af22f50b2d07c0" } },
+    { "ffffffffffffffffffffffffffffffff", { "ffffffffffffffffffffffffffff", "51866fd5b85ecb8aba572f152b5bc413" } },
+    { "ffffffffffffffffffffffffffffffff", { "00112233445566778899aabbccdd", "e74f522178fb590c7b46c0b6bd1ed58e" } },
+    { "ffffffffffffffffffffffffffffffff", { "ffeeddccbbaa9988776655443322", "fd9972778079905aa8deeca8e3e1ef2a" } },
+    { "ffffffffffffffffffffffffffffffff", { "0123456789abcdef0123456789ab", "0b13debc7b8635cdf5fe6446b37a3e9b" } },
+    { "ffffffffffffffffffffffffffffffff", { "fedcba9876543210fedcba987654", "0d7b00c01a21e5c1d4cf072e0f3b7f85" } },
+    { "00112233445566778899aabbccddeeff", { "0000000000000000000000000000", "36d4e2502b0036304422186c589651a5" } },
+    { "00112233445566778899aabbccddeeff", { "ffffffffffffffffffffffffffff", "77c465ae7a9a2077ddefbb5def49b759" } },
+    { "00112233445566778899aabbccddeeff", { "00112233445566778899aabbccdd", "4cf55a7a713b308b5ef40c66297cec41" } },
+    { "00112233445566778899aabbccddeeff", { "ffeeddccbbaa9988776655443322", "1de0d1ce6c37b8a98b2f94162c0c1f14" } },
+    { "00112233445566778899aabbccddeeff", { "0123456789abcdef0123456789ab", "dcec940a9cf3faa7f9200d0e497ee71e" } },
+    { "00112233445566778899aabbccddeeff", { "fedcba9876543210fedcba987654", "7d5c6b95237c00ca3e3c3f241ca94ec9" } },
+    { "ffeeddccbbaa99887766554433221100", { "0000000000000000000000000000", "2b04a56528a8498de81ceb497e88ec09" } },
+    { "ffeeddccbbaa99887766554433221100", { "ffffffffffffffffffffffffffff", "d3f5d17de0e1b07bbebbdd0cc9d068f4" } },
+    { "ffeeddccbbaa99887766554433221100", { "00112233445566778899aabbccdd", "df1a5086867e5b0c803cdd31ef043386" } },
+    { "ffeeddccbbaa99887766554433221100", { "ffeeddccbbaa9988776655443322", "35335dd9640b344d154dcd9b81625de3" } },
+    { "ffeeddccbbaa99887766554433221100", { "0123456789abcdef0123456789ab", "bd16bc4918c271354b64ec8686729009" } },
+    { "ffeeddccbbaa99887766554433221100", { "fedcba9876543210fedcba987654", "df7e18415a64fd86acb9ba5e84137407" } },
+    { "0123456789abcdef0123456789abcdef", { "0000000000000000000000000000", "245946885754369a0dee68c86afbb54d" } },
+    { "0123456789abcdef0123456789abcdef", { "ffffffffffffffffffffffffffff", "1c6cd49835c7b012b2a097f87dfebfdf" } },
+    { "0123456789abcdef0123456789abcdef", { "00112233445566778899aabbccdd", "362d146aded351e9d39efbdb20bed7e7" } },
+    { "0123456789abcdef0123456789abcdef", { "ffeeddccbbaa9988776655443322", "dbabb7427fe7e97d9a35c7e5d2c6de40" } },
+    { "0123456789abcdef0123456789abcdef", { "0123456789abcdef0123456789ab", "008a8314ee2b27a3cf91f0b37fe690a7" } },
+    { "0123456789abcdef0123456789abcdef", { "fedcba9876543210fedcba987654", "9f5fac53492e0761ea85fbf486ffdddc" } },
+    { "fedcba9876543210fedcba9876543210", { "0000000000000000000000000000", "2324986da676719c4c87a1a7a8120bdd" } },
+    { "fedcba9876543210fedcba9876543210", { "ffffffffffffffffffffffffffff", "6b5c5a9c5d9e0a5a50d9abc1c145ab9d" } },
+    { "fedcba9876543210fedcba9876543210", { "00112233445566778899aabbccdd", "8efefc92aa7d6abf982d55a94fd034f9" } },
+    { "fedcba9876543210fedcba9876543210", { "ffeeddccbbaa9988776655443322", "dda249674c06a3ae35ce102e56f92904" } },
+    { "fedcba9876543210fedcba9876543210", { "0123456789abcdef0123456789ab", "0aceab0fc6a0a28dbb91ede2a9b372d7" } },
+    { "fedcba9876543210fedcba9876543210", { "fedcba9876543210fedcba987654", "40c7ccd7789805f54f6453477c04a1e1" } },
+  };
+
+  for (size_t i = 0; i < test_cases.size(); ++i) {
+    const std::string& key = hex2bin(test_cases[i].first);
+    const std::string& plain = hex2bin(test_cases[i].second.first);
+    const std::string& enc = hex2bin(test_cases[i].second.second);
+    {
+      std::ostringstream oss;
+      yu::crypt::blowfish_ecb_enc_ostream es(oss, key);
+      es.write(plain.data(), static_cast<std::streamsize>(plain.size()));
+      es.finish();
+      EXPECT(enc, ==, oss.str());
+    }
+    {
+      std::ostringstream oss;
+      yu::crypt::blowfish_ecb_dec_ostream es(oss, key);
+      es.write(enc.data(), static_cast<std::streamsize>(enc.size()));
+      es.finish();
+      EXPECT(plain, ==, oss.str());
+    }
+  }
+}
+
+TEST(BlowFishTest, testCBCTestCases_with_padding) {
+  // echo '0000000000000000' | xxd -ps -r | openssl bf-cbc -provider legacy -K 00000000000000000000000000000000 -iv 0000000000000000 | xxd -ps
+  std::vector<std::pair<std::pair<std::string, std::string>, std::pair<std::string, std::string>>> test_cases = {
+    { { "00000000000000000000000000000000", "0000000000000000" }, { "0000000000000000000000000000", "4ef997456198dd78ba44a85624708949" } },
+    { { "00000000000000000000000000000000", "0000000000000000" }, { "ffffffffffffffffffffffffffff", "014933e0cdaff6e469f794ccefb137a2" } },
+    { { "00000000000000000000000000000000", "0000000000000000" }, { "00112233445566778899aabbccdd", "6b650d96ecd76d01ae58db88cf9ceb56" } },
+    { { "00000000000000000000000000000000", "0000000000000000" }, { "ffeeddccbbaa9988776655443322", "f440f377e21c8cd7258160c209ea50ee" } },
+    { { "00000000000000000000000000000000", "0000000000000000" }, { "0123456789abcdef0123456789ab", "19f40a0d847f51c3bff0234c2bbe967e" } },
+    { { "00000000000000000000000000000000", "0000000000000000" }, { "fedcba9876543210fedcba987654", "09a5aa83718439815426b34d17a69e7a" } },
+    { { "00000000000000000000000000000000", "ffffffffffffffff" }, { "0000000000000000000000000000", "014933e0cdaff6e44ccba3cc33a96495" } },
+    { { "00000000000000000000000000000000", "ffffffffffffffff" }, { "ffffffffffffffffffffffffffff", "4ef997456198dd78929d0fd6abb28d90" } },
+    { { "00000000000000000000000000000000", "ffffffffffffffff" }, { "00112233445566778899aabbccdd", "f440f377e21c8cd71777021ecc34bf8b" } },
+    { { "00000000000000000000000000000000", "ffffffffffffffff" }, { "ffeeddccbbaa9988776655443322", "6b650d96ecd76d01849375c780e0fdfc" } },
+    { { "00000000000000000000000000000000", "ffffffffffffffff" }, { "0123456789abcdef0123456789ab", "09a5aa83718439814c478dfb3108cbf9" } },
+    { { "00000000000000000000000000000000", "ffffffffffffffff" }, { "fedcba9876543210fedcba987654", "19f40a0d847f51c316148cf3ec241da4" } },
+    { { "00000000000000000000000000000000", "0123456789abcdef" }, { "0000000000000000000000000000", "19f40a0d847f51c3a4e524e05a4e24b3" } },
+    { { "00000000000000000000000000000000", "0123456789abcdef" }, { "ffffffffffffffffffffffffffff", "09a5aa8371843981e2a6b556a1917091" } },
+    { { "00000000000000000000000000000000", "0123456789abcdef" }, { "00112233445566778899aabbccdd", "cb9190acb4dae35f036dcb67d2b90d96" } },
+    { { "00000000000000000000000000000000", "0123456789abcdef" }, { "ffeeddccbbaa9988776655443322", "5820552bb4627175565dfa049c265aff" } },
+    { { "00000000000000000000000000000000", "0123456789abcdef" }, { "0123456789abcdef0123456789ab", "4ef997456198dd78ca4778bef386a071" } },
+    { { "00000000000000000000000000000000", "0123456789abcdef" }, { "fedcba9876543210fedcba987654", "014933e0cdaff6e4576e02d8cfb06454" } },
+    { { "00000000000000000000000000000000", "fedcba9876543210" }, { "0000000000000000000000000000", "09a5aa83718439811924aa36aa68ce81" } },
+    { { "00000000000000000000000000000000", "fedcba9876543210" }, { "ffffffffffffffffffffffffffff", "19f40a0d847f51c31a9e97da8053c89d" } },
+    { { "00000000000000000000000000000000", "fedcba9876543210" }, { "00112233445566778899aabbccdd", "5820552bb4627175feaa03df96abd83e" } },
+    { { "00000000000000000000000000000000", "fedcba9876543210" }, { "ffeeddccbbaa9988776655443322", "cb9190acb4dae35f1d813e3ee410bd98" } },
+    { { "00000000000000000000000000000000", "fedcba9876543210" }, { "0123456789abcdef0123456789ab", "014933e0cdaff6e49b92dd58bac400dd" } },
+    { { "00000000000000000000000000000000", "fedcba9876543210" }, { "fedcba9876543210fedcba987654", "4ef997456198dd789f77e7cffdedbeee" } },
+    { { "ffffffffffffffffffffffffffffffff", "0000000000000000" }, { "0000000000000000000000000000", "f21e9a77b71c49bcdbe68ecdc17ee6f4" } },
+    { { "ffffffffffffffffffffffffffffffff", "0000000000000000" }, { "ffffffffffffffffffffffffffff", "51866fd5b85ecb8ae53bb8e60cf705f2" } },
+    { { "ffffffffffffffffffffffffffffffff", "0000000000000000" }, { "00112233445566778899aabbccdd", "e74f522178fb590c24d7a30fb6a42be6" } },
+    { { "ffffffffffffffffffffffffffffffff", "0000000000000000" }, { "ffeeddccbbaa9988776655443322", "fd9972778079905ac7fb522c91963e7a" } },
+    { { "ffffffffffffffffffffffffffffffff", "0000000000000000" }, { "0123456789abcdef0123456789ab", "0b13debc7b8635cd7b1e04d497e27c36" } },
+    { { "ffffffffffffffffffffffffffffffff", "0000000000000000" }, { "fedcba9876543210fedcba987654", "0d7b00c01a21e5c1b7bc487c8a72c998" } },
+    { { "ffffffffffffffffffffffffffffffff", "ffffffffffffffff" }, { "0000000000000000000000000000", "51866fd5b85ecb8a3b2b7ec33a39b9ae" } },
+    { { "ffffffffffffffffffffffffffffffff", "ffffffffffffffff" }, { "ffffffffffffffffffffffffffff", "f21e9a77b71c49bc44f2636ec8e54d19" } },
+    { { "ffffffffffffffffffffffffffffffff", "ffffffffffffffff" }, { "00112233445566778899aabbccdd", "fd9972778079905ac4b12d93baa308f0" } },
+    { { "ffffffffffffffffffffffffffffffff", "ffffffffffffffff" }, { "ffeeddccbbaa9988776655443322", "e74f522178fb590c6302df7d0cebfb3f" } },
+    { { "ffffffffffffffffffffffffffffffff", "ffffffffffffffff" }, { "0123456789abcdef0123456789ab", "0d7b00c01a21e5c1f9b1ceb97134c955" } },
+    { { "ffffffffffffffffffffffffffffffff", "ffffffffffffffff" }, { "fedcba9876543210fedcba987654", "0b13debc7b8635cd8de50eb51eeab7e4" } },
+    { { "ffffffffffffffffffffffffffffffff", "0123456789abcdef" }, { "0000000000000000000000000000", "0b13debc7b8635cdee6bd4df9556d28c" } },
+    { { "ffffffffffffffffffffffffffffffff", "0123456789abcdef" }, { "ffffffffffffffffffffffffffff", "0d7b00c01a21e5c161d72859f232736a" } },
+    { { "ffffffffffffffffffffffffffffffff", "0123456789abcdef" }, { "00112233445566778899aabbccdd", "f721b4d93d85f82aaec1ec13f267966c" } },
+    { { "ffffffffffffffffffffffffffffffff", "0123456789abcdef" }, { "ffeeddccbbaa9988776655443322", "8cf1e5cc5d204176d9cb209c26c216f2" } },
+    { { "ffffffffffffffffffffffffffffffff", "0123456789abcdef" }, { "0123456789abcdef0123456789ab", "f21e9a77b71c49bc71217f9cfd6cd6f2" } },
+    { { "ffffffffffffffffffffffffffffffff", "0123456789abcdef" }, { "fedcba9876543210fedcba987654", "51866fd5b85ecb8a61f4b6bb280bb022" } },
+    { { "ffffffffffffffffffffffffffffffff", "fedcba9876543210" }, { "0000000000000000000000000000", "0d7b00c01a21e5c15b9f9c53d1604bfa" } },
+    { { "ffffffffffffffffffffffffffffffff", "fedcba9876543210" }, { "ffffffffffffffffffffffffffff", "0b13debc7b8635cd1e36e9ab095d7122" } },
+    { { "ffffffffffffffffffffffffffffffff", "fedcba9876543210" }, { "00112233445566778899aabbccdd", "8cf1e5cc5d204176d9cfc11331972b82" } },
+    { { "ffffffffffffffffffffffffffffffff", "fedcba9876543210" }, { "ffeeddccbbaa9988776655443322", "f721b4d93d85f82a7ba3d6d9ab1797fd" } },
+    { { "ffffffffffffffffffffffffffffffff", "fedcba9876543210" }, { "0123456789abcdef0123456789ab", "51866fd5b85ecb8ae7185ab052bf7222" } },
+    { { "ffffffffffffffffffffffffffffffff", "fedcba9876543210" }, { "fedcba9876543210fedcba987654", "f21e9a77b71c49bc1324332258096675" } },
+    { { "00112233445566778899aabbccddeeff", "0000000000000000" }, { "0000000000000000000000000000", "36d4e2502b0036301024cdfd61ca5208" } },
+    { { "00112233445566778899aabbccddeeff", "0000000000000000" }, { "ffffffffffffffffffffffffffff", "77c465ae7a9a207791fcabe7260f6194" } },
+    { { "00112233445566778899aabbccddeeff", "0000000000000000" }, { "00112233445566778899aabbccdd", "4cf55a7a713b308b504d84f0f1f719eb" } },
+    { { "00112233445566778899aabbccddeeff", "0000000000000000" }, { "ffeeddccbbaa9988776655443322", "1de0d1ce6c37b8a9cb5735712f048ddb" } },
+    { { "00112233445566778899aabbccddeeff", "0000000000000000" }, { "0123456789abcdef0123456789ab", "dcec940a9cf3faa7acd2b21a677b16bf" } },
+    { { "00112233445566778899aabbccddeeff", "0000000000000000" }, { "fedcba9876543210fedcba987654", "7d5c6b95237c00caa21cd0a2a3671299" } },
+    { { "00112233445566778899aabbccddeeff", "ffffffffffffffff" }, { "0000000000000000000000000000", "77c465ae7a9a2077e1df48e55657e9bb" } },
+    { { "00112233445566778899aabbccddeeff", "ffffffffffffffff" }, { "ffffffffffffffffffffffffffff", "36d4e2502b003630b28bdb2e36e49a14" } },
+    { { "00112233445566778899aabbccddeeff", "ffffffffffffffff" }, { "00112233445566778899aabbccdd", "1de0d1ce6c37b8a9c6422dd53de28bc0" } },
+    { { "00112233445566778899aabbccddeeff", "ffffffffffffffff" }, { "ffeeddccbbaa9988776655443322", "4cf55a7a713b308bcbe5ff0cd9d5df15" } },
+    { { "00112233445566778899aabbccddeeff", "ffffffffffffffff" }, { "0123456789abcdef0123456789ab", "7d5c6b95237c00ca1785bbae67ed5c62" } },
+    { { "00112233445566778899aabbccddeeff", "ffffffffffffffff" }, { "fedcba9876543210fedcba987654", "dcec940a9cf3faa7b667503fa415c448" } },
+    { { "00112233445566778899aabbccddeeff", "0123456789abcdef" }, { "0000000000000000000000000000", "dcec940a9cf3faa7467bf05e96d35263" } },
+    { { "00112233445566778899aabbccddeeff", "0123456789abcdef" }, { "ffffffffffffffffffffffffffff", "7d5c6b95237c00ca8895097a0f998f89" } },
+    { { "00112233445566778899aabbccddeeff", "0123456789abcdef" }, { "00112233445566778899aabbccdd", "74fc25ef7b4cfc297f4016274ef5b770" } },
+    { { "00112233445566778899aabbccddeeff", "0123456789abcdef" }, { "ffeeddccbbaa9988776655443322", "492eb75dc5ab66d80a2555eb6a708e83" } },
+    { { "00112233445566778899aabbccddeeff", "0123456789abcdef" }, { "0123456789abcdef0123456789ab", "36d4e2502b00363093ded72c2dc9cb02" } },
+    { { "00112233445566778899aabbccddeeff", "0123456789abcdef" }, { "fedcba9876543210fedcba987654", "77c465ae7a9a2077b7e5c88514b42c50" } },
+    { { "00112233445566778899aabbccddeeff", "fedcba9876543210" }, { "0000000000000000000000000000", "7d5c6b95237c00ca3b80a74ffb97cc82" } },
+    { { "00112233445566778899aabbccddeeff", "fedcba9876543210" }, { "ffffffffffffffffffffffffffff", "dcec940a9cf3faa703b61058a6bf464d" } },
+    { { "00112233445566778899aabbccddeeff", "fedcba9876543210" }, { "00112233445566778899aabbccdd", "492eb75dc5ab66d8622a36ef68869663" } },
+    { { "00112233445566778899aabbccddeeff", "fedcba9876543210" }, { "ffeeddccbbaa9988776655443322", "74fc25ef7b4cfc298444317b88463ac8" } },
+    { { "00112233445566778899aabbccddeeff", "fedcba9876543210" }, { "0123456789abcdef0123456789ab", "77c465ae7a9a20779cc261533e45d6fb" } },
+    { { "00112233445566778899aabbccddeeff", "fedcba9876543210" }, { "fedcba9876543210fedcba987654", "36d4e2502b003630c842b3892662c92c" } },
+    { { "ffeeddccbbaa99887766554433221100", "0000000000000000" }, { "0000000000000000000000000000", "2b04a56528a8498dc6c57a0330c5f33e" } },
+    { { "ffeeddccbbaa99887766554433221100", "0000000000000000" }, { "ffffffffffffffffffffffffffff", "d3f5d17de0e1b07ba5462df4cf1ecfa8" } },
+    { { "ffeeddccbbaa99887766554433221100", "0000000000000000" }, { "00112233445566778899aabbccdd", "df1a5086867e5b0cb676513ad8e05304" } },
+    { { "ffeeddccbbaa99887766554433221100", "0000000000000000" }, { "ffeeddccbbaa9988776655443322", "35335dd9640b344db0379a2f4619c4d5" } },
+    { { "ffeeddccbbaa99887766554433221100", "0000000000000000" }, { "0123456789abcdef0123456789ab", "bd16bc4918c27135806197f54b5651ef" } },
+    { { "ffeeddccbbaa99887766554433221100", "0000000000000000" }, { "fedcba9876543210fedcba987654", "df7e18415a64fd86762e41bb3e1901b7" } },
+    { { "ffeeddccbbaa99887766554433221100", "ffffffffffffffff" }, { "0000000000000000000000000000", "d3f5d17de0e1b07b6bb204533aae21d9" } },
+    { { "ffeeddccbbaa99887766554433221100", "ffffffffffffffff" }, { "ffffffffffffffffffffffffffff", "2b04a56528a8498da9aebc5f2d84cd04" } },
+    { { "ffeeddccbbaa99887766554433221100", "ffffffffffffffff" }, { "00112233445566778899aabbccdd", "35335dd9640b344d3e8cc34ae6df7e6f" } },
+    { { "ffeeddccbbaa99887766554433221100", "ffffffffffffffff" }, { "ffeeddccbbaa9988776655443322", "df1a5086867e5b0c63eca0209c5fef08" } },
+    { { "ffeeddccbbaa99887766554433221100", "ffffffffffffffff" }, { "0123456789abcdef0123456789ab", "df7e18415a64fd86a3bb274cac4096cd" } },
+    { { "ffeeddccbbaa99887766554433221100", "ffffffffffffffff" }, { "fedcba9876543210fedcba987654", "bd16bc4918c27135cde47e842919ba5b" } },
+    { { "ffeeddccbbaa99887766554433221100", "0123456789abcdef" }, { "0000000000000000000000000000", "bd16bc4918c271354062c0d728da5ae1" } },
+    { { "ffeeddccbbaa99887766554433221100", "0123456789abcdef" }, { "ffffffffffffffffffffffffffff", "df7e18415a64fd86ca0656d66ebe178d" } },
+    { { "ffeeddccbbaa99887766554433221100", "0123456789abcdef" }, { "00112233445566778899aabbccdd", "ba1eea8d8c9fb632b310372395fd6c8e" } },
+    { { "ffeeddccbbaa99887766554433221100", "0123456789abcdef" }, { "ffeeddccbbaa9988776655443322", "f9cf3e7c86a8979330594d8d08a4a473" } },
+    { { "ffeeddccbbaa99887766554433221100", "0123456789abcdef" }, { "0123456789abcdef0123456789ab", "2b04a56528a8498df39cca72adc0394f" } },
+    { { "ffeeddccbbaa99887766554433221100", "0123456789abcdef" }, { "fedcba9876543210fedcba987654", "d3f5d17de0e1b07b46ae30fd02318e60" } },
+    { { "ffeeddccbbaa99887766554433221100", "fedcba9876543210" }, { "0000000000000000000000000000", "df7e18415a64fd86e834a2c5a7527d0b" } },
+    { { "ffeeddccbbaa99887766554433221100", "fedcba9876543210" }, { "ffffffffffffffffffffffffffff", "bd16bc4918c27135db9de7102687fe7a" } },
+    { { "ffeeddccbbaa99887766554433221100", "fedcba9876543210" }, { "00112233445566778899aabbccdd", "f9cf3e7c86a89793c2d86dfb7aecc1c0" } },
+    { { "ffeeddccbbaa99887766554433221100", "fedcba9876543210" }, { "ffeeddccbbaa9988776655443322", "ba1eea8d8c9fb632bec7347d95bbd262" } },
+    { { "ffeeddccbbaa99887766554433221100", "fedcba9876543210" }, { "0123456789abcdef0123456789ab", "d3f5d17de0e1b07bff87fe84c01657e6" } },
+    { { "ffeeddccbbaa99887766554433221100", "fedcba9876543210" }, { "fedcba9876543210fedcba987654", "2b04a56528a8498d9cd712163bfa43df" } },
+    { { "0123456789abcdef0123456789abcdef", "0000000000000000" }, { "0000000000000000000000000000", "245946885754369af44f0ab9a197d169" } },
+    { { "0123456789abcdef0123456789abcdef", "0000000000000000" }, { "ffffffffffffffffffffffffffff", "1c6cd49835c7b012958fea88c8899c2a" } },
+    { { "0123456789abcdef0123456789abcdef", "0000000000000000" }, { "00112233445566778899aabbccdd", "362d146aded351e99f35691eb06d1e06" } },
+    { { "0123456789abcdef0123456789abcdef", "0000000000000000" }, { "ffeeddccbbaa9988776655443322", "dbabb7427fe7e97d6c985a55332ce2bb" } },
+    { { "0123456789abcdef0123456789abcdef", "0000000000000000" }, { "0123456789abcdef0123456789ab", "008a8314ee2b27a383d2b2bf6136a8fa" } },
+    { { "0123456789abcdef0123456789abcdef", "0000000000000000" }, { "fedcba9876543210fedcba987654", "9f5fac53492e076174da889d7c1f3c2f" } },
+    { { "0123456789abcdef0123456789abcdef", "ffffffffffffffff" }, { "0000000000000000000000000000", "1c6cd49835c7b012955817fa7d8bb9dc" } },
+    { { "0123456789abcdef0123456789abcdef", "ffffffffffffffff" }, { "ffffffffffffffffffffffffffff", "245946885754369a1e5f02d8960bd24b" } },
+    { { "0123456789abcdef0123456789abcdef", "ffffffffffffffff" }, { "00112233445566778899aabbccdd", "dbabb7427fe7e97d2ee6f5856ca7c40d" } },
+    { { "0123456789abcdef0123456789abcdef", "ffffffffffffffff" }, { "ffeeddccbbaa9988776655443322", "362d146aded351e90e181eb4ce397335" } },
+    { { "0123456789abcdef0123456789abcdef", "ffffffffffffffff" }, { "0123456789abcdef0123456789ab", "9f5fac53492e07613e9b01952ba4ea65" } },
+    { { "0123456789abcdef0123456789abcdef", "ffffffffffffffff" }, { "fedcba9876543210fedcba987654", "008a8314ee2b27a331de67ac7e441673" } },
+    { { "0123456789abcdef0123456789abcdef", "0123456789abcdef" }, { "0000000000000000000000000000", "008a8314ee2b27a38944ff763b6d54ea" } },
+    { { "0123456789abcdef0123456789abcdef", "0123456789abcdef" }, { "ffffffffffffffffffffffffffff", "9f5fac53492e0761fd69eb8e22c2ada8" } },
+    { { "0123456789abcdef0123456789abcdef", "0123456789abcdef" }, { "00112233445566778899aabbccdd", "933587b8aecdf10b6e096b07df5407da" } },
+    { { "0123456789abcdef0123456789abcdef", "0123456789abcdef" }, { "ffeeddccbbaa9988776655443322", "d14b03b57cc84443ecedf19043915b05" } },
+    { { "0123456789abcdef0123456789abcdef", "0123456789abcdef" }, { "0123456789abcdef0123456789ab", "245946885754369a642618710a89d567" } },
+    { { "0123456789abcdef0123456789abcdef", "0123456789abcdef" }, { "fedcba9876543210fedcba987654", "1c6cd49835c7b01260c54cebba13fc7a" } },
+    { { "0123456789abcdef0123456789abcdef", "fedcba9876543210" }, { "0000000000000000000000000000", "9f5fac53492e07610df6b9835d182b1b" } },
+    { { "0123456789abcdef0123456789abcdef", "fedcba9876543210" }, { "ffffffffffffffffffffffffffff", "008a8314ee2b27a36afaca4e173ad59c" } },
+    { { "0123456789abcdef0123456789abcdef", "fedcba9876543210" }, { "00112233445566778899aabbccdd", "d14b03b57cc8444324830245bc7082ca" } },
+    { { "0123456789abcdef0123456789abcdef", "fedcba9876543210" }, { "ffeeddccbbaa9988776655443322", "933587b8aecdf10b85cff423fcee6a39" } },
+    { { "0123456789abcdef0123456789abcdef", "fedcba9876543210" }, { "0123456789abcdef0123456789ab", "1c6cd49835c7b012919ea23501965892" } },
+    { { "0123456789abcdef0123456789abcdef", "fedcba9876543210" }, { "fedcba9876543210fedcba987654", "245946885754369aee82ae27dd1430d1" } },
+    { { "fedcba9876543210fedcba9876543210", "0000000000000000" }, { "0000000000000000000000000000", "2324986da676719caf4832fb66939d86" } },
+    { { "fedcba9876543210fedcba9876543210", "0000000000000000" }, { "ffffffffffffffffffffffffffff", "6b5c5a9c5d9e0a5a990b98660cc69d4d" } },
+    { { "fedcba9876543210fedcba9876543210", "0000000000000000" }, { "00112233445566778899aabbccdd", "8efefc92aa7d6abfc29a83c633ecc8aa" } },
+    { { "fedcba9876543210fedcba9876543210", "0000000000000000" }, { "ffeeddccbbaa9988776655443322", "dda249674c06a3ae0e59d98d02631db4" } },
+    { { "fedcba9876543210fedcba9876543210", "0000000000000000" }, { "0123456789abcdef0123456789ab", "0aceab0fc6a0a28d67acaaa611e3d1ce" } },
+    { { "fedcba9876543210fedcba9876543210", "0000000000000000" }, { "fedcba9876543210fedcba987654", "40c7ccd7789805f559bc117fa93466a8" } },
+    { { "fedcba9876543210fedcba9876543210", "ffffffffffffffff" }, { "0000000000000000000000000000", "6b5c5a9c5d9e0a5af6a71f788a9944ae" } },
+    { { "fedcba9876543210fedcba9876543210", "ffffffffffffffff" }, { "ffffffffffffffffffffffffffff", "2324986da676719c9355149cecddc294" } },
+    { { "fedcba9876543210fedcba9876543210", "ffffffffffffffff" }, { "00112233445566778899aabbccdd", "dda249674c06a3ae0bdb15d4453af2bc" } },
+    { { "fedcba9876543210fedcba9876543210", "ffffffffffffffff" }, { "ffeeddccbbaa9988776655443322", "8efefc92aa7d6abff6270ab08483ffe3" } },
+    { { "fedcba9876543210fedcba9876543210", "ffffffffffffffff" }, { "0123456789abcdef0123456789ab", "40c7ccd7789805f52a26abaa921c1879" } },
+    { { "fedcba9876543210fedcba9876543210", "ffffffffffffffff" }, { "fedcba9876543210fedcba987654", "0aceab0fc6a0a28d51c6cb8148251b7e" } },
+    { { "fedcba9876543210fedcba9876543210", "0123456789abcdef" }, { "0000000000000000000000000000", "0aceab0fc6a0a28da6f65d4eb437d730" } },
+    { { "fedcba9876543210fedcba9876543210", "0123456789abcdef" }, { "ffffffffffffffffffffffffffff", "40c7ccd7789805f5b2608a6a19a90662" } },
+    { { "fedcba9876543210fedcba9876543210", "0123456789abcdef" }, { "00112233445566778899aabbccdd", "fab26baf08a902f6a67e036762586f5c" } },
+    { { "fedcba9876543210fedcba9876543210", "0123456789abcdef" }, { "ffeeddccbbaa9988776655443322", "fe2ea97cdf387b6984681ccdccb22542" } },
+    { { "fedcba9876543210fedcba9876543210", "0123456789abcdef" }, { "0123456789abcdef0123456789ab", "2324986da676719c9e8ba6555f779fa6" } },
+    { { "fedcba9876543210fedcba9876543210", "0123456789abcdef" }, { "fedcba9876543210fedcba987654", "6b5c5a9c5d9e0a5aed54c56fecf78864" } },
+    { { "fedcba9876543210fedcba9876543210", "fedcba9876543210" }, { "0000000000000000000000000000", "40c7ccd7789805f58b290053c26d6c3d" } },
+    { { "fedcba9876543210fedcba9876543210", "fedcba9876543210" }, { "ffffffffffffffffffffffffffff", "0aceab0fc6a0a28de874abaa36717d81" } },
+    { { "fedcba9876543210fedcba9876543210", "fedcba9876543210" }, { "00112233445566778899aabbccdd", "fe2ea97cdf387b693d64632da16899e8" } },
+    { { "fedcba9876543210fedcba9876543210", "fedcba9876543210" }, { "ffeeddccbbaa9988776655443322", "fab26baf08a902f6a286f8969c02ee22" } },
+    { { "fedcba9876543210fedcba9876543210", "fedcba9876543210" }, { "0123456789abcdef0123456789ab", "6b5c5a9c5d9e0a5a49694b12b750f181" } },
+    { { "fedcba9876543210fedcba9876543210", "fedcba9876543210" }, { "fedcba9876543210fedcba987654", "2324986da676719c44dd54e756f62e66" } },
+  };
+
+  for (size_t i = 0; i < test_cases.size(); ++i) {
+    const std::string& key = hex2bin(test_cases[i].first.first);
+    const std::string& iv = hex2bin(test_cases[i].first.second);
+    const std::string& plain = hex2bin(test_cases[i].second.first);
+    const std::string& enc = hex2bin(test_cases[i].second.second);
+    {
+      std::ostringstream oss;
+      yu::crypt::blowfish_cbc_enc_ostream es(oss, key, iv);
+      es.write(plain.data(), static_cast<std::streamsize>(plain.size()));
+      es.finish();
+      EXPECT(enc, ==, oss.str());
+    }
+    {
+      std::ostringstream oss;
+      yu::crypt::blowfish_cbc_dec_ostream es(oss, key, iv);
+      es.write(enc.data(), static_cast<std::streamsize>(enc.size()));
+      es.finish();
+      EXPECT(plain, ==, oss.str());
+    }
+  }
+}
+
+TEST(BlowFishTest, testCFBTestCases_stream) {
+  // echo '0000000000000000' | xxd -ps -r | openssl bf-cfb -provider legacy -K 00000000000000000000000000000000 -iv 0000000000000000 | xxd -ps
+  std::vector<std::pair<std::pair<std::string, std::string>, std::pair<std::string, std::string>>> test_cases = {
+    { { "00000000000000000000000000000000", "0000000000000000" }, { "0000000000000000000000000000", "4ef997456198dd78e1c030e74c14" } },
+    { { "00000000000000000000000000000000", "0000000000000000" }, { "ffffffffffffffffffffffffffff", "b10668ba9e6722870acbe069f253" } },
+    { { "00000000000000000000000000000000", "0000000000000000" }, { "00112233445566778899aabbccdd", "4ee8b57625cdbb0fd50f32179f66" } },
+    { { "00000000000000000000000000000000", "0000000000000000" }, { "ffeeddccbbaa9988776655443322", "b1174a89da3244f0b285b2ed335d" } },
+    { { "00000000000000000000000000000000", "0000000000000000" }, { "0123456789abcdef0123456789ab", "4fdad222e8331097f7ee4362356e" } },
+    { { "00000000000000000000000000000000", "0000000000000000" }, { "fedcba9876543210fedcba987654", "b0252ddd17ccef68ab089e2670aa" } },
+    { { "00000000000000000000000000000000", "ffffffffffffffff" }, { "0000000000000000000000000000", "014933e0cdaff6e42016cc63b245" } },
+    { { "00000000000000000000000000000000", "ffffffffffffffff" }, { "ffffffffffffffffffffffffffff", "feb6cc1f3250091b34e8c27994cf" } },
+    { { "00000000000000000000000000000000", "ffffffffffffffff" }, { "00112233445566778899aabbccdd", "015811d389fa90938448fa19cfb5" } },
+    { { "00000000000000000000000000000000", "ffffffffffffffff" }, { "ffeeddccbbaa9988776655443322", "fea7ee2c76056f6cd43e0a8dd008" } },
+    { { "00000000000000000000000000000000", "ffffffffffffffff" }, { "0123456789abcdef0123456789ab", "006a768744043b0b37b8c410857d" } },
+    { { "00000000000000000000000000000000", "ffffffffffffffff" }, { "fedcba9876543210fedcba987654", "ff958978bbfbc4f4a0444f18bd9a" } },
+    { { "00000000000000000000000000000000", "0123456789abcdef" }, { "0000000000000000000000000000", "19f40a0d847f51c3bb0eec7223ce" } },
+    { { "00000000000000000000000000000000", "0123456789abcdef" }, { "ffffffffffffffffffffffffffff", "e60bf5f27b80ae3c31fa1660aa7a" } },
+    { { "00000000000000000000000000000000", "0123456789abcdef" }, { "00112233445566778899aabbccdd", "19e5283ec02a37b4b54967157322" } },
+    { { "00000000000000000000000000000000", "0123456789abcdef" }, { "ffeeddccbbaa9988776655443322", "e61ad7c13fd5c84b116248c6ccf3" } },
+    { { "00000000000000000000000000000000", "0123456789abcdef" }, { "0123456789abcdef0123456789ab", "18d74f6a0dd49c2cf3802ec778b7" } },
+    { { "00000000000000000000000000000000", "0123456789abcdef" }, { "fedcba9876543210fedcba987654", "e728b095f22b63d3b70e73330c50" } },
+    { { "00000000000000000000000000000000", "fedcba9876543210" }, { "0000000000000000000000000000", "09a5aa83718439813df63409c281" } },
+    { { "00000000000000000000000000000000", "fedcba9876543210" }, { "ffffffffffffffffffffffffffff", "f65a557c8e7bc67e5871e7cd0b7a" } },
+    { { "00000000000000000000000000000000", "fedcba9876543210" }, { "00112233445566778899aabbccdd", "09b488b035d15ff60699f9c4f50a" } },
+    { { "00000000000000000000000000000000", "fedcba9876543210" }, { "ffeeddccbbaa9988776655443322", "f64b774fca2ea009b0561330e410" } },
+    { { "00000000000000000000000000000000", "fedcba9876543210" }, { "0123456789abcdef0123456789ab", "0886efe4f82ff46e58d54543f969" } },
+    { { "00000000000000000000000000000000", "fedcba9876543210" }, { "fedcba9876543210fedcba987654", "f779101b07d00b9121f0043ac300" } },
+    { { "ffffffffffffffffffffffffffffffff", "0000000000000000" }, { "0000000000000000000000000000", "f21e9a77b71c49bc92fad911711b" } },
+    { { "ffffffffffffffffffffffffffffffff", "0000000000000000" }, { "ffffffffffffffffffffffffffff", "0de1658848e3b6434bef60a0cec8" } },
+    { { "ffffffffffffffffffffffffffffffff", "0000000000000000" }, { "00112233445566778899aabbccdd", "f20fb844f3492fcb10df9b1ddeaf" } },
+    { { "ffffffffffffffffffffffffffffffff", "0000000000000000" }, { "ffeeddccbbaa9988776655443322", "0df047bb0cb6d03472dd24cf1dd6" } },
+    { { "ffffffffffffffffffffffffffffffff", "0000000000000000" }, { "0123456789abcdef0123456789ab", "f33ddf103eb78453e305f58d6e63" } },
+    { { "ffffffffffffffffffffffffffffffff", "0000000000000000" }, { "fedcba9876543210fedcba987654", "0cc220efc1487bac14acc8b49703" } },
+    { { "ffffffffffffffffffffffffffffffff", "ffffffffffffffff" }, { "0000000000000000000000000000", "51866fd5b85ecb8aba8a39a94193" } },
+    { { "ffffffffffffffffffffffffffffffff", "ffffffffffffffff" }, { "ffffffffffffffffffffffffffff", "ae79902a47a13475a1d661c0fac2" } },
+    { { "ffffffffffffffffffffffffffffffff", "ffffffffffffffff" }, { "00112233445566778899aabbccdd", "51974de6fc0badfd01943c651b7f" } },
+    { { "ffffffffffffffffffffffffffffffff", "ffffffffffffffff" }, { "ffeeddccbbaa9988776655443322", "ae68b21903f45202a8a5970457e5" } },
+    { { "ffffffffffffffffffffffffffffffff", "ffffffffffffffff" }, { "0123456789abcdef0123456789ab", "50a52ab231f506653c927212ed23" } },
+    { { "ffffffffffffffffffffffffffffffff", "ffffffffffffffff" }, { "fedcba9876543210fedcba987654", "af5ad54dce0af99abda319673e72" } },
+    { { "ffffffffffffffffffffffffffffffff", "0123456789abcdef" }, { "0000000000000000000000000000", "0b13debc7b8635cd1e0c1b4356a1" } },
+    { { "ffffffffffffffffffffffffffffffff", "0123456789abcdef" }, { "ffffffffffffffffffffffffffff", "f4ec21438479ca32072d7ecce5b8" } },
+    { { "ffffffffffffffffffffffffffffffff", "0123456789abcdef" }, { "00112233445566778899aabbccdd", "0b02fc8f3fd353bab3d4da98d93e" } },
+    { { "ffffffffffffffffffffffffffffffff", "0123456789abcdef" }, { "ffeeddccbbaa9988776655443322", "f4fd0370c02cac4571f937bc8f3a" } },
+    { { "ffffffffffffffffffffffffffffffff", "0123456789abcdef" }, { "0123456789abcdef0123456789ab", "0a309bdbf22df8221cf230f3d435" } },
+    { { "ffffffffffffffffffffffffffffffff", "0123456789abcdef" }, { "fedcba9876543210fedcba987654", "f5cf64240dd207dd8dd70b70a1ec" } },
+    { { "ffffffffffffffffffffffffffffffff", "fedcba9876543210" }, { "0000000000000000000000000000", "0d7b00c01a21e5c1b5478ddacd1a" } },
+    { { "ffffffffffffffffffffffffffffffff", "fedcba9876543210" }, { "ffffffffffffffffffffffffffff", "f284ff3fe5de1a3ea788916118c4" } },
+    { { "ffffffffffffffffffffffffffffffff", "fedcba9876543210" }, { "00112233445566778899aabbccdd", "0d6a22f35e7483b63d3793a591dc" } },
+    { { "ffffffffffffffffffffffffffffffff", "fedcba9876543210" }, { "ffeeddccbbaa9988776655443322", "f295dd0ca18b7c49984b1bbe8201" } },
+    { { "ffffffffffffffffffffffffffffffff", "fedcba9876543210" }, { "0123456789abcdef0123456789ab", "0c5845a7938a282e88820289a5de" } },
+    { { "ffffffffffffffffffffffffffffffff", "fedcba9876543210" }, { "fedcba9876543210fedcba987654", "f3a7ba586c75d7d131c0d6080201" } },
+    { { "00112233445566778899aabbccddeeff", "0000000000000000" }, { "0000000000000000000000000000", "36d4e2502b0036308a0981b1c05e" } },
+    { { "00112233445566778899aabbccddeeff", "0000000000000000" }, { "ffffffffffffffffffffffffffff", "c92b1dafd4ffc9cfc705eaa4b4fe" } },
+    { { "00112233445566778899aabbccddeeff", "0000000000000000" }, { "00112233445566778899aabbccdd", "36c5c0636f5550470d44993de507" } },
+    { { "00112233445566778899aabbccddeeff", "0000000000000000" }, { "ffeeddccbbaa9988776655443322", "c93a3f9c90aaafb8aff2c5cc31f6" } },
+    { { "00112233445566778899aabbccddeeff", "0000000000000000" }, { "0123456789abcdef0123456789ab", "37f7a737a2abfbdf79cef95f61e0" } },
+    { { "00112233445566778899aabbccddeeff", "0000000000000000" }, { "fedcba9876543210fedcba987654", "c80858c85d540420521b0d28437d" } },
+    { { "00112233445566778899aabbccddeeff", "ffffffffffffffff" }, { "0000000000000000000000000000", "77c465ae7a9a20777cedb21611b5" } },
+    { { "00112233445566778899aabbccddeeff", "ffffffffffffffff" }, { "ffffffffffffffffffffffffffff", "883b9a518565df88a38c758bd1c6" } },
+    { { "00112233445566778899aabbccddeeff", "ffffffffffffffff" }, { "00112233445566778899aabbccdd", "77d5479d3ecf4600ce4a5ea8fcb2" } },
+    { { "00112233445566778899aabbccddeeff", "ffffffffffffffff" }, { "ffeeddccbbaa9988776655443322", "882ab862c130b9fffd2cc024118e" } },
+    { { "00112233445566778899aabbccddeeff", "ffffffffffffffff" }, { "0123456789abcdef0123456789ab", "76e720c9f331ed988c44f1bee28e" } },
+    { { "00112233445566778899aabbccddeeff", "ffffffffffffffff" }, { "fedcba9876543210fedcba987654", "8918df360cce1267e1a826c060ab" } },
+    { { "00112233445566778899aabbccddeeff", "0123456789abcdef" }, { "0000000000000000000000000000", "dcec940a9cf3faa7918f4de01b24" } },
+    { { "00112233445566778899aabbccddeeff", "0123456789abcdef" }, { "ffffffffffffffffffffffffffff", "23136bf5630c05583d9c00ec72ca" } },
+    { { "00112233445566778899aabbccddeeff", "0123456789abcdef" }, { "00112233445566778899aabbccdd", "dcfdb639d8a69cd03042ea06a137" } },
+    { { "00112233445566778899aabbccddeeff", "0123456789abcdef" }, { "ffeeddccbbaa9988776655443322", "230249c62759632f652781368f20" } },
+    { { "00112233445566778899aabbccddeeff", "0123456789abcdef" }, { "0123456789abcdef0123456789ab", "ddcfd16d1558374807be440022be" } },
+    { { "00112233445566778899aabbccddeeff", "0123456789abcdef" }, { "fedcba9876543210fedcba987654", "22302e92eaa7c8b780855b9aba18" } },
+    { { "00112233445566778899aabbccddeeff", "fedcba9876543210" }, { "0000000000000000000000000000", "7d5c6b95237c00ca4a01a183b625" } },
+    { { "00112233445566778899aabbccddeeff", "fedcba9876543210" }, { "ffffffffffffffffffffffffffff", "82a3946adc83ff3567547a8e86a0" } },
+    { { "00112233445566778899aabbccddeeff", "fedcba9876543210" }, { "00112233445566778899aabbccdd", "7d4d49a6672966bdc5d686f8b069" } },
+    { { "00112233445566778899aabbccddeeff", "fedcba9876543210" }, { "ffeeddccbbaa9988776655443322", "82b2b65998d699422afb43ede209" } },
+    { { "00112233445566778899aabbccddeeff", "fedcba9876543210" }, { "0123456789abcdef0123456789ab", "7c7f2ef2aad7cd25ab24679283a9" } },
+    { { "00112233445566778899aabbccddeeff", "fedcba9876543210" }, { "fedcba9876543210fedcba987654", "8380d10d552832dadba787341e90" } },
+    { { "ffeeddccbbaa99887766554433221100", "0000000000000000" }, { "0000000000000000000000000000", "2b04a56528a8498dd818a3babd35" } },
+    { { "ffeeddccbbaa99887766554433221100", "0000000000000000" }, { "ffffffffffffffffffffffffffff", "d4fb5a9ad757b67293c3e4800aa4" } },
+    { { "ffeeddccbbaa99887766554433221100", "0000000000000000" }, { "00112233445566778899aabbccdd", "2b1587566cfd2ffa971ff61c8719" } },
+    { { "ffeeddccbbaa99887766554433221100", "0000000000000000" }, { "ffeeddccbbaa9988776655443322", "d4ea78a99302d0057412fe5075f7" } },
+    { { "ffeeddccbbaa99887766554433221100", "0000000000000000" }, { "0123456789abcdef0123456789ab", "2a27e002a1038462d68bc63040f5" } },
+    { { "ffeeddccbbaa99887766554433221100", "0000000000000000" }, { "fedcba9876543210fedcba987654", "d5d81ffd5efc7b9db534332481a7" } },
+    { { "ffeeddccbbaa99887766554433221100", "ffffffffffffffff" }, { "0000000000000000000000000000", "d3f5d17de0e1b07ba5d1db3d3848" } },
+    { { "ffeeddccbbaa99887766554433221100", "ffffffffffffffff" }, { "ffffffffffffffffffffffffffff", "2c0a2e821f1e4f843f778f0e8094" } },
+    { { "ffeeddccbbaa99887766554433221100", "ffffffffffffffff" }, { "00112233445566778899aabbccdd", "d3e4f34ea4b4d60cccc970cf3db6" } },
+    { { "ffeeddccbbaa99887766554433221100", "ffffffffffffffff" }, { "ffeeddccbbaa9988776655443322", "2c1b0cb15b4b29f380724e3f316f" } },
+    { { "ffeeddccbbaa99887766554433221100", "ffffffffffffffff" }, { "0123456789abcdef0123456789ab", "d2d6941a694a7d94f29073b75673" } },
+    { { "ffeeddccbbaa99887766554433221100", "ffffffffffffffff" }, { "fedcba9876543210fedcba987654", "2d296be596b5826bfc9cce189c0c" } },
+    { { "ffeeddccbbaa99887766554433221100", "0123456789abcdef" }, { "0000000000000000000000000000", "bd16bc4918c271359e32141a6b7c" } },
+    { { "ffeeddccbbaa99887766554433221100", "0123456789abcdef" }, { "ffffffffffffffffffffffffffff", "42e943b6e73d8eca991783bb42f9" } },
+    { { "ffeeddccbbaa99887766554433221100", "0123456789abcdef" }, { "00112233445566778899aabbccdd", "bd079e7a5c971742599fdfce1c14" } },
+    { { "ffeeddccbbaa99887766554433221100", "0123456789abcdef" }, { "ffeeddccbbaa9988776655443322", "42f86185a368e8bde9c78f922f4c" } },
+    { { "ffeeddccbbaa99887766554433221100", "0123456789abcdef" }, { "0123456789abcdef0123456789ab", "bc35f92e9169bcdac2fed253878b" } },
+    { { "ffeeddccbbaa99887766554433221100", "0123456789abcdef" }, { "fedcba9876543210fedcba987654", "43ca06d16e9643257704ee2360a7" } },
+    { { "ffeeddccbbaa99887766554433221100", "fedcba9876543210" }, { "0000000000000000000000000000", "df7e18415a64fd8664ea660209a3" } },
+    { { "ffeeddccbbaa99887766554433221100", "fedcba9876543210" }, { "ffffffffffffffffffffffffffff", "2081e7bea59b0279b941f9b5f666" } },
+    { { "ffeeddccbbaa99887766554433221100", "fedcba9876543210" }, { "00112233445566778899aabbccdd", "df6f3a721e319bf1f8a370f2b8bf" } },
+    { { "ffeeddccbbaa99887766554433221100", "fedcba9876543210" }, { "ffeeddccbbaa9988776655443322", "2090c58de1ce640eb77b8e320e6a" } },
+    { { "ffeeddccbbaa99887766554433221100", "fedcba9876543210" }, { "0123456789abcdef0123456789ab", "de5d5d26d3cf30694afcc96596cd" } },
+    { { "ffeeddccbbaa99887766554433221100", "fedcba9876543210" }, { "fedcba9876543210fedcba987654", "21a2a2d92c30cf964bd7633d85e1" } },
+    { { "0123456789abcdef0123456789abcdef", "0000000000000000" }, { "0000000000000000000000000000", "245946885754369ae74f215b96c7" } },
+    { { "0123456789abcdef0123456789abcdef", "0000000000000000" }, { "ffffffffffffffffffffffffffff", "dba6b977a8abc965392d15b8ee60" } },
+    { { "0123456789abcdef0123456789abcdef", "0000000000000000" }, { "00112233445566778899aabbccdd", "244864bb130150edc1503c639397" } },
+    { { "0123456789abcdef0123456789abcdef", "0000000000000000" }, { "ffeeddccbbaa9988776655443322", "dbb79b44ecfeaf12414b0d5635ce" } },
+    { { "0123456789abcdef0123456789abcdef", "0000000000000000" }, { "0123456789abcdef0123456789ab", "257a03efdefffb752729a087bbee" } },
+    { { "0123456789abcdef0123456789abcdef", "0000000000000000" }, { "fedcba9876543210fedcba987654", "da85fc102100048a0ae475eceaf4" } },
+    { { "0123456789abcdef0123456789abcdef", "ffffffffffffffff" }, { "0000000000000000000000000000", "1c6cd49835c7b0128a12a5e4a947" } },
+    { { "0123456789abcdef0123456789abcdef", "ffffffffffffffff" }, { "ffffffffffffffffffffffffffff", "e3932b67ca384fed20d9072dfb89" } },
+    { { "0123456789abcdef0123456789abcdef", "ffffffffffffffff" }, { "00112233445566778899aabbccdd", "1c7df6ab7192d665af92f45a2708" } },
+    { { "0123456789abcdef0123456789abcdef", "ffffffffffffffff" }, { "ffeeddccbbaa9988776655443322", "e38209548e6d299a332cc60d16ba" } },
+    { { "0123456789abcdef0123456789abcdef", "ffffffffffffffff" }, { "0123456789abcdef0123456789ab", "1d4f91ffbc6c7dfdcffdabe6e499" } },
+    { { "0123456789abcdef0123456789abcdef", "ffffffffffffffff" }, { "fedcba9876543210fedcba987654", "e2b06e004393820292d08e4de152" } },
+    { { "0123456789abcdef0123456789abcdef", "0123456789abcdef" }, { "0000000000000000000000000000", "008a8314ee2b27a3cb94e0b9d32e" } },
+    { { "0123456789abcdef0123456789abcdef", "0123456789abcdef" }, { "ffffffffffffffffffffffffffff", "ff757ceb11d4d85cc8e72b7995b3" } },
+    { { "0123456789abcdef0123456789abcdef", "0123456789abcdef" }, { "00112233445566778899aabbccdd", "009ba127aa7e41d434ef4baaf246" } },
+    { { "0123456789abcdef0123456789abcdef", "0123456789abcdef" }, { "ffeeddccbbaa9988776655443322", "ff645ed85581be2b61c83d997ef7" } },
+    { { "0123456789abcdef0123456789abcdef", "0123456789abcdef" }, { "0123456789abcdef0123456789ab", "01a9c6736780ea4cdf43cc89642f" } },
+    { { "0123456789abcdef0123456789abcdef", "0123456789abcdef" }, { "fedcba9876543210fedcba987654", "fe56398c987f15b398e994ad9a40" } },
+    { { "0123456789abcdef0123456789abcdef", "fedcba9876543210" }, { "0000000000000000000000000000", "9f5fac53492e076126ab6bfbb5c0" } },
+    { { "0123456789abcdef0123456789abcdef", "fedcba9876543210" }, { "ffffffffffffffffffffffffffff", "60a053acb6d1f89e20de4c0af867" } },
+    { { "0123456789abcdef0123456789abcdef", "fedcba9876543210" }, { "00112233445566778899aabbccdd", "9f4e8e600d7b6116990e847de30f" } },
+    { { "0123456789abcdef0123456789abcdef", "fedcba9876543210" }, { "ffeeddccbbaa9988776655443322", "60b1719ff2849ee964a75c7b8d62" } },
+    { { "0123456789abcdef0123456789abcdef", "fedcba9876543210" }, { "0123456789abcdef0123456789ab", "9e7ce934c085ca8ef77d2153d8e3" } },
+    { { "0123456789abcdef0123456789abcdef", "fedcba9876543210" }, { "fedcba9876543210fedcba987654", "618316cb3f7a35712b87b64057a1" } },
+    { { "fedcba9876543210fedcba9876543210", "0000000000000000" }, { "0000000000000000000000000000", "2324986da676719cb7989842a8e1" } },
+    { { "fedcba9876543210fedcba9876543210", "0000000000000000" }, { "ffffffffffffffffffffffffffff", "dcdb679259898e6392363bbfe536" } },
+    { { "fedcba9876543210fedcba9876543210", "0000000000000000" }, { "00112233445566778899aabbccdd", "2335ba5ee22317eb4f9cdf4c3f94" } },
+    { { "fedcba9876543210fedcba9876543210", "0000000000000000" }, { "ffeeddccbbaa9988776655443322", "dcca45a11ddce814590ddc9bd67d" } },
+    { { "fedcba9876543210fedcba9876543210", "0000000000000000" }, { "0123456789abcdef0123456789ab", "2207dd0a2fddbc73f692c24c6ed9" } },
+    { { "fedcba9876543210fedcba9876543210", "0000000000000000" }, { "fedcba9876543210fedcba987654", "ddf822f5d022438c00ab3c6df478" } },
+    { { "fedcba9876543210fedcba9876543210", "ffffffffffffffff" }, { "0000000000000000000000000000", "6b5c5a9c5d9e0a5a5f4abe4c38e2" } },
+    { { "fedcba9876543210fedcba9876543210", "ffffffffffffffff" }, { "ffffffffffffffffffffffffffff", "94a3a563a261f5a5f9b57be71750" } },
+    { { "fedcba9876543210fedcba9876543210", "ffffffffffffffff" }, { "00112233445566778899aabbccdd", "6b4d78af19cb6c2d10ee802eee04" } },
+    { { "fedcba9876543210fedcba9876543210", "ffffffffffffffff" }, { "ffeeddccbbaa9988776655443322", "94b28750e63493d2727c4d0b1d2f" } },
+    { { "fedcba9876543210fedcba9876543210", "ffffffffffffffff" }, { "0123456789abcdef0123456789ab", "6a7f1ffbd435c7b52ae0a4746ce6" } },
+    { { "fedcba9876543210fedcba9876543210", "ffffffffffffffff" }, { "fedcba9876543210fedcba987654", "9580e0042bca384adeb6c33b7099" } },
+    { { "fedcba9876543210fedcba9876543210", "0123456789abcdef" }, { "0000000000000000000000000000", "0aceab0fc6a0a28db6553c45fe00" } },
+    { { "fedcba9876543210fedcba9876543210", "0123456789abcdef" }, { "ffffffffffffffffffffffffffff", "f53154f0395f5d72d2753fbc2e71" } },
+    { { "fedcba9876543210fedcba9876543210", "0123456789abcdef" }, { "00112233445566778899aabbccdd", "0adf893c82f5c4fa9aa06985d7b5" } },
+    { { "fedcba9876543210fedcba9876543210", "0123456789abcdef" }, { "ffeeddccbbaa9988776655443322", "f52076c37d0a3b05ec6a7d230336" } },
+    { { "fedcba9876543210fedcba9876543210", "0123456789abcdef" }, { "0123456789abcdef0123456789ab", "0bedee684f0b6f62d0b1582a8f56" } },
+    { { "fedcba9876543210fedcba9876543210", "0123456789abcdef" }, { "fedcba9876543210fedcba987654", "f4121197b0f4909dcfe2ffa0ab3f" } },
+    { { "fedcba9876543210fedcba9876543210", "fedcba9876543210" }, { "0000000000000000000000000000", "40c7ccd7789805f52b464880e625" } },
+    { { "fedcba9876543210fedcba9876543210", "fedcba9876543210" }, { "ffffffffffffffffffffffffffff", "bf3833288767fa0a8ad19a96b2f1" } },
+    { { "fedcba9876543210fedcba9876543210", "fedcba9876543210" }, { "00112233445566778899aabbccdd", "40d6eee43ccd6382357a72c8c437" } },
+    { { "fedcba9876543210fedcba9876543210", "fedcba9876543210" }, { "ffeeddccbbaa9988776655443322", "bf29111bc3329c7d65777db378dd" } },
+    { { "fedcba9876543210fedcba9876543210", "fedcba9876543210" }, { "0123456789abcdef0123456789ab", "41e489b0f133c81a767dda13d3f2" } },
+    { { "fedcba9876543210fedcba9876543210", "fedcba9876543210" }, { "fedcba9876543210fedcba987654", "be1b764f0ecc37e52ca5065d1dbc" } },
+  };
+
+  for (size_t i = 0; i < test_cases.size(); ++i) {
+    const std::string& key = hex2bin(test_cases[i].first.first);
+    const std::string& iv = hex2bin(test_cases[i].first.second);
+    const std::string& plain = hex2bin(test_cases[i].second.first);
+    const std::string& enc = hex2bin(test_cases[i].second.second);
+    {
+      std::ostringstream oss;
+      yu::crypt::blowfish_cfb_enc_ostream es(oss, key, iv);
+      es.write(plain.data(), static_cast<std::streamsize>(plain.size()));
+      es.finish();
+      EXPECT(enc, ==, oss.str());
+    }
+    {
+      std::ostringstream oss;
+      yu::crypt::blowfish_cfb_dec_ostream es(oss, key, iv);
+      es.write(enc.data(), static_cast<std::streamsize>(enc.size()));
+      es.finish();
+      EXPECT(plain, ==, oss.str());
+    }
+  }
+}
+
+TEST(BlowFishTest, testOFBTestCases_stream) {
+  // echo '0000000000000000' | xxd -ps -r | openssl bf-ofb -provider legacy -K 00000000000000000000000000000000 -iv 0000000000000000 | xxd -ps
+  std::vector<std::pair<std::pair<std::string, std::string>, std::pair<std::string, std::string>>> test_cases = {
+    { { "00000000000000000000000000000000", "0000000000000000" }, { "0000000000000000000000000000", "4ef997456198dd78e1c030e74c14" } },
+    { { "00000000000000000000000000000000", "0000000000000000" }, { "ffffffffffffffffffffffffffff", "b10668ba9e6722871e3fcf18b3eb" } },
+    { { "00000000000000000000000000000000", "0000000000000000" }, { "00112233445566778899aabbccdd", "4ee8b57625cdbb0f69599a5c80c9" } },
+    { { "00000000000000000000000000000000", "0000000000000000" }, { "ffeeddccbbaa9988776655443322", "b1174a89da3244f096a665a37f36" } },
+    { { "00000000000000000000000000000000", "0000000000000000" }, { "0123456789abcdef0123456789ab", "4fdad222e8331097e0e37580c5bf" } },
+    { { "00000000000000000000000000000000", "0000000000000000" }, { "fedcba9876543210fedcba987654", "b0252ddd17ccef681f1c8a7f3a40" } },
+    { { "00000000000000000000000000000000", "ffffffffffffffff" }, { "0000000000000000000000000000", "014933e0cdaff6e42016cc63b245" } },
+    { { "00000000000000000000000000000000", "ffffffffffffffff" }, { "ffffffffffffffffffffffffffff", "feb6cc1f3250091bdfe9339c4dba" } },
+    { { "00000000000000000000000000000000", "ffffffffffffffff" }, { "00112233445566778899aabbccdd", "015811d389fa9093a88f66d87e98" } },
+    { { "00000000000000000000000000000000", "ffffffffffffffff" }, { "ffeeddccbbaa9988776655443322", "fea7ee2c76056f6c577099278167" } },
+    { { "00000000000000000000000000000000", "ffffffffffffffff" }, { "0123456789abcdef0123456789ab", "006a768744043b0b213589043bee" } },
+    { { "00000000000000000000000000000000", "ffffffffffffffff" }, { "fedcba9876543210fedcba987654", "ff958978bbfbc4f4deca76fbc411" } },
+    { { "00000000000000000000000000000000", "0123456789abcdef" }, { "0000000000000000000000000000", "19f40a0d847f51c3bb0eec7223ce" } },
+    { { "00000000000000000000000000000000", "0123456789abcdef" }, { "ffffffffffffffffffffffffffff", "e60bf5f27b80ae3c44f1138ddc31" } },
+    { { "00000000000000000000000000000000", "0123456789abcdef" }, { "00112233445566778899aabbccdd", "19e5283ec02a37b4339746c9ef13" } },
+    { { "00000000000000000000000000000000", "0123456789abcdef" }, { "ffeeddccbbaa9988776655443322", "e61ad7c13fd5c84bcc68b93610ec" } },
+    { { "00000000000000000000000000000000", "0123456789abcdef" }, { "0123456789abcdef0123456789ab", "18d74f6a0dd49c2cba2da915aa65" } },
+    { { "00000000000000000000000000000000", "0123456789abcdef" }, { "fedcba9876543210fedcba987654", "e728b095f22b63d345d256ea559a" } },
+    { { "00000000000000000000000000000000", "fedcba9876543210" }, { "0000000000000000000000000000", "09a5aa83718439813df63409c281" } },
+    { { "00000000000000000000000000000000", "fedcba9876543210" }, { "ffffffffffffffffffffffffffff", "f65a557c8e7bc67ec209cbf63d7e" } },
+    { { "00000000000000000000000000000000", "fedcba9876543210" }, { "00112233445566778899aabbccdd", "09b488b035d15ff6b56f9eb20e5c" } },
+    { { "00000000000000000000000000000000", "fedcba9876543210" }, { "ffeeddccbbaa9988776655443322", "f64b774fca2ea0094a90614df1a3" } },
+    { { "00000000000000000000000000000000", "fedcba9876543210" }, { "0123456789abcdef0123456789ab", "0886efe4f82ff46e3cd5716e4b2a" } },
+    { { "00000000000000000000000000000000", "fedcba9876543210" }, { "fedcba9876543210fedcba987654", "f779101b07d00b91c32a8e91b4d5" } },
+    { { "ffffffffffffffffffffffffffffffff", "0000000000000000" }, { "0000000000000000000000000000", "f21e9a77b71c49bc92fad911711b" } },
+    { { "ffffffffffffffffffffffffffffffff", "0000000000000000" }, { "ffffffffffffffffffffffffffff", "0de1658848e3b6436d0526ee8ee4" } },
+    { { "ffffffffffffffffffffffffffffffff", "0000000000000000" }, { "00112233445566778899aabbccdd", "f20fb844f3492fcb1a6373aabdc6" } },
+    { { "ffffffffffffffffffffffffffffffff", "0000000000000000" }, { "ffeeddccbbaa9988776655443322", "0df047bb0cb6d034e59c8c554239" } },
+    { { "ffffffffffffffffffffffffffffffff", "0000000000000000" }, { "0123456789abcdef0123456789ab", "f33ddf103eb7845393d99c76f8b0" } },
+    { { "ffffffffffffffffffffffffffffffff", "0000000000000000" }, { "fedcba9876543210fedcba987654", "0cc220efc1487bac6c266389074f" } },
+    { { "ffffffffffffffffffffffffffffffff", "ffffffffffffffff" }, { "0000000000000000000000000000", "51866fd5b85ecb8aba8a39a94193" } },
+    { { "ffffffffffffffffffffffffffffffff", "ffffffffffffffff" }, { "ffffffffffffffffffffffffffff", "ae79902a47a134754575c656be6c" } },
+    { { "ffffffffffffffffffffffffffffffff", "ffffffffffffffff" }, { "00112233445566778899aabbccdd", "51974de6fc0badfd321393128d4e" } },
+    { { "ffffffffffffffffffffffffffffffff", "ffffffffffffffff" }, { "ffeeddccbbaa9988776655443322", "ae68b21903f45202cdec6ced72b1" } },
+    { { "ffffffffffffffffffffffffffffffff", "ffffffffffffffff" }, { "0123456789abcdef0123456789ab", "50a52ab231f50665bba97ccec838" } },
+    { { "ffffffffffffffffffffffffffffffff", "ffffffffffffffff" }, { "fedcba9876543210fedcba987654", "af5ad54dce0af99a4456833137c7" } },
+    { { "ffffffffffffffffffffffffffffffff", "0123456789abcdef" }, { "0000000000000000000000000000", "0b13debc7b8635cd1e0c1b4356a1" } },
+    { { "ffffffffffffffffffffffffffffffff", "0123456789abcdef" }, { "ffffffffffffffffffffffffffff", "f4ec21438479ca32e1f3e4bca95e" } },
+    { { "ffffffffffffffffffffffffffffffff", "0123456789abcdef" }, { "00112233445566778899aabbccdd", "0b02fc8f3fd353ba9695b1f89a7c" } },
+    { { "ffffffffffffffffffffffffffffffff", "0123456789abcdef" }, { "ffeeddccbbaa9988776655443322", "f4fd0370c02cac45696a4e076583" } },
+    { { "ffffffffffffffffffffffffffffffff", "0123456789abcdef" }, { "0123456789abcdef0123456789ab", "0a309bdbf22df8221f2f5e24df0a" } },
+    { { "ffffffffffffffffffffffffffffffff", "0123456789abcdef" }, { "fedcba9876543210fedcba987654", "f5cf64240dd207dde0d0a1db20f5" } },
+    { { "ffffffffffffffffffffffffffffffff", "fedcba9876543210" }, { "0000000000000000000000000000", "0d7b00c01a21e5c1b5478ddacd1a" } },
+    { { "ffffffffffffffffffffffffffffffff", "fedcba9876543210" }, { "ffffffffffffffffffffffffffff", "f284ff3fe5de1a3e4ab8722532e5" } },
+    { { "ffffffffffffffffffffffffffffffff", "fedcba9876543210" }, { "00112233445566778899aabbccdd", "0d6a22f35e7483b63dde276101c7" } },
+    { { "ffffffffffffffffffffffffffffffff", "fedcba9876543210" }, { "ffeeddccbbaa9988776655443322", "f295dd0ca18b7c49c221d89efe38" } },
+    { { "ffffffffffffffffffffffffffffffff", "fedcba9876543210" }, { "0123456789abcdef0123456789ab", "0c5845a7938a282eb464c8bd44b1" } },
+    { { "ffffffffffffffffffffffffffffffff", "fedcba9876543210" }, { "fedcba9876543210fedcba987654", "f3a7ba586c75d7d14b9b3742bb4e" } },
+    { { "00112233445566778899aabbccddeeff", "0000000000000000" }, { "0000000000000000000000000000", "36d4e2502b0036308a0981b1c05e" } },
+    { { "00112233445566778899aabbccddeeff", "0000000000000000" }, { "ffffffffffffffffffffffffffff", "c92b1dafd4ffc9cf75f67e4e3fa1" } },
+    { { "00112233445566778899aabbccddeeff", "0000000000000000" }, { "00112233445566778899aabbccdd", "36c5c0636f55504702902b0a0c83" } },
+    { { "00112233445566778899aabbccddeeff", "0000000000000000" }, { "ffeeddccbbaa9988776655443322", "c93a3f9c90aaafb8fd6fd4f5f37c" } },
+    { { "00112233445566778899aabbccddeeff", "0000000000000000" }, { "0123456789abcdef0123456789ab", "37f7a737a2abfbdf8b2ac4d649f5" } },
+    { { "00112233445566778899aabbccddeeff", "0000000000000000" }, { "fedcba9876543210fedcba987654", "c80858c85d54042074d53b29b60a" } },
+    { { "00112233445566778899aabbccddeeff", "ffffffffffffffff" }, { "0000000000000000000000000000", "77c465ae7a9a20777cedb21611b5" } },
+    { { "00112233445566778899aabbccddeeff", "ffffffffffffffff" }, { "ffffffffffffffffffffffffffff", "883b9a518565df8883124de9ee4a" } },
+    { { "00112233445566778899aabbccddeeff", "ffffffffffffffff" }, { "00112233445566778899aabbccdd", "77d5479d3ecf4600f47418addd68" } },
+    { { "00112233445566778899aabbccddeeff", "ffffffffffffffff" }, { "ffeeddccbbaa9988776655443322", "882ab862c130b9ff0b8be7522297" } },
+    { { "00112233445566778899aabbccddeeff", "ffffffffffffffff" }, { "0123456789abcdef0123456789ab", "76e720c9f331ed987dcef771981e" } },
+    { { "00112233445566778899aabbccddeeff", "ffffffffffffffff" }, { "fedcba9876543210fedcba987654", "8918df360cce12678231088e67e1" } },
+    { { "00112233445566778899aabbccddeeff", "0123456789abcdef" }, { "0000000000000000000000000000", "dcec940a9cf3faa7918f4de01b24" } },
+    { { "00112233445566778899aabbccddeeff", "0123456789abcdef" }, { "ffffffffffffffffffffffffffff", "23136bf5630c05586e70b21fe4db" } },
+    { { "00112233445566778899aabbccddeeff", "0123456789abcdef" }, { "00112233445566778899aabbccdd", "dcfdb639d8a69cd01916e75bd7f9" } },
+    { { "00112233445566778899aabbccddeeff", "0123456789abcdef" }, { "ffeeddccbbaa9988776655443322", "230249c62759632fe6e918a42806" } },
+    { { "00112233445566778899aabbccddeeff", "0123456789abcdef" }, { "0123456789abcdef0123456789ab", "ddcfd16d1558374890ac0887928f" } },
+    { { "00112233445566778899aabbccddeeff", "0123456789abcdef" }, { "fedcba9876543210fedcba987654", "22302e92eaa7c8b76f53f7786d70" } },
+    { { "00112233445566778899aabbccddeeff", "fedcba9876543210" }, { "0000000000000000000000000000", "7d5c6b95237c00ca4a01a183b625" } },
+    { { "00112233445566778899aabbccddeeff", "fedcba9876543210" }, { "ffffffffffffffffffffffffffff", "82a3946adc83ff35b5fe5e7c49da" } },
+    { { "00112233445566778899aabbccddeeff", "fedcba9876543210" }, { "00112233445566778899aabbccdd", "7d4d49a6672966bdc2980b387af8" } },
+    { { "00112233445566778899aabbccddeeff", "fedcba9876543210" }, { "ffeeddccbbaa9988776655443322", "82b2b65998d699423d67f4c78507" } },
+    { { "00112233445566778899aabbccddeeff", "fedcba9876543210" }, { "0123456789abcdef0123456789ab", "7c7f2ef2aad7cd254b22e4e43f8e" } },
+    { { "00112233445566778899aabbccddeeff", "fedcba9876543210" }, { "fedcba9876543210fedcba987654", "8380d10d552832dab4dd1b1bc071" } },
+    { { "ffeeddccbbaa99887766554433221100", "0000000000000000" }, { "0000000000000000000000000000", "2b04a56528a8498dd818a3babd35" } },
+    { { "ffeeddccbbaa99887766554433221100", "0000000000000000" }, { "ffffffffffffffffffffffffffff", "d4fb5a9ad757b67227e75c4542ca" } },
+    { { "ffeeddccbbaa99887766554433221100", "0000000000000000" }, { "00112233445566778899aabbccdd", "2b1587566cfd2ffa5081090171e8" } },
+    { { "ffeeddccbbaa99887766554433221100", "0000000000000000" }, { "ffeeddccbbaa9988776655443322", "d4ea78a99302d005af7ef6fe8e17" } },
+    { { "ffeeddccbbaa99887766554433221100", "0000000000000000" }, { "0123456789abcdef0123456789ab", "2a27e002a1038462d93be6dd349e" } },
+    { { "ffeeddccbbaa99887766554433221100", "0000000000000000" }, { "fedcba9876543210fedcba987654", "d5d81ffd5efc7b9d26c41922cb61" } },
+    { { "ffeeddccbbaa99887766554433221100", "ffffffffffffffff" }, { "0000000000000000000000000000", "d3f5d17de0e1b07ba5d1db3d3848" } },
+    { { "ffeeddccbbaa99887766554433221100", "ffffffffffffffff" }, { "ffffffffffffffffffffffffffff", "2c0a2e821f1e4f845a2e24c2c7b7" } },
+    { { "ffeeddccbbaa99887766554433221100", "ffffffffffffffff" }, { "00112233445566778899aabbccdd", "d3e4f34ea4b4d60c2d487186f495" } },
+    { { "ffeeddccbbaa99887766554433221100", "ffffffffffffffff" }, { "ffeeddccbbaa9988776655443322", "2c1b0cb15b4b29f3d2b78e790b6a" } },
+    { { "ffeeddccbbaa99887766554433221100", "ffffffffffffffff" }, { "0123456789abcdef0123456789ab", "d2d6941a694a7d94a4f29e5ab1e3" } },
+    { { "ffeeddccbbaa99887766554433221100", "ffffffffffffffff" }, { "fedcba9876543210fedcba987654", "2d296be596b5826b5b0d61a54e1c" } },
+    { { "ffeeddccbbaa99887766554433221100", "0123456789abcdef" }, { "0000000000000000000000000000", "bd16bc4918c271359e32141a6b7c" } },
+    { { "ffeeddccbbaa99887766554433221100", "0123456789abcdef" }, { "ffffffffffffffffffffffffffff", "42e943b6e73d8eca61cdebe59483" } },
+    { { "ffeeddccbbaa99887766554433221100", "0123456789abcdef" }, { "00112233445566778899aabbccdd", "bd079e7a5c97174216abbea1a7a1" } },
+    { { "ffeeddccbbaa99887766554433221100", "0123456789abcdef" }, { "ffeeddccbbaa9988776655443322", "42f86185a368e8bde954415e585e" } },
+    { { "ffeeddccbbaa99887766554433221100", "0123456789abcdef" }, { "0123456789abcdef0123456789ab", "bc35f92e9169bcda9f11517de2d7" } },
+    { { "ffeeddccbbaa99887766554433221100", "0123456789abcdef" }, { "fedcba9876543210fedcba987654", "43ca06d16e96432560eeae821d28" } },
+    { { "ffeeddccbbaa99887766554433221100", "fedcba9876543210" }, { "0000000000000000000000000000", "df7e18415a64fd8664ea660209a3" } },
+    { { "ffeeddccbbaa99887766554433221100", "fedcba9876543210" }, { "ffffffffffffffffffffffffffff", "2081e7bea59b02799b1599fdf65c" } },
+    { { "ffeeddccbbaa99887766554433221100", "fedcba9876543210" }, { "00112233445566778899aabbccdd", "df6f3a721e319bf1ec73ccb9c57e" } },
+    { { "ffeeddccbbaa99887766554433221100", "fedcba9876543210" }, { "ffeeddccbbaa9988776655443322", "2090c58de1ce640e138c33463a81" } },
+    { { "ffeeddccbbaa99887766554433221100", "fedcba9876543210" }, { "0123456789abcdef0123456789ab", "de5d5d26d3cf306965c923658008" } },
+    { { "ffeeddccbbaa99887766554433221100", "fedcba9876543210" }, { "fedcba9876543210fedcba987654", "21a2a2d92c30cf969a36dc9a7ff7" } },
+    { { "0123456789abcdef0123456789abcdef", "0000000000000000" }, { "0000000000000000000000000000", "245946885754369ae74f215b96c7" } },
+    { { "0123456789abcdef0123456789abcdef", "0000000000000000" }, { "ffffffffffffffffffffffffffff", "dba6b977a8abc96518b0dea46938" } },
+    { { "0123456789abcdef0123456789abcdef", "0000000000000000" }, { "00112233445566778899aabbccdd", "244864bb130150ed6fd68be05a1a" } },
+    { { "0123456789abcdef0123456789abcdef", "0000000000000000" }, { "ffeeddccbbaa9988776655443322", "dbb79b44ecfeaf129029741fa5e5" } },
+    { { "0123456789abcdef0123456789abcdef", "0000000000000000" }, { "0123456789abcdef0123456789ab", "257a03efdefffb75e66c643c1f6c" } },
+    { { "0123456789abcdef0123456789abcdef", "0000000000000000" }, { "fedcba9876543210fedcba987654", "da85fc102100048a19939bc3e093" } },
+    { { "0123456789abcdef0123456789abcdef", "ffffffffffffffff" }, { "0000000000000000000000000000", "1c6cd49835c7b0128a12a5e4a947" } },
+    { { "0123456789abcdef0123456789abcdef", "ffffffffffffffff" }, { "ffffffffffffffffffffffffffff", "e3932b67ca384fed75ed5a1b56b8" } },
+    { { "0123456789abcdef0123456789abcdef", "ffffffffffffffff" }, { "00112233445566778899aabbccdd", "1c7df6ab7192d665028b0f5f659a" } },
+    { { "0123456789abcdef0123456789abcdef", "ffffffffffffffff" }, { "ffeeddccbbaa9988776655443322", "e38209548e6d299afd74f0a09a65" } },
+    { { "0123456789abcdef0123456789abcdef", "ffffffffffffffff" }, { "0123456789abcdef0123456789ab", "1d4f91ffbc6c7dfd8b31e08320ec" } },
+    { { "0123456789abcdef0123456789abcdef", "ffffffffffffffff" }, { "fedcba9876543210fedcba987654", "e2b06e004393820274ce1f7cdf13" } },
+    { { "0123456789abcdef0123456789abcdef", "0123456789abcdef" }, { "0000000000000000000000000000", "008a8314ee2b27a3cb94e0b9d32e" } },
+    { { "0123456789abcdef0123456789abcdef", "0123456789abcdef" }, { "ffffffffffffffffffffffffffff", "ff757ceb11d4d85c346b1f462cd1" } },
+    { { "0123456789abcdef0123456789abcdef", "0123456789abcdef" }, { "00112233445566778899aabbccdd", "009ba127aa7e41d4430d4a021ff3" } },
+    { { "0123456789abcdef0123456789abcdef", "0123456789abcdef" }, { "ffeeddccbbaa9988776655443322", "ff645ed85581be2bbcf2b5fde00c" } },
+    { { "0123456789abcdef0123456789abcdef", "0123456789abcdef" }, { "0123456789abcdef0123456789ab", "01a9c6736780ea4ccab7a5de5a85" } },
+    { { "0123456789abcdef0123456789abcdef", "0123456789abcdef" }, { "fedcba9876543210fedcba987654", "fe56398c987f15b335485a21a57a" } },
+    { { "0123456789abcdef0123456789abcdef", "fedcba9876543210" }, { "0000000000000000000000000000", "9f5fac53492e076126ab6bfbb5c0" } },
+    { { "0123456789abcdef0123456789abcdef", "fedcba9876543210" }, { "ffffffffffffffffffffffffffff", "60a053acb6d1f89ed95494044a3f" } },
+    { { "0123456789abcdef0123456789abcdef", "fedcba9876543210" }, { "00112233445566778899aabbccdd", "9f4e8e600d7b6116ae32c140791d" } },
+    { { "0123456789abcdef0123456789abcdef", "fedcba9876543210" }, { "ffeeddccbbaa9988776655443322", "60b1719ff2849ee951cd3ebf86e2" } },
+    { { "0123456789abcdef0123456789abcdef", "fedcba9876543210" }, { "0123456789abcdef0123456789ab", "9e7ce934c085ca8e27882e9c3c6b" } },
+    { { "0123456789abcdef0123456789abcdef", "fedcba9876543210" }, { "fedcba9876543210fedcba987654", "618316cb3f7a3571d877d163c394" } },
+    { { "fedcba9876543210fedcba9876543210", "0000000000000000" }, { "0000000000000000000000000000", "2324986da676719cb7989842a8e1" } },
+    { { "fedcba9876543210fedcba9876543210", "0000000000000000" }, { "ffffffffffffffffffffffffffff", "dcdb679259898e63486767bd571e" } },
+    { { "fedcba9876543210fedcba9876543210", "0000000000000000" }, { "00112233445566778899aabbccdd", "2335ba5ee22317eb3f0132f9643c" } },
+    { { "fedcba9876543210fedcba9876543210", "0000000000000000" }, { "ffeeddccbbaa9988776655443322", "dcca45a11ddce814c0fecd069bc3" } },
+    { { "fedcba9876543210fedcba9876543210", "0000000000000000" }, { "0123456789abcdef0123456789ab", "2207dd0a2fddbc73b6bbdd25214a" } },
+    { { "fedcba9876543210fedcba9876543210", "0000000000000000" }, { "fedcba9876543210fedcba987654", "ddf822f5d022438c494422dadeb5" } },
+    { { "fedcba9876543210fedcba9876543210", "ffffffffffffffff" }, { "0000000000000000000000000000", "6b5c5a9c5d9e0a5a5f4abe4c38e2" } },
+    { { "fedcba9876543210fedcba9876543210", "ffffffffffffffff" }, { "ffffffffffffffffffffffffffff", "94a3a563a261f5a5a0b541b3c71d" } },
+    { { "fedcba9876543210fedcba9876543210", "ffffffffffffffff" }, { "00112233445566778899aabbccdd", "6b4d78af19cb6c2dd7d314f7f43f" } },
+    { { "fedcba9876543210fedcba9876543210", "ffffffffffffffff" }, { "ffeeddccbbaa9988776655443322", "94b28750e63493d2282ceb080bc0" } },
+    { { "fedcba9876543210fedcba9876543210", "ffffffffffffffff" }, { "0123456789abcdef0123456789ab", "6a7f1ffbd435c7b55e69fb2bb149" } },
+    { { "fedcba9876543210fedcba9876543210", "ffffffffffffffff" }, { "fedcba9876543210fedcba987654", "9580e0042bca384aa19604d44eb6" } },
+    { { "fedcba9876543210fedcba9876543210", "0123456789abcdef" }, { "0000000000000000000000000000", "0aceab0fc6a0a28db6553c45fe00" } },
+    { { "fedcba9876543210fedcba9876543210", "0123456789abcdef" }, { "ffffffffffffffffffffffffffff", "f53154f0395f5d7249aac3ba01ff" } },
+    { { "fedcba9876543210fedcba9876543210", "0123456789abcdef" }, { "00112233445566778899aabbccdd", "0adf893c82f5c4fa3ecc96fe32dd" } },
+    { { "fedcba9876543210fedcba9876543210", "0123456789abcdef" }, { "ffeeddccbbaa9988776655443322", "f52076c37d0a3b05c1336901cd22" } },
+    { { "fedcba9876543210fedcba9876543210", "0123456789abcdef" }, { "0123456789abcdef0123456789ab", "0bedee684f0b6f62b776792277ab" } },
+    { { "fedcba9876543210fedcba9876543210", "0123456789abcdef" }, { "fedcba9876543210fedcba987654", "f4121197b0f4909d488986dd8854" } },
+    { { "fedcba9876543210fedcba9876543210", "fedcba9876543210" }, { "0000000000000000000000000000", "40c7ccd7789805f52b464880e625" } },
+    { { "fedcba9876543210fedcba9876543210", "fedcba9876543210" }, { "ffffffffffffffffffffffffffff", "bf3833288767fa0ad4b9b77f19da" } },
+    { { "fedcba9876543210fedcba9876543210", "fedcba9876543210" }, { "00112233445566778899aabbccdd", "40d6eee43ccd6382a3dfe23b2af8" } },
+    { { "fedcba9876543210fedcba9876543210", "fedcba9876543210" }, { "ffeeddccbbaa9988776655443322", "bf29111bc3329c7d5c201dc4d507" } },
+    { { "fedcba9876543210fedcba9876543210", "fedcba9876543210" }, { "0123456789abcdef0123456789ab", "41e489b0f133c81a2a650de76f8e" } },
+    { { "fedcba9876543210fedcba9876543210", "fedcba9876543210" }, { "fedcba9876543210fedcba987654", "be1b764f0ecc37e5d59af2189071" } },
   };
 
   for (size_t i = 0; i < test_cases.size(); ++i) {

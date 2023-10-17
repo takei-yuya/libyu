@@ -8,6 +8,7 @@
 #include <initializer_list>
 #include <algorithm>
 #include <stdexcept>
+#include <cassert>
 
 namespace yu {
 namespace crypt {
@@ -32,7 +33,7 @@ inline const char* read_as_bigendian(uint32_t& n, const char* buf) {
   return buf + 4;
 }
 
-const static std::initializer_list<uint32_t> kInitSubkey = {
+static const std::initializer_list<uint32_t> kInitSubkey = {
   0x243f6a88, 0x85a308d3, 0x13198a2e, 0x03707344,
   0xa4093822, 0x299f31d0, 0x082efa98, 0xec4e6c89,
   0x452821e6, 0x38d01377, 0xbe5466cf, 0x34e90c6c,
@@ -40,7 +41,7 @@ const static std::initializer_list<uint32_t> kInitSubkey = {
   0x9216d5d9, 0x8979fb1b,
 };
 
-const static std::initializer_list<uint32_t> kInitSbox1 = {
+static const std::initializer_list<uint32_t> kInitSbox1 = {
   0xd1310ba6, 0x98dfb5ac, 0x2ffd72db, 0xd01adfb7, 0xb8e1afed, 0x6a267e96, 0xba7c9045, 0xf12c7f99,
   0x24a19947, 0xb3916cf7, 0x0801f2e2, 0x858efc16, 0x636920d8, 0x71574e69, 0xa458fea3, 0xf4933d7e,
   0x0d95748f, 0x728eb658, 0x718bcd58, 0x82154aee, 0x7b54a41d, 0xc25a59b5, 0x9c30d539, 0x2af26013,
@@ -75,7 +76,7 @@ const static std::initializer_list<uint32_t> kInitSbox1 = {
   0xb6636521, 0xe7b9f9b6, 0xff34052e, 0xc5855664, 0x53b02d5d, 0xa99f8fa1, 0x08ba4799, 0x6e85076a
 };
 
-const static std::initializer_list<uint32_t> kInitSbox2 = {
+static const std::initializer_list<uint32_t> kInitSbox2 = {
   0x4b7a70e9, 0xb5b32944, 0xdb75092e, 0xc4192623, 0xad6ea6b0, 0x49a7df7d, 0x9cee60b8, 0x8fedb266,
   0xecaa8c71, 0x699a17ff, 0x5664526c, 0xc2b19ee1, 0x193602a5, 0x75094c29, 0xa0591340, 0xe4183a3e,
   0x3f54989a, 0x5b429d65, 0x6b8fe4d6, 0x99f73fd6, 0xa1d29c07, 0xefe830f5, 0x4d2d38e6, 0xf0255dc1,
@@ -110,7 +111,7 @@ const static std::initializer_list<uint32_t> kInitSbox2 = {
   0xc5c43465, 0x713e38d8, 0x3d28f89e, 0xf16dff20, 0x153e21e7, 0x8fb03d4a, 0xe6e39f2b, 0xdb83adf7
 };
 
-const static std::initializer_list<uint32_t> kInitSbox3 = {
+static const std::initializer_list<uint32_t> kInitSbox3 = {
   0xe93d5a68, 0x948140f7, 0xf64c261c, 0x94692934, 0x411520f7, 0x7602d4f7, 0xbcf46b2e, 0xd4a20068,
   0xd4082471, 0x3320f46a, 0x43b7d4b7, 0x500061af, 0x1e39f62e, 0x97244546, 0x14214f74, 0xbf8b8840,
   0x4d95fc1d, 0x96b591af, 0x70f4ddd3, 0x66a02f45, 0xbfbc09ec, 0x03bd9785, 0x7fac6dd0, 0x31cb8504,
@@ -145,7 +146,7 @@ const static std::initializer_list<uint32_t> kInitSbox3 = {
   0x6fd5c7e7, 0x56e14ec4, 0x362abfce, 0xddc6c837, 0xd79a3234, 0x92638212, 0x670efa8e, 0x406000e0
 };
 
-const static std::initializer_list<uint32_t> kInitSbox4 = {
+static const std::initializer_list<uint32_t> kInitSbox4 = {
   0x3a39ce37, 0xd3faf5cf, 0xabc27737, 0x5ac52d1b, 0x5cb0679e, 0x4fa33742, 0xd3822740, 0x99bc9bbe,
   0xd5118e9d, 0xbf0f7315, 0xd62d1c7e, 0xc700c47b, 0xb78c1b6b, 0x21a19045, 0xb26eb1be, 0x6a366eb4,
   0x5748ab2f, 0xbc946e79, 0xc6a376d2, 0x6549c2c8, 0x530ff8ee, 0x468dde7d, 0xd5730a1d, 0x4cd04dc6,
@@ -184,7 +185,9 @@ const static std::initializer_list<uint32_t> kInitSbox4 = {
 
 class Blowfish {
  public:
-  const static size_t kBlockSize = 8;  // 64bit
+  static const size_t kBlockSize = 8;  // 64bit
+  static const bool kIsBlockCipher = true;
+  static const bool kIsStreamCipher = false;
   Blowfish(bool decrypt, const std::string& key)
     : subkeys_(detail::kInitSubkey), s1_(detail::kInitSbox1), s2_(detail::kInitSbox2), s3_(detail::kInitSbox3), s4_(detail::kInitSbox4) {
 
@@ -199,27 +202,27 @@ class Blowfish {
 
     std::vector<char> buf(kBlockSize, 0);
     for (size_t i = 0; i < subkeys_.size(); i += 2) {
-      process(buf.data());
+      process(buf.data(), kBlockSize);
       const char* q = detail::read_as_bigendian(subkeys_[i + 0], buf.data());
       detail::read_as_bigendian(subkeys_[i + 1], q);
     }
     for (size_t i = 0; i < s1_.size(); i += 2) {
-      process(buf.data());
+      process(buf.data(), kBlockSize);
       const char* q = detail::read_as_bigendian(s1_[i + 0], buf.data());
       detail::read_as_bigendian(s1_[i + 1], q);
     }
     for (size_t i = 0; i < s2_.size(); i += 2) {
-      process(buf.data());
+      process(buf.data(), kBlockSize);
       const char* q = detail::read_as_bigendian(s2_[i + 0], buf.data());
       detail::read_as_bigendian(s2_[i + 1], q);
     }
     for (size_t i = 0; i < s3_.size(); i += 2) {
-      process(buf.data());
+      process(buf.data(), kBlockSize);
       const char* q = detail::read_as_bigendian(s3_[i + 0], buf.data());
       detail::read_as_bigendian(s3_[i + 1], q);
     }
     for (size_t i = 0; i < s4_.size(); i += 2) {
-      process(buf.data());
+      process(buf.data(), kBlockSize);
       const char* q = detail::read_as_bigendian(s4_[i + 0], buf.data());
       detail::read_as_bigendian(s4_[i + 1], q);
     }
@@ -229,7 +232,9 @@ class Blowfish {
     }
   }
 
-  void process(char *p) {
+  void process(char *p, size_t size) {
+    if (size == 0) return;
+    assert(size == kBlockSize);
     uint32_t xL, xR;
     {
       const char *q = detail::read_as_bigendian(xL, p);
@@ -268,25 +273,29 @@ template <class ECB>
 class CBC {
  public:
   static const size_t kBlockSize = ECB::kBlockSize;
+  static const bool kIsBlockCipher = ECB::kIsBlockCipher;
+  static const bool kIsStreamCipher = false;
   CBC(bool decrypt, const std::string& key, const std::string& iv)
     : ecb_(decrypt, key), decrypt_(decrypt), iv_(iv) {
     if (iv_.size() != kBlockSize) throw std::runtime_error("invalid IV length");
   }
 
-  void process(char *p) {
+  void process(char *p, size_t size) {
+    if (size == 0) return;
+    assert(size == kBlockSize);
     if (!decrypt_) {
       // Encrypt
       for (size_t i = 0; i < kBlockSize; ++i) {
         *(p + i) = *(p + i) ^ iv_[i];
       }
-      ecb_.process(p);
+      ecb_.process(p, size);
       for (size_t i = 0; i < kBlockSize; ++i) {
         iv_[i] = *(p + i);
       }
     } else {
       // Decript
       std::string next_iv(p, p + kBlockSize);
-      ecb_.process(p);
+      ecb_.process(p, size);
       for (size_t i = 0; i < kBlockSize; ++i) {
         *(p + i) = *(p + i) ^ iv_[i];
       }
@@ -304,23 +313,25 @@ template <class ECB>
 class CFB {
  public:
   static const size_t kBlockSize = ECB::kBlockSize;
+  static const bool kIsBlockCipher = ECB::kIsBlockCipher;
+  static const bool kIsStreamCipher = true;
   CFB(bool decrypt, const std::string& key, const std::string& iv)
     : ecb_(false, key), decrypt_(decrypt), iv_(iv.data(), iv.data() + iv.size()) {
     if (iv_.size() != kBlockSize) throw std::runtime_error("invalid IV length");
   }
 
-  void process(char *p) {
+  void process(char *p, size_t size) {
     if (!decrypt_) {
       // Encrypt
-      ecb_.process(iv_.data());
-      for (size_t i = 0; i < kBlockSize; ++i) {
+      ecb_.process(iv_.data(), iv_.size());
+      for (size_t i = 0; i < size; ++i) {
         iv_[i] = *(p + i) = *(p + i) ^ iv_[i];
       }
     } else {
       // Decript
       std::vector<char> next_iv(p, p + kBlockSize);
-      ecb_.process(iv_.data());
-      for (size_t i = 0; i < kBlockSize; ++i) {
+      ecb_.process(iv_.data(), iv_.size());
+      for (size_t i = 0; i < size; ++i) {
         *(p + i) = *(p + i) ^ iv_[i];
       }
       iv_.swap(next_iv);
@@ -337,14 +348,16 @@ template <class ECB>
 class OFB {
  public:
   static const size_t kBlockSize = ECB::kBlockSize;
+  static const bool kIsBlockCipher = ECB::kIsBlockCipher;
+  static const bool kIsStreamCipher = true;
   OFB(bool /* decrypt */, const std::string& key, const std::string& iv)
     : ecb_(false, key), iv_(iv.data(), iv.data() + iv.size()) {
     if (iv_.size() != kBlockSize) throw std::runtime_error("invalid IV length");
   }
 
-  void process(char *p) {
-    ecb_.process(iv_.data());
-    for (size_t i = 0; i < kBlockSize; ++i) {
+  void process(char *p, size_t size) {
+    ecb_.process(iv_.data(), iv_.size());
+    for (size_t i = 0; i < size; ++i) {
       *(p + i) = *(p + i) ^ iv_[i];
     }
   }
@@ -354,14 +367,73 @@ class OFB {
   std::vector<char> iv_;
 };
 
-template <class Cipher>
+class NoPadding {
+ public:
+  static const bool kIsSupportBlockCipher = true;
+  static const bool kIsSupportStreamCipher = true;
+
+  static int padding(char*, char*, char*) {
+    return 0;
+  }
+  static int unpadding(char*, char*, char*) {
+    return 0;
+  }
+};
+
+class ZeroPadding {
+ public:
+  static const bool kIsSupportBlockCipher = true;
+  static const bool kIsSupportStreamCipher = false;
+
+  static int padding(char* base, char* ptr, char* end) {
+    assert(base <= ptr);
+    assert(ptr <= end);
+    for (char *p = ptr; p < end; ++p) {
+      *p = '\0';
+    }
+    return static_cast<int>(end - ptr);
+  }
+  static int unpadding(char* base, char* ptr, char* end) {
+    assert(base < end);
+    assert(ptr == end);  // TODO: exception
+    char *p;
+    for (p = end - 1; p >= base && *p == '\0'; --p);
+    return static_cast<int>(end - p - 1);
+  }
+};
+
+class PKCS7Padding {
+ public:
+  static const bool kIsSupportBlockCipher = true;
+  static const bool kIsSupportStreamCipher = false;
+
+  static int padding(char* base, char* ptr, char* end) {
+    assert(base <= ptr);
+    assert(ptr <= end);
+    char pad = static_cast<char>(end - ptr);
+    for (char *p = ptr; p < end; ++p) {
+      *p = pad;
+    }
+    return static_cast<int>(end - ptr);
+  }
+  static int unpadding(char* base, char* ptr, char* end) {
+    assert(base < end);
+    assert(ptr == end);  // TODO: exception
+    char pad = *(end - 1);
+    // TODO: check padding
+    return static_cast<int>(pad);
+  }
+};
+
+template <class Cipher, class Padding>
 class cipher_streambuf : public std::streambuf {
  public:
-  const static size_t kBlockSize = Cipher::kBlockSize;
-  // TODO: padding method: zero padding, PKCS#5
+  static const size_t kBlockSize = Cipher::kBlockSize;
   template <typename... Args>
-  cipher_streambuf(std::ostream& out, Args... args)
-    : out_(out), buffer_(1024), cipher_(args...) {
+  cipher_streambuf(std::ostream& out, bool decrypt, Args... args)
+    : out_(out), decrypt_(decrypt), finished_(false), buffer_(1024), cipher_(decrypt, args...) {
+    static_assert((Cipher::kIsBlockCipher && Padding::kIsSupportBlockCipher)
+                  || (Cipher::kIsStreamCipher && Padding::kIsSupportStreamCipher));
     setp(buffer_.data(), buffer_.data() + buffer_.size());
   }
   ~cipher_streambuf() {
@@ -369,16 +441,31 @@ class cipher_streambuf : public std::streambuf {
   }
 
   void finish() {
-    size_t padding_size = (kBlockSize - (static_cast<size_t>(pptr() - pbase()) % kBlockSize)) % kBlockSize;
-    padding(padding_size);
-    overflow(traits_type::eof());
+    if (finished_) return;
+    finished_ = true;
+    if (!decrypt_) {
+      // Encrypt
+      overflow(traits_type::eof());
+      int padding_size = Padding::padding(pbase(), pptr(), pbase() + kBlockSize);
+      pbump(padding_size);
+      cipher_.process(pbase(), pptr() - pbase());
+      out_.write(pbase(), pptr() - pbase());
+    } else {
+      // Decript
+      overflow(traits_type::eof());
+      cipher_.process(pbase(), pptr() - pbase());
+      int padding_size = Padding::unpadding(pbase(), pptr(), pbase() + kBlockSize);
+      int sz = static_cast<int>(pptr() - pbase()) - padding_size;
+      out_.write(pbase(), sz);
+    }
   }
 
  private:
   int overflow(int ch = traits_type::eof()) override {
     char *p;
-    for (p = pbase(); p + kBlockSize <= pptr(); p += kBlockSize) {
-      cipher_.process(p);
+    char *end = decrypt_ ? pptr() : (pptr() + 1);  // keep last block when decrypt to remove padding
+    for (p = pbase(); p + kBlockSize < end; p += kBlockSize) {
+      cipher_.process(p, kBlockSize);
       out_.write(p, kBlockSize);
     }
 
@@ -398,29 +485,46 @@ class cipher_streambuf : public std::streambuf {
   }
 
   std::ostream& out_;
+  bool decrypt_;
+  bool finished_;
   std::vector<char> buffer_;
 
   Cipher cipher_;
 };
 
-template <class Cipher, bool decrypt>
-class cipher_ostream : public std::ostream {
+template <class Cipher, class Padding = yu::crypt::PKCS7Padding>
+class cipher_enc_ostream : public std::ostream {
  public:
   template <class... Args>
-  cipher_ostream(std::ostream& out, Args... args) : std::ostream(&buf_), buf_(out, decrypt, args...) {}
+  cipher_enc_ostream(std::ostream& out, Args... args) : std::ostream(&buf_), buf_(out, false, args...) {}
   void finish() { buf_.finish(); }
  private:
-  cipher_streambuf<Cipher> buf_;
+  cipher_streambuf<Cipher, Padding> buf_;
 };
 
-using blowfish_ecb_enc_ostream = cipher_ostream<Blowfish, false>;
-using blowfish_ecb_dec_ostream = cipher_ostream<Blowfish, true>;
-using blowfish_cbc_enc_ostream = cipher_ostream<CBC<Blowfish>, false>;
-using blowfish_cbc_dec_ostream = cipher_ostream<CBC<Blowfish>, true>;
-using blowfish_cfb_enc_ostream = cipher_ostream<CFB<Blowfish>, false>;
-using blowfish_cfb_dec_ostream = cipher_ostream<CFB<Blowfish>, true>;
-using blowfish_ofb_enc_ostream = cipher_ostream<OFB<Blowfish>, false>;
-using blowfish_ofb_dec_ostream = cipher_ostream<OFB<Blowfish>, true>;
+template <class Cipher, class Padding = yu::crypt::PKCS7Padding>
+class cipher_dec_ostream : public std::ostream {
+ public:
+  template <class... Args>
+  cipher_dec_ostream(std::ostream& out, Args... args) : std::ostream(&buf_), buf_(out, true, args...) {}
+  void finish() { buf_.finish(); }
+ private:
+  cipher_streambuf<Cipher, Padding> buf_;
+};
+
+using Blowfish_ECB = Blowfish;
+using Blowfish_CBC = CBC<Blowfish>;
+using Blowfish_OFB = OFB<Blowfish>;
+using Blowfish_CFB = CFB<Blowfish>;
+
+using blowfish_ecb_enc_ostream = cipher_enc_ostream<Blowfish_ECB, PKCS7Padding>;
+using blowfish_ecb_dec_ostream = cipher_dec_ostream<Blowfish_ECB, PKCS7Padding>;
+using blowfish_cbc_enc_ostream = cipher_enc_ostream<Blowfish_CBC, PKCS7Padding>;
+using blowfish_cbc_dec_ostream = cipher_dec_ostream<Blowfish_CBC, PKCS7Padding>;
+using blowfish_ofb_enc_ostream = cipher_enc_ostream<Blowfish_OFB, NoPadding>;
+using blowfish_ofb_dec_ostream = cipher_dec_ostream<Blowfish_OFB, NoPadding>;
+using blowfish_cfb_enc_ostream = cipher_enc_ostream<Blowfish_CFB, NoPadding>;
+using blowfish_cfb_dec_ostream = cipher_dec_ostream<Blowfish_CFB, NoPadding>;
 
 } // namespace crypt
 } // namespace yu
