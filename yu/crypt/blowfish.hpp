@@ -433,7 +433,8 @@ class cipher_streambuf : public std::streambuf {
   cipher_streambuf(std::ostream& out, bool decrypt, Args... args)
     : out_(out), decrypt_(decrypt), finished_(false), buffer_(1024), cipher_(decrypt, args...) {
     static_assert((Cipher::kIsBlockCipher && Padding::kIsSupportBlockCipher)
-                  || (Cipher::kIsStreamCipher && Padding::kIsSupportStreamCipher));
+                  || (Cipher::kIsStreamCipher && Padding::kIsSupportStreamCipher),
+                  "Invalid combination of Cipher and Padding");
     setp(buffer_.data(), buffer_.data() + buffer_.size());
   }
   ~cipher_streambuf() {
