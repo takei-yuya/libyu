@@ -449,12 +449,12 @@ class cipher_streambuf : public std::streambuf {
       overflow(traits_type::eof());
       int padding_size = Padding::padding(pbase(), pptr(), pbase() + kBlockSize);
       pbump(padding_size);
-      cipher_.process(pbase(), pptr() - pbase());
+      cipher_.process(pbase(), static_cast<size_t>(pptr() - pbase()));
       out_.write(pbase(), pptr() - pbase());
     } else {
       // Decript
       overflow(traits_type::eof());
-      cipher_.process(pbase(), pptr() - pbase());
+      cipher_.process(pbase(), static_cast<size_t>(pptr() - pbase()));
       int padding_size = Padding::unpadding(pbase(), pptr(), pbase() + kBlockSize);
       int sz = static_cast<int>(pptr() - pbase()) - padding_size;
       out_.write(pbase(), sz);
