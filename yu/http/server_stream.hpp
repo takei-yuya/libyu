@@ -58,17 +58,17 @@ class ServerStream {
 
     if (request_header_.has("Content-Length")) {
       std::streamsize n = yu::lang::lexical_cast<std::streamsize>(request_header_.field("Content-Length"));
-      return std::make_unique<sized_istream>(stream_, n);
+      return std::unique_ptr<std::istream>(new sized_istream(stream_, n));
 
     } else if (request_header_.has("Transfer-Encoding")) {
       if (request_header_.field("Transfer-Encoding") == "chunked") {
-        return std::make_unique<chunked_istream>(stream_);
+        return std::unique_ptr<std::istream>(new chunked_istream(stream_));
       } else {
         throw std::runtime_error("Not impl");  // TODO: not impl
       }
 
     } else {
-      return std::make_unique<yu::stream::nullstream>();
+      return std::unique_ptr<std::istream>(new yu::stream::nullstream());
     }
   }
 
@@ -105,7 +105,7 @@ class ServerStream {
     response_header_.add("Transfer-Encoding", "chunked");  // TODO: check Content-Length
     stream_ << "HTTP/1.1 " << response_status_ << " " << response_status_message_ << "\r\n";
     response_header_.write(stream_);
-    return std::make_unique<chunked_ostream>(stream_);
+    return std::unique_ptr<chunked_ostream>(new chunked_ostream(stream_));
   }
 
  private:
