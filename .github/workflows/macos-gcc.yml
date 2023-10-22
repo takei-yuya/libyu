@@ -1,0 +1,17 @@
+name: macos-gcc
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+jobs:
+  build:
+    runs-on: macos-latest
+    steps:
+    - uses: actions/checkout@v3
+    - name: prepare
+      run: CC=gcc CXX=g++ cmake -B build -S .
+    - name: build
+      run: cmake --build build/
+    - name: test
+      run: ctest --test-dir build/

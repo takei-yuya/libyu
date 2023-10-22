@@ -1,0 +1,17 @@
+name: windows-msbuild
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+    - uses: actions/checkout@v3
+    - name: prepare
+      run: cmake -B build -S .
+    - name: build
+      run: cmake --build build/
+    - name: test
+      run: ctest --test-dir build/
