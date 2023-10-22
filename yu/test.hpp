@@ -141,7 +141,7 @@ int float_compare(T lhs, T rhs) {
     std::ostringstream oss_; \
     oss_ << __FILE__ ":" << __LINE__ << ": expect throw " #exception_type ", but not"; \
     errors_.push_back(oss_.str()); \
-  } catch (const exception_type& e) { \
+  } catch (const exception_type&) { \
   } catch (const std::exception& e) { \
     std::ostringstream oss_; \
     oss_ << __FILE__ ":" << __LINE__ << ": except throw " #exception_type ", but aother exception is thrown, e = " << e.what(); \
