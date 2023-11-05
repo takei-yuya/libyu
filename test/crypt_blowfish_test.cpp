@@ -155,6 +155,23 @@ TEST(BlowFishTest, testECBTestCases_nopadding) {
       es.finish();
       EXPECT(plain, ==, oss.str());
     }
+
+    {
+      std::istringstream iss(plain);
+      yu::crypt::cipher_enc_istream<yu::crypt::Blowfish_ECB, yu::crypt::NoPadding> es(iss, key);
+      std::vector<char> buf(1024);
+      es.read(buf.data(), buf.size());
+      std::string actual(buf.data(), es.gcount());
+      EXPECT(enc, ==, actual);
+    }
+    {
+      std::istringstream iss(enc);
+      yu::crypt::cipher_dec_istream<yu::crypt::Blowfish_ECB, yu::crypt::NoPadding> es(iss, key);
+      std::vector<char> buf(1024);
+      es.read(buf.data(), buf.size());
+      std::string actual(buf.data(), es.gcount());
+      EXPECT(plain, ==, actual);
+    }
   }
 }
 
@@ -326,6 +343,23 @@ TEST(BlowFishTest, testCBCTestCases_nopadding) {
       es.finish();
       EXPECT(plain, ==, oss.str());
     }
+
+    {
+      std::istringstream iss(plain);
+      yu::crypt::cipher_enc_istream<yu::crypt::Blowfish_CBC, yu::crypt::NoPadding> es(iss, key, iv);
+      std::vector<char> buf(1024);
+      es.read(buf.data(), buf.size());
+      std::string actual(buf.data(), es.gcount());
+      EXPECT(enc, ==, actual);
+    }
+    {
+      std::istringstream iss(enc);
+      yu::crypt::cipher_dec_istream<yu::crypt::Blowfish_CBC, yu::crypt::NoPadding> es(iss, key, iv);
+      std::vector<char> buf(1024);
+      es.read(buf.data(), buf.size());
+      std::string actual(buf.data(), es.gcount());
+      EXPECT(plain, ==, actual);
+    }
   }
 }
 
@@ -496,6 +530,23 @@ TEST(BlowFishTest, testCFBTestCases_nopadding) {
       es.write(enc.data(), static_cast<std::streamsize>(enc.size()));
       es.finish();
       EXPECT(plain, ==, oss.str());
+    }
+
+    {
+      std::istringstream iss(plain);
+      yu::crypt::cipher_enc_istream<yu::crypt::Blowfish_CFB, yu::crypt::NoPadding> es(iss, key, iv);
+      std::vector<char> buf(1024);
+      es.read(buf.data(), buf.size());
+      std::string actual(buf.data(), es.gcount());
+      EXPECT(enc, ==, actual);
+    }
+    {
+      std::istringstream iss(enc);
+      yu::crypt::cipher_dec_istream<yu::crypt::Blowfish_CFB, yu::crypt::NoPadding> es(iss, key, iv);
+      std::vector<char> buf(1024);
+      es.read(buf.data(), buf.size());
+      std::string actual(buf.data(), es.gcount());
+      EXPECT(plain, ==, actual);
     }
   }
 }
@@ -683,6 +734,23 @@ TEST(BlowFishTest, testOFBTestCases_nopadding) {
       es.finish();
       EXPECT(plain, ==, oss.str());
     }
+
+    {
+      std::istringstream iss(plain);
+      yu::crypt::cipher_enc_istream<yu::crypt::Blowfish_OFB, yu::crypt::NoPadding> es(iss, key, iv);
+      std::vector<char> buf(1024);
+      es.read(buf.data(), buf.size());
+      std::string actual(buf.data(), es.gcount());
+      EXPECT(enc, ==, actual);
+    }
+    {
+      std::istringstream iss(enc);
+      yu::crypt::cipher_dec_istream<yu::crypt::Blowfish_OFB, yu::crypt::NoPadding> es(iss, key, iv);
+      std::vector<char> buf(1024);
+      es.read(buf.data(), buf.size());
+      std::string actual(buf.data(), es.gcount());
+      EXPECT(plain, ==, actual);
+    }
   }
 }
 
@@ -744,6 +812,23 @@ TEST(BlowFishTest, testECBTestCases_with_padding) {
       es.write(enc.data(), static_cast<std::streamsize>(enc.size()));
       es.finish();
       EXPECT(plain, ==, oss.str());
+    }
+
+    {
+      std::istringstream iss(plain);
+      yu::crypt::blowfish_ecb_enc_istream es(iss, key);
+      std::vector<char> buf(1024);
+      es.read(buf.data(), buf.size());
+      std::string actual(buf.data(), es.gcount());
+      EXPECT(enc, ==, actual);
+    }
+    {
+      std::istringstream iss(enc);
+      yu::crypt::blowfish_ecb_dec_istream es(iss, key);
+      std::vector<char> buf(1024);
+      es.read(buf.data(), buf.size());
+      std::string actual(buf.data(), es.gcount());
+      EXPECT(plain, ==, actual);
     }
   }
 }
@@ -916,6 +1001,23 @@ TEST(BlowFishTest, testCBCTestCases_with_padding) {
       es.finish();
       EXPECT(plain, ==, oss.str());
     }
+
+    {
+      std::istringstream iss(plain);
+      yu::crypt::blowfish_cbc_enc_istream es(iss, key, iv);
+      std::vector<char> buf(1024);
+      es.read(buf.data(), buf.size());
+      std::string actual(buf.data(), es.gcount());
+      EXPECT(enc, ==, actual);
+    }
+    {
+      std::istringstream iss(enc);
+      yu::crypt::blowfish_cbc_dec_istream es(iss, key, iv);
+      std::vector<char> buf(1024);
+      es.read(buf.data(), buf.size());
+      std::string actual(buf.data(), es.gcount());
+      EXPECT(plain, ==, actual);
+    }
   }
 }
 
@@ -1086,6 +1188,23 @@ TEST(BlowFishTest, testCFBTestCases_stream) {
       es.write(enc.data(), static_cast<std::streamsize>(enc.size()));
       es.finish();
       EXPECT(plain, ==, oss.str());
+    }
+
+    {
+      std::istringstream iss(plain);
+      yu::crypt::blowfish_cfb_enc_istream es(iss, key, iv);
+      std::vector<char> buf(1024);
+      es.read(buf.data(), buf.size());
+      std::string actual(buf.data(), es.gcount());
+      EXPECT(enc, ==, actual);
+    }
+    {
+      std::istringstream iss(enc);
+      yu::crypt::blowfish_cfb_dec_istream es(iss, key, iv);
+      std::vector<char> buf(1024);
+      es.read(buf.data(), buf.size());
+      std::string actual(buf.data(), es.gcount());
+      EXPECT(plain, ==, actual);
     }
   }
 }
@@ -1272,6 +1391,23 @@ TEST(BlowFishTest, testOFBTestCases_stream) {
       es.write(enc.data(), static_cast<std::streamsize>(enc.size()));
       es.finish();
       EXPECT(plain, ==, oss.str());
+    }
+
+    {
+      std::istringstream iss(plain);
+      yu::crypt::blowfish_ofb_enc_istream es(iss, key, iv);
+      std::vector<char> buf(1024);
+      es.read(buf.data(), buf.size());
+      std::string actual(buf.data(), es.gcount());
+      EXPECT(enc, ==, actual);
+    }
+    {
+      std::istringstream iss(enc);
+      yu::crypt::blowfish_ofb_dec_istream es(iss, key, iv);
+      std::vector<char> buf(1024);
+      es.read(buf.data(), buf.size());
+      std::string actual(buf.data(), es.gcount());
+      EXPECT(plain, ==, actual);
     }
   }
 }

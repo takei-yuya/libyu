@@ -426,18 +426,18 @@ class PKCS7Padding {
 };
 
 template <class Cipher, class Padding>
-class cipher_streambuf : public std::streambuf {
+class cipher_ostreambuf : public std::streambuf {
  public:
   static const size_t kBlockSize = Cipher::kBlockSize;
   template <typename... Args>
-  cipher_streambuf(std::ostream& out, bool decrypt, Args... args)
+  cipher_ostreambuf(std::ostream& out, bool decrypt, Args... args)
     : out_(out), decrypt_(decrypt), finished_(false), buffer_(1024), cipher_(decrypt, args...) {
     static_assert((Cipher::kIsBlockCipher && Padding::kIsSupportBlockCipher)
                   || (Cipher::kIsStreamCipher && Padding::kIsSupportStreamCipher),
                   "Invalid combination of Cipher and Padding");
     setp(buffer_.data(), buffer_.data() + buffer_.size());
   }
-  ~cipher_streambuf() {
+  ~cipher_ostreambuf() {
     finish();
   }
 
@@ -478,14 +478,62 @@ class cipher_streambuf : public std::streambuf {
     return traits_type::not_eof(ch);
   }
 
-  void padding(size_t padding_size) {
-    if (padding_size == kBlockSize) return;
-    for (size_t i = 0; i < padding_size; ++i) {
-      sputc('\x00');
-    }
+  std::ostream& out_;
+  bool decrypt_;
+  bool finished_;
+  std::vector<char> buffer_;
+
+  Cipher cipher_;
+};
+
+template <class Cipher, class Padding>
+class cipher_istreambuf : public std::streambuf {
+ public:
+  static const size_t kBlockSize = Cipher::kBlockSize;
+  template <typename... Args>
+  cipher_istreambuf(std::istream& in, bool decrypt, Args... args)
+    : in_(in), decrypt_(decrypt), finished_(false), buffer_(1024), cipher_(decrypt, args...) {
+    static_assert((Cipher::kIsBlockCipher && Padding::kIsSupportBlockCipher)
+                  || (Cipher::kIsStreamCipher && Padding::kIsSupportStreamCipher),
+                  "Invalid combination of Cipher and Padding");
+    setg(buffer_.data(), buffer_.data(), buffer_.data());
   }
 
-  std::ostream& out_;
+  ~cipher_istreambuf() {
+  }
+
+ private:
+  int underflow() override {
+    if (gptr() < egptr()) return traits_type::to_int_type(*gptr());
+    if (finished_) return traits_type::eof();
+
+    char *pend;
+    for (char *p = buffer_.data(); p + kBlockSize < buffer_.data() + buffer_.size(); p += kBlockSize) {
+      in_.read(p, kBlockSize);
+      pend = p + in_.gcount();
+      in_.peek();  // check EOF
+      if (in_.eof()) {
+        if (!decrypt_) {
+          // Encrypt
+          int padding_size = Padding::padding(p, pend, p + kBlockSize);
+          pend += padding_size;
+          cipher_.process(p, pend - p);
+        } else {
+          // Decript
+          cipher_.process(p, pend - p);
+          int padding_size = Padding::unpadding(p, pend, p + kBlockSize);
+          pend -= padding_size;
+        }
+        finished_ = true;
+        break;
+      }  // in_.eof()
+      cipher_.process(p, pend - p);
+    }
+    setg(buffer_.data(), buffer_.data(), pend);
+    return traits_type::to_int_type(*gptr());
+  }
+
+  std::istream& in_;
   bool decrypt_;
   bool finished_;
   std::vector<char> buffer_;
@@ -500,7 +548,7 @@ class cipher_enc_ostream : public std::ostream {
   cipher_enc_ostream(std::ostream& out, Args... args) : std::ostream(&buf_), buf_(out, false, args...) {}
   void finish() { buf_.finish(); }
  private:
-  cipher_streambuf<Cipher, Padding> buf_;
+  cipher_ostreambuf<Cipher, Padding> buf_;
 };
 
 template <class Cipher, class Padding = yu::crypt::PKCS7Padding>
@@ -510,7 +558,27 @@ class cipher_dec_ostream : public std::ostream {
   cipher_dec_ostream(std::ostream& out, Args... args) : std::ostream(&buf_), buf_(out, true, args...) {}
   void finish() { buf_.finish(); }
  private:
-  cipher_streambuf<Cipher, Padding> buf_;
+  cipher_ostreambuf<Cipher, Padding> buf_;
+};
+
+template <class Cipher, class Padding = yu::crypt::PKCS7Padding>
+class cipher_enc_istream : public std::istream {
+ public:
+  template <class... Args>
+  cipher_enc_istream(std::istream& out, Args... args) : std::istream(&buf_), buf_(out, false, args...) {}
+  void finish() { buf_.finish(); }
+ private:
+  cipher_istreambuf<Cipher, Padding> buf_;
+};
+
+template <class Cipher, class Padding = yu::crypt::PKCS7Padding>
+class cipher_dec_istream : public std::istream {
+ public:
+  template <class... Args>
+  cipher_dec_istream(std::istream& out, Args... args) : std::istream(&buf_), buf_(out, true, args...) {}
+  void finish() { buf_.finish(); }
+ private:
+  cipher_istreambuf<Cipher, Padding> buf_;
 };
 
 using Blowfish_ECB = Blowfish;
@@ -526,6 +594,15 @@ using blowfish_ofb_enc_ostream = cipher_enc_ostream<Blowfish_OFB, NoPadding>;
 using blowfish_ofb_dec_ostream = cipher_dec_ostream<Blowfish_OFB, NoPadding>;
 using blowfish_cfb_enc_ostream = cipher_enc_ostream<Blowfish_CFB, NoPadding>;
 using blowfish_cfb_dec_ostream = cipher_dec_ostream<Blowfish_CFB, NoPadding>;
+
+using blowfish_ecb_enc_istream = cipher_enc_istream<Blowfish_ECB, PKCS7Padding>;
+using blowfish_ecb_dec_istream = cipher_dec_istream<Blowfish_ECB, PKCS7Padding>;
+using blowfish_cbc_enc_istream = cipher_enc_istream<Blowfish_CBC, PKCS7Padding>;
+using blowfish_cbc_dec_istream = cipher_dec_istream<Blowfish_CBC, PKCS7Padding>;
+using blowfish_ofb_enc_istream = cipher_enc_istream<Blowfish_OFB, NoPadding>;
+using blowfish_ofb_dec_istream = cipher_dec_istream<Blowfish_OFB, NoPadding>;
+using blowfish_cfb_enc_istream = cipher_enc_istream<Blowfish_CFB, NoPadding>;
+using blowfish_cfb_dec_istream = cipher_dec_istream<Blowfish_CFB, NoPadding>;
 
 } // namespace crypt
 } // namespace yu
