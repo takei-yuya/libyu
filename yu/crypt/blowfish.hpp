@@ -517,17 +517,17 @@ class cipher_istreambuf : public std::streambuf {
           // Encrypt
           int padding_size = Padding::padding(p, pend, p + kBlockSize);
           pend += padding_size;
-          cipher_.process(p, pend - p);
+          cipher_.process(p, static_cast<size_t>(pend - p));
         } else {
           // Decript
-          cipher_.process(p, pend - p);
+          cipher_.process(p, static_cast<size_t>(pend - p));
           int padding_size = Padding::unpadding(p, pend, p + kBlockSize);
           pend -= padding_size;
         }
         finished_ = true;
         break;
       }  // in_.eof()
-      cipher_.process(p, pend - p);
+      cipher_.process(p, static_cast<size_t>(pend - p));
     }
     setg(buffer_.data(), buffer_.data(), pend);
     return traits_type::to_int_type(*gptr());
