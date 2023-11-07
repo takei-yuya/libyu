@@ -1,6 +1,3 @@
-#include "yu/stream/fdstream.hpp"
-#include "yu/http/client_stream.hpp"
-
 #include <arpa/inet.h>
 #include <fcntl.h>
 #include <netdb.h>
@@ -12,6 +9,9 @@
 #include <unistd.h>
 
 #include <iostream>
+
+#include "yu/stream/fdstream.hpp"
+#include "yu/http/client_stream.hpp"
 
 namespace {
 class FDCloser {

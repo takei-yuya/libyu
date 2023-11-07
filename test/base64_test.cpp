@@ -2,8 +2,8 @@
 
 #include "yu/test.hpp"
 
-#include <sstream>
 #include <iostream>
+#include <sstream>
 
 class Base64Test : public yu::Test {
 };

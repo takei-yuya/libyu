@@ -2,8 +2,8 @@
 
 #include "yu/test.hpp"
 
-#include <sys/socket.h>
 #include <string.h>
+#include <sys/socket.h>
 
 #include "yu/stream/fdstream.hpp"
 

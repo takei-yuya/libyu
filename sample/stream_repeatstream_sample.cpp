@@ -1,7 +1,7 @@
 #include "yu/stream/repeatstream.hpp"
 
-#include <iostream>
 #include <iomanip>
+#include <iostream>
 
 int main() {
   yu::stream::repeatstream repeat("yes\n");

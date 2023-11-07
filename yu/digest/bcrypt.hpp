@@ -2,14 +2,14 @@
 #ifndef YU_DIGEST_BCRYPT_HPP_
 #define YU_DIGEST_BCRYPT_HPP_
 
+#include <cassert>
+#include <iostream>
+#include <random>
+#include <stdexcept>
+
 #include "yu/digest/sha2.hpp"
 #include "yu/lang/lexical_cast.hpp"
 #include "yu/string/utils.hpp"
-
-#include <stdexcept>
-#include <iostream>
-#include <cassert>
-#include <random>
 
 namespace yu {
 namespace digest {

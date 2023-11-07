@@ -1,8 +1,8 @@
 #include <iostream>
 #include <random>
 
-#include <unistd.h>
 #include <getopt.h>
+#include <unistd.h>
 
 #include "yu/digest/bcrypt.hpp"
 

@@ -1,9 +1,9 @@
-#include <iostream>
-#include <string>
-#include <map>
-#include <vector>
-
 #include "yu/json.hpp"
+
+#include <iostream>
+#include <map>
+#include <string>
+#include <vector>
 
 int main() {
   class Klass {

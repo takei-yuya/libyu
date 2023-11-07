@@ -1,5 +1,3 @@
-#include "yu/stream/fdstream.hpp"
-
 #include <fcntl.h>
 #include <netinet/in.h>
 #include <string.h>
@@ -9,6 +7,8 @@
 #include <unistd.h>
 
 #include <iostream>
+
+#include "yu/stream/fdstream.hpp"
 
 static const int kPort = 3360;
 

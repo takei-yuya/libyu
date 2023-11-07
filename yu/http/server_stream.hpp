@@ -11,9 +11,9 @@
 #include <vector>
 
 #include "yu/http/common.hpp"
-#include "yu/string/utils.hpp"
-#include "yu/stream/nullstream.hpp"
 #include "yu/lang/lexical_cast.hpp"
+#include "yu/stream/nullstream.hpp"
+#include "yu/string/utils.hpp"
 
 namespace yu {
 namespace http {

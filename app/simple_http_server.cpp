@@ -1,7 +1,3 @@
-#include "yu/stream/fdstream.hpp"
-#include "yu/http/server_stream.hpp"
-#include "yu/json.hpp"
-
 #include <fcntl.h>
 #include <netinet/in.h>
 #include <string.h>
@@ -12,6 +8,10 @@
 
 #include <iostream>
 #include <mutex>
+
+#include "yu/http/server_stream.hpp"
+#include "yu/json.hpp"
+#include "yu/stream/fdstream.hpp"
 
 static const int kPort = 3360;
 
