@@ -1,25 +1,10 @@
 LANG=C  # say "Entering directory" in English for some editors
 
-.PHONY: all
-all:
-	make -C sample $@
-	make -C test $@
-	make -C app $@
+subdirs := test sample app
 
-.PHONY: check
-check:
-	make -C sample $@
-	make -C test $@
-	make -C app $@
+.PHONY: all check clean depends
+all check clean depends: $(subdirs)
 
-.PHONY: clean
-clean:
-	make -C sample $@
-	make -C test $@
-	make -C app $@
-
-.PHONY: depends
-depends:
-	make -C sample $@
-	make -C test $@
-	make -C app $@
+.PHONY: $(subdirs)
+$(subdirs):
+	make -C $@ $(MAKECMDGOALS)

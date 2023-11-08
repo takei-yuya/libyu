@@ -1,6 +1,6 @@
 // Copyright 2023 TAKEI Yuya (https://github.com/takei-yuya/)
-#ifndef YU_STREAM_FDSTREAM__
-#define YU_STREAM_FDSTREAM__
+#ifndef YU_STREAM_FDSTREAM_HPP_
+#define YU_STREAM_FDSTREAM_HPP_
 
 #include <iostream>
 #include <vector>
@@ -81,4 +81,4 @@ class fdstream : public std::iostream {
 }  // namespace stream
 }  // namespace yu
 
-#endif  // YU_STREAM_FDSTREAM__
+#endif  // YU_STREAM_FDSTREAM_HPP_

@@ -2,8 +2,8 @@
 #ifndef YU_STREAM_REPEATSTREAM_HPP_
 #define YU_STREAM_REPEATSTREAM_HPP_
 
-#include <vector>
 #include <iostream>
+#include <vector>
 
 namespace yu {
 namespace stream {

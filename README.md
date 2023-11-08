@@ -8,7 +8,7 @@ copy `yu` directory to your project, then include it.
 
 ## usage
 
-### utf8.hpp
+### yu/utf8.hpp
 
 ```cpp
 namespace yu {
@@ -84,7 +84,7 @@ example: `sample/crypt_blowfish_sample.cpp`
 // Hello blowfish!!
 ```
 
-### digest/sha2.hpp
+### yu/digest/sha2.hpp
 
 ```cpp
 namespace yu {
@@ -123,7 +123,7 @@ std::cout << yu::digest::sha512_256_hex(message) << std::endl;
 // cc296ed308cbe384e0de66c8580b3373ac2ae88dd53a9bd8542df1431e87f01d
 ```
 
-### digest/bcrypt.hpp
+### yu/digest/bcrypt.hpp
 
 TODO: `$1$` `$2b$`
 
@@ -150,7 +150,7 @@ std::cout << yu::digest::bcrypt_check(digest, "Password") << std::endl;
 // 0
 ```
 
-### lang/lexical_cast.hpp
+### yu/lang/lexical_cast.hpp
 
 ```cpp
 template <typename T1, typename T2>
@@ -165,7 +165,7 @@ std::cout << (yu::lang::lexical_cast<std::string>(42) + "0") << std::endl;
 // 420
 ```
 
-### stream/fdstream.hpp
+### yu/stream/fdstream.hpp
 
 ```cpp
 namespace yu {
@@ -185,7 +185,7 @@ fds << "Hello World." << std::endl;
 // Hello World.
 ```
 
-### stream/repeatstream.hpp
+### yu/stream/repeatstream.hpp
 
 ```cpp
 namespace yu {
@@ -218,7 +218,7 @@ for (size_t i = 0; i < 10; ++i) {
 // yes
 ```
 
-### stream/nullstream.hpp
+### yu/stream/nullstream.hpp
 
 ```cpp
 namespace yu {
@@ -247,7 +247,7 @@ std::cout << "write = " << write_count << std::endl;
 // write = 1073741824
 ```
 
-### stream/teestream.hpp
+### yu/stream/teestream.hpp
 
 ```cpp
 namespace yu {
@@ -299,7 +299,7 @@ example: `sample/stream_teestream_sample.cpp`
 
 see also: `app/sha2.cpp`
 
-### base64.hpp
+### yu/base64.hpp
 
 ```cpp
 namespace yu {
@@ -341,7 +341,7 @@ std::cout << yu::base64::decode("SGVsbG8gV29ybGQu") << std::endl;
 // Hello World.
 ```
 
-### json.hpp
+### yu/json.hpp
 
 ```cpp
 class Stringifier {
@@ -432,7 +432,7 @@ std::cout << yu::json::to_json(obj) << std::endl;
 // {"str":"Hello World.","num":42,"map":{"a":3.14},"vec":[true,false]}
 ```
 
-### http/client_stream.hpp
+### yu/http/client_stream.hpp
 
 ```cpp
 namespace yu {
@@ -533,7 +533,7 @@ std::cout << "* Recieve response" << std::endl;
 // Hello World!!
 ```
 
-### http/server_stream.hpp
+### yu/http/server_stream.hpp
 
 ```cpp
 namespace yu {
@@ -645,7 +645,7 @@ close(fds[1]);
 // 0
 ```
 
-### test.hpp
+### yu/test.hpp
 
 see `test/*_test.cpp`
 

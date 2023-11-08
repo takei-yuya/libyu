@@ -1,6 +1,6 @@
 // Copyright 2023 TAKEI Yuya (https://github.com/takei-yuya/)
-#ifndef YU_STREAM_NULLSTREAM_
-#define YU_STREAM_NULLSTREAM_
+#ifndef YU_STREAM_NULLSTREAM_HPP_
+#define YU_STREAM_NULLSTREAM_HPP_
 
 #include <iostream>
 #include <vector>
@@ -33,4 +33,4 @@ class nullstream : public std::iostream {
 }  // namespace stream
 }  // namespace yu
 
-#endif  // YU_STREAM_NULLSTREAM_
+#endif  // YU_STREAM_NULLSTREAM_HPP_

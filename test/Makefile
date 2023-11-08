@@ -2,25 +2,25 @@ CPPFLAGS=-I..
 CXXFLAGS=-g3 -Wall -Wextra -Werror -Wcast-align -Wcast-qual -Wconversion -Wdelete-non-virtual-dtor -Wdouble-promotion -Weffc++ -Wfloat-equal -Wold-style-cast -Woverloaded-virtual -Wpedantic -Wreorder -Wsign-promo -Wsuggest-override -Wswitch-enum
 CC=$(CXX)
 
-TEST_SRCS = $(wildcard *_test.cpp)
-TEST_OBJS = $(TEST_SRCS:%.cpp=%.o)
-TESTS = $(TEST_SRCS:%.cpp=%)
+SRCS=$(wildcard *.cpp)
+OBJS=$(SRCS:%.cpp=%.o)
+BINS=$(SRCS:%.cpp=%)
 
 .PHONY: all
-all:
+all: $(BINS)
 
 .PHONY: check
-check: $(TESTS)
-	./test_runner $(foreach test,$(TESTS),$(test) )
+check: $(BINS)
+	./test_runner $(foreach test,$(BINS),$(test) )
 
 .PHONY: clean
 clean:
-	$(RM) $(TESTS) $(TEST_OBJS) dep.Makefile
+	$(RM) $(OBJS) $(BINS) dep.Makefile
 
 .PHONY: depends
 depends: dep.Makefile
 
-dep.Makefile: $(TEST_SRCS)
+dep.Makefile: $(SRCS)
 	$(CXX) $(CPPFLAGS) -MM $^ > $@
 
 -include dep.Makefile

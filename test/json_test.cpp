@@ -1,11 +1,12 @@
 #include "yu/json.hpp"
 
 #include "yu/test.hpp"
-#include "yu/lang/lexical_cast.hpp"
 
-#include <sstream>
 #include <iostream>
 #include <limits>
+#include <sstream>
+
+#include "yu/lang/lexical_cast.hpp"
 
 class JSONStringifyTest : public yu::Test {
 };

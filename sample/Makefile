@@ -10,7 +10,8 @@ BINS=$(SRCS:%.cpp=%)
 all: $(BINS)
 
 .PHONY: check
-check:
+check: $(BINS)
+
 
 .PHONY: clean
 clean:

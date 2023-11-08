@@ -1,6 +1,6 @@
-#include <iostream>
-
 #include "yu/utf8.hpp"
+
+#include <iostream>
 
 int main() {
   uint32_t code_point = 0x1f363;

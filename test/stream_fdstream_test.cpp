@@ -2,9 +2,9 @@
 
 #include "yu/test.hpp"
 
-#include <sys/types.h>
-#include <sys/stat.h>
 #include <fcntl.h>
+#include <sys/stat.h>
+#include <sys/types.h>
 
 class FDStreamTest : public yu::Test {
  public:
