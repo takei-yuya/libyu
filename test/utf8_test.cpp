@@ -34,8 +34,17 @@ TEST(UTF8Test, testEncodeError) {
 }
 
 TEST(UTF8Test, testDecoder) {
-  std::vector<uint32_t> expected = { 0x80, 0x414, 0x7ff, 0x800, 0x3042, 0xffff, 0x10000, 0x1f363 };
-  std::string str = "\xc2\x80\xd0\x94\xdf\xbf\xe0\xa0\x80\xe3\x81\x82\xef\xbf\xbf\xf0\x90\x80\x80\xf0\x9f\x8d\xa3";
+  std::vector<uint32_t> expected = {
+    0x01, 0x41, 0x7f,
+    0x80, 0x414, 0x7ff,
+    0x800, 0x3042, 0xffff,
+    0x10000, 0x1f363, 0x10ffff,
+  };
+  std::string str =
+    "\x01" "\x41" "\x7f"
+    "\xc2\x80" "\xd0\x94" "\xdf\xbf"
+    "\xe0\xa0\x80" "\xe3\x81\x82" "\xef\xbf\xbf"
+    "\xf0\x90\x80\x80" "\xf0\x9f\x8d\xa3" "\xf4\x8f\xbf\xbf";
   std::istringstream iss(str);
   yu::utf8::Decoder decoder(iss);
   size_t i = 0;
