@@ -14,6 +14,20 @@ copy `yu` directory to your project, then include it.
 namespace yu {
 namespace utf8 {
 std::string yu::utf8::encode(uint32_t);
+
+class Decoder {
+ public:
+  class Error : public std::runtime_error {
+   public:
+    Error(const std::string& message);
+  };
+
+  explicit Decoder(std::istream& in, uint32_t invalid = 0xfffd);
+  const std::string& last_error() const;
+  bool has_next();
+  uint32_t next();
+};
+
 }
 }
 ```
@@ -23,7 +37,12 @@ example: `sample/utf8_sample.cpp`
 uint32_t code_point = 0x1f363;
 std::string str = yu::utf8::encode(code_point);
 std::cout << str << std::endl;
+
+std::istringstream iss(str);
+yu::utf8::Decoder decoder(iss);
+std::cout << "U+" << std::hex << std::uppercase << decoder.next() << std::endl;
 // 🍣
+// U+1F363
 ```
 
 ### yu/crypt/blowfish.hpp

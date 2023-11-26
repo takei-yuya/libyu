@@ -91,18 +91,26 @@ class TestRunner {
 };
 
 #define EXPECT(expected, op, actual) \
-  if (!((expected) op (actual))) { \
-    std::ostringstream oss_; \
-    oss_ << __FILE__ ":" << __LINE__ << ": expect " << yu::json::to_json(expected) << " " #op " " << yu::json::to_json(actual) << ", but not"; \
-    errors_.push_back(oss_.str()); \
+  { \
+    auto rhs = (actual); \
+    decltype(rhs) lhs = (expected); \
+    if (!(lhs op rhs)) { \
+      std::ostringstream oss_; \
+      oss_ << __FILE__ ":" << __LINE__ << ": expect " << yu::json::to_json(lhs) << " " #op " " << yu::json::to_json(rhs) << ", but not"; \
+      errors_.push_back(oss_.str()); \
+    } \
   }
 
 #define ASSERT(expected, op, actual) \
-  if (!((expected) op (actual))) { \
-    std::ostringstream oss_; \
-    oss_ << __FILE__ ":" << __LINE__ << ": assert '" << yu::json::to_json(expected) << "' " #op " '" << yu::json::to_json(actual) << "', but not"; \
-    errors_.push_back(oss_.str()); \
-    throw yu::test::TestFailure(); \
+  { \
+    auto rhs = (actual); \
+    decltype(rhs) lhs = (expected); \
+    if (!(lhs op rhs)) { \
+      std::ostringstream oss_; \
+      oss_ << __FILE__ ":" << __LINE__ << ": assert '" << yu::json::to_json(lhs) << "' " #op " '" << yu::json::to_json(rhs) << "', but not"; \
+      errors_.push_back(oss_.str()); \
+      throw yu::test::TestFailure(); \
+    } \
   }
 
 #define FAIL(msg) \
