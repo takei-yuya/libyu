@@ -69,11 +69,11 @@ class Decoder {
     int ch = in_.get();
     if (ch == EOF) return kEOF;
     int clo = count_leading_ones(ch);
-    if (clo == 0) return ch;
+    if (clo == 0) return static_cast<uint32_t>(ch);
     if (clo == 1) throw Error("an unexpected continuation byte");
     if (clo >= 5) throw Error("invalid byte");
 
-    int32_t cp = ch & (0b11111111 >> clo);
+    uint32_t cp = ch & (0b11111111 >> clo);
     for (int i = 1; i < clo; ++i) {
       cp = cp << 6 | get_continuation_byte();
     }
