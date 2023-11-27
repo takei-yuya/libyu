@@ -47,11 +47,9 @@ class Decoder {
   };
 
   explicit Decoder(std::istream& in, uint32_t invalid = 0xfffd)
-    : in_(in), invalid_(invalid), next_(invalid), last_error_("") {
+    : in_(in), invalid_(invalid), next_(invalid), last_error_(""), num_bytes_(0), num_chars_(0), num_errors_(0) {
     next_ = decode();
   }
-
-  const std::string& last_error() const { return last_error_; }
 
   bool has_next() const { return next_ != kEOF; }
 
@@ -62,16 +60,26 @@ class Decoder {
     return result;
   }
 
+  const std::string& last_error() const { return last_error_; }
+  size_t num_processed_bytes() const { return num_bytes_; }
+  size_t num_processed_chars() const { return num_chars_; }
+  size_t num_processed_errors() const { return num_errors_; }
+
  private:
   const uint32_t kEOF = static_cast<uint32_t>(-1);
 
   uint32_t decode() try {
     int ch = in_.get();
     if (ch == EOF) return kEOF;
+    ++num_bytes_;
     int clo = count_leading_ones(ch);
-    if (clo == 0) return static_cast<uint32_t>(ch);
     if (clo == 1) throw Error("an unexpected continuation byte");
     if (clo >= 5) throw Error("invalid byte");
+
+    if (clo == 0) {
+      ++num_chars_;
+      return static_cast<uint32_t>(ch);
+    }
 
     uint32_t cp = ch & (0b11111111 >> clo);
     for (int i = 1; i < clo; ++i) {
@@ -89,15 +97,19 @@ class Decoder {
     if (cp > 0x10FFFF) throw Error("a sequence that decodes to an invalid code point");
 
     last_error_ = "";
+    ++num_chars_;
     return cp;
   } catch (const Error& e) {
     last_error_ = e.what();
+    ++num_chars_;
+    ++num_errors_;
     return invalid_;
   }
 
   uint32_t get_continuation_byte() {
     int ch = in_.get();
     if (ch == EOF) throw Error("the string ending before the end of the character");
+    ++num_bytes_;
     int clo = count_leading_ones(ch);
     if (clo != 1) throw Error("a non-continuation byte before the end of the character");
     return 0b00111111 & ch;
@@ -119,6 +131,9 @@ class Decoder {
   const uint32_t invalid_;
   uint32_t next_;
   std::string last_error_;
+  size_t num_bytes_;
+  size_t num_chars_;  // num of code points returned
+  size_t num_errors_;  // num of invalid_char returned
 };
 
 }  // namespace utf8

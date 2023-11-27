@@ -22,10 +22,14 @@ class Decoder {
     Error(const std::string& message);
   };
 
-  explicit Decoder(std::istream& in, uint32_t invalid = 0xfffd);
-  const std::string& last_error() const;
+  explicit Decoder(std::istream& in, uint32_t invalid_char = 0xfffd);
   bool has_next();
-  uint32_t next();
+  uint32_t next();  // decode UTF-8 next string and return code point, or invalid_char if the sequence is invalid as UTF-8
+
+  const std::string& last_error() const;
+  size_t num_processed_bytes();
+  size_t num_processed_chars();  // num of code points returned
+  size_t num_processed_errors();  // num of invalid_char returned
 };
 
 }
@@ -38,11 +42,25 @@ uint32_t code_point = 0x1f363;
 std::string str = yu::utf8::encode(code_point);
 std::cout << str << std::endl;
 
-std::istringstream iss(str);
+std::istringstream iss(u8"ABCあいう" + str + "\xff");
 yu::utf8::Decoder decoder(iss);
-std::cout << "U+" << std::hex << std::uppercase << decoder.next() << std::endl;
+while (decoder.has_next()) {
+  std::cout << "U+" << std::hex << std::uppercase << decoder.next() << std::endl;
+}
+std::cout << std::dec
+  << decoder.num_processed_bytes() << " bytes, "
+  << decoder.num_processed_chars() << " chars, "
+  << decoder.num_processed_errors() << " errors" << std::endl;
 // 🍣
+// U+41
+// U+42
+// U+43
+// U+3042
+// U+3044
+// U+3046
 // U+1F363
+// U+FFFD
+// 17 bytes, 8 chars, 1 errors
 ```
 
 ### yu/crypt/blowfish.hpp

@@ -55,6 +55,9 @@ TEST(UTF8Test, testDecoder) {
     ++i;
   }
   EXPECT(expected.size(), ==, i);
+  EXPECT(expected.size(), ==, decoder.num_processed_chars());
+  EXPECT(str.size(), ==, decoder.num_processed_bytes());
+  EXPECT(0, ==, decoder.num_processed_errors());
 }
 
 TEST(UTF8Test, testDecoderErrors) {
@@ -92,5 +95,8 @@ TEST(UTF8Test, testDecoderErrors) {
     EXPECT(0xfffd, ==, decoder.next());
     EXPECT(it.second, ==, decoder.last_error());
     EXPECT(false, ==, decoder.has_next());
+    EXPECT(it.first.size(), ==, decoder.num_processed_bytes());
+    EXPECT(1, ==, decoder.num_processed_chars());
+    EXPECT(1, ==, decoder.num_processed_errors());
   }
 }
