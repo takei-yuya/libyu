@@ -1,4 +1,4 @@
-name: gcc9
+name: gcc
 on:
   push:
     branches: [ main ]
