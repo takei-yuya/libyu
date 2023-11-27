@@ -42,7 +42,7 @@ uint32_t code_point = 0x1f363;
 std::string str = yu::utf8::encode(code_point);
 std::cout << str << std::endl;
 
-std::istringstream iss(u8"ABCあいう" + str + "\xff");
+std::istringstream iss(u8"ABCあいう\xff" + str );
 yu::utf8::Decoder decoder(iss);
 while (decoder.has_next()) {
   std::cout << "U+" << std::hex << std::uppercase << decoder.next() << std::endl;
@@ -58,8 +58,8 @@ std::cout << std::dec
 // U+3042
 // U+3044
 // U+3046
-// U+1F363
 // U+FFFD
+// U+1F363
 // 17 bytes, 8 chars, 1 errors
 ```
 
