@@ -1,3 +1,14 @@
+[![alpine3-clang](https://github.com/takei-yuya/libyu/actions/workflows/alpine-clang.yml/badge.svg)](https://github.com/takei-yuya/libyu/actions/workflows/alpine-clang.yml)
+[![alpine3-gcc](https://github.com/takei-yuya/libyu/actions/workflows/alpine-gcc.yml/badge.svg)](https://github.com/takei-yuya/libyu/actions/workflows/alpine-gcc.yml)
+
+[![gcc8](https://github.com/takei-yuya/libyu/actions/workflows/gcc8.yml/badge.svg)](https://github.com/takei-yuya/libyu/actions/workflows/gcc8.yml)
+[![gcc9](https://github.com/takei-yuya/libyu/actions/workflows/gcc9.yml/badge.svg)](https://github.com/takei-yuya/libyu/actions/workflows/gcc9.yml)
+[![gcc10](https://github.com/takei-yuya/libyu/actions/workflows/gcc10.yml/badge.svg)](https://github.com/takei-yuya/libyu/actions/workflows/gcc10.yml)
+[![gcc11](https://github.com/takei-yuya/libyu/actions/workflows/gcc11.yml/badge.svg)](https://github.com/takei-yuya/libyu/actions/workflows/gcc11.yml)
+[![gcc12](https://github.com/takei-yuya/libyu/actions/workflows/gcc12.yml/badge.svg)](https://github.com/takei-yuya/libyu/actions/workflows/gcc12.yml)
+[![gcc13](https://github.com/takei-yuya/libyu/actions/workflows/gcc13.yml/badge.svg)](https://github.com/takei-yuya/libyu/actions/workflows/gcc13.yml)
+
+
 # misc libraries for C++
 
 misc header only libiraries depend on only C++ standard libiraries.
