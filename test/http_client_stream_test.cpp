@@ -2,6 +2,8 @@
 
 #include "yu/test.hpp"
 
+#include <stdexcept>
+
 #include <string.h>
 #include <sys/socket.h>
 

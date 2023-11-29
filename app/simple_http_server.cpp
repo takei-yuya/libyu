@@ -7,6 +7,7 @@
 
 #include <iostream>
 #include <mutex>
+#include <stdexcept>
 
 #include "yu/http/server_stream.hpp"
 #include "yu/json.hpp"

@@ -4,6 +4,7 @@
 
 #include <iostream>
 #include <sstream>
+#include <stdexcept>
 
 class UTF8Test : public yu::Test {
 };

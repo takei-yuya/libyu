@@ -4,6 +4,7 @@
 
 #include <iostream>
 #include <memory>
+#include <stdexcept>
 
 #include "yu/http/common.hpp"
 #include "yu/lang/lexical_cast.hpp"
