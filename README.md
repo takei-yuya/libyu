@@ -277,12 +277,10 @@ example: `sample/digest_bcrypt_sample.cpp`
 std::cout << yu::digest::bcrypt_sha256("salt", "password") << std::endl;
 std::cout << yu::digest::bcrypt_sha512("salt", "password") << std::endl;
 std::string digest = yu::digest::bcrypt_sha512("", "password");  // random salt
-std::cout << digest << std::endl;
 std::cout << yu::digest::bcrypt_check(digest, "password") << std::endl;
 std::cout << yu::digest::bcrypt_check(digest, "Password") << std::endl;
 // $5$salt$Gcm6FsVtF/Qa77ZKD.iwsJlCVPY0XSMgLJL0Hnww/c1
 // $6$salt$IxDD3jeSOb5eB1CX5LBsqZFVkJdido3OUILO5Ifz5iwMuTS4XMS130MTSuDDl3aCI6WouIL9AjRbLCelDCy.g.
-// $6$HS6sZZbfaVRuuO/i$3nbsa//Mqaq2lkbQ1HoqbWbP/JtpwllCO1qz2GlT7ewEh8.bOQgpT/Wfnsvls.PwuD8N0JC/witGFIYKqni9a.
 // 1
 // 0
 ```
