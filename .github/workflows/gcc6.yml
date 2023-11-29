@@ -1,4 +1,4 @@
-name: gcc6
+name: gcc-6
 on:
   push:
     branches: [ main ]

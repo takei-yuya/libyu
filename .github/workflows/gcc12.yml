@@ -1,4 +1,4 @@
-name: gcc12
+name: gcc-12
 on:
   push:
     branches: [ main ]

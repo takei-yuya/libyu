@@ -1,4 +1,4 @@
-name: gcc8
+name: gcc-8
 on:
   push:
     branches: [ main ]

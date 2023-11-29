@@ -1,4 +1,4 @@
-name: gcc7
+name: gcc-7
 on:
   push:
     branches: [ main ]
