@@ -1,4 +1,4 @@
-name: alpine3-gcc
+name: alpine3-clang -std=20
 on:
   push:
     branches: [ main ]
@@ -8,8 +8,8 @@ jobs:
   build:
     runs-on: ubuntu-latest
     container:
-      image: takei/libyu-dev:alpine3-gcc
+      image: takei/libyu-dev:alpine3-clang
     steps:
     - uses: actions/checkout@v3
     - name: make check
-      run: make check CXX=g++
+      run: make check CXX=clang++
