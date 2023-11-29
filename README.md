@@ -57,24 +57,26 @@ uint32_t code_point = 0x1f363;
 std::string str = yu::utf8::encode(code_point);
 std::cout << str << std::endl;
 
-std::istringstream iss(u8"ABCあいう\xff" + str );
+// invalid char '\xff' will be replaced by U+FFFD
+std::istringstream iss("ABCあいう\xff" + str);
 yu::utf8::Decoder decoder(iss);
 while (decoder.has_next()) {
-  std::cout << "U+" << std::hex << std::uppercase << decoder.next() << std::endl;
+  code_point = decoder.next();
+  std::cout << yu::utf8::encode(code_point) << " U+" << std::hex << std::uppercase << code_point << std::endl;
 }
 std::cout << std::dec
   << decoder.num_processed_bytes() << " bytes, "
   << decoder.num_processed_chars() << " chars, "
   << decoder.num_processed_errors() << " errors" << std::endl;
 // 🍣
-// U+41
-// U+42
-// U+43
-// U+3042
-// U+3044
-// U+3046
-// U+FFFD
-// U+1F363
+// A U+41
+// B U+42
+// C U+43
+// あ U+3042
+// い U+3044
+// う U+3046
+// � U+FFFD
+// 🍣 U+1F363
 // 17 bytes, 8 chars, 1 errors
 ```
 
@@ -83,38 +85,99 @@ std::cout << std::dec
 ```cpp
 namespace yu {
 namespace crypt {
-class blowfish_ecb_enc_ostream {
+
+class Blowfish {
  public:
-  blowfish_ecb_enc_ostream(std::ostream& out, const std::string& key);
+  Blowfish(bool decrypt, const std::string& key);
+  void process(char *p, size_t size);
+};
+
+template <class ECB>
+class CBC {
+ public:
+  CBC(bool decrypt, const std::string& key, const std::string& iv);
+  void process(char *p, size_t size);
+};
+
+template <class ECB>
+class CFB {
+ public:
+  CFB(bool decrypt, const std::string& key, const std::string& iv);
+  void process(char *p, size_t size);
+};
+
+template <class ECB>
+class OFB {
+ public:
+  OFB(bool /* decrypt */, const std::string& key, const std::string& iv);
+  void process(char *p, size_t size);
+};
+
+
+template <class Cipher, class Padding = yu::crypt::PKCS7Padding>
+class cipher_enc_ostream : public std::ostream {
+ public:
+  template <class... Args>
+  cipher_enc_ostream(std::ostream& out, Args... args);
   void finish();
 };
 
-class blowfish_ecb_dec_ostream {
+template <class Cipher, class Padding = yu::crypt::PKCS7Padding>
+class cipher_dec_ostream : public std::ostream {
  public:
-  blowfish_ecb_enc_ostream(std::ostream& out, const std::string& key);
+  template <class... Args>
+  cipher_dec_ostream(std::ostream& out, Args... args);
   void finish();
 };
 
-class blowfish_cbc_enc_ostream {
+template <class Cipher, class Padding = yu::crypt::PKCS7Padding>
+class cipher_enc_istream : public std::istream {
  public:
-  blowfish_cbc_enc_ostream(std::ostream& out, const std::string& key, const std::string& iv);
+  template <class... Args>
+  cipher_enc_istream(std::istream& out, Args... args);
   void finish();
 };
 
-class blowfish_cbc_dec_ostream {
+template <class Cipher, class Padding = yu::crypt::PKCS7Padding>
+class cipher_dec_istream : public std::istream {
  public:
-  blowfish_cbc_enc_ostream(std::ostream& out, const std::string& key, const std::string& iv);
+  template <class... Args>
+  cipher_dec_istream(std::istream& out, Args... args);
   void finish();
 };
 
-// same as cfb and ofb
+using Blowfish_ECB = Blowfish;
+using Blowfish_CBC = CBC<Blowfish>;
+using Blowfish_OFB = OFB<Blowfish>;
+using Blowfish_CFB = CFB<Blowfish>;
+
+using blowfish_ecb_enc_ostream = cipher_enc_ostream<Blowfish_ECB, PKCS7Padding>;
+using blowfish_ecb_dec_ostream = cipher_dec_ostream<Blowfish_ECB, PKCS7Padding>;
+using blowfish_cbc_enc_ostream = cipher_enc_ostream<Blowfish_CBC, PKCS7Padding>;
+using blowfish_cbc_dec_ostream = cipher_dec_ostream<Blowfish_CBC, PKCS7Padding>;
+using blowfish_ofb_enc_ostream = cipher_enc_ostream<Blowfish_OFB, NoPadding>;
+using blowfish_ofb_dec_ostream = cipher_dec_ostream<Blowfish_OFB, NoPadding>;
+using blowfish_cfb_enc_ostream = cipher_enc_ostream<Blowfish_CFB, NoPadding>;
+using blowfish_cfb_dec_ostream = cipher_dec_ostream<Blowfish_CFB, NoPadding>;
+
+using blowfish_ecb_enc_istream = cipher_enc_istream<Blowfish_ECB, PKCS7Padding>;
+using blowfish_ecb_dec_istream = cipher_dec_istream<Blowfish_ECB, PKCS7Padding>;
+using blowfish_cbc_enc_istream = cipher_enc_istream<Blowfish_CBC, PKCS7Padding>;
+using blowfish_cbc_dec_istream = cipher_dec_istream<Blowfish_CBC, PKCS7Padding>;
+using blowfish_ofb_enc_istream = cipher_enc_istream<Blowfish_OFB, NoPadding>;
+using blowfish_ofb_dec_istream = cipher_dec_istream<Blowfish_OFB, NoPadding>;
+using blowfish_cfb_enc_istream = cipher_enc_istream<Blowfish_CFB, NoPadding>;
+using blowfish_cfb_dec_istream = cipher_dec_istream<Blowfish_CFB, NoPadding>;
+
+// see sample for usage
+
 }
 }
 ```
 
 example: `sample/crypt_blowfish_sample.cpp`
 ```cpp
-{
+{  // ECB
   std::ostringstream oss;
   yu::crypt::blowfish_ecb_dec_ostream ds(oss, "key");
   yu::crypt::blowfish_ecb_enc_ostream es(ds, "key");
@@ -123,7 +186,7 @@ example: `sample/crypt_blowfish_sample.cpp`
   ds.finish();
   std::cout << oss.str() << std::endl;
 }
-{
+{ // CBC, CFB and OFB
   std::ostringstream oss;
   yu::crypt::blowfish_cbc_dec_ostream ds(oss, "key", "Init Vec");
   yu::crypt::blowfish_cbc_enc_ostream es(ds, "key", "Init Vec");
@@ -132,6 +195,25 @@ example: `sample/crypt_blowfish_sample.cpp`
   ds.finish();
   std::cout << oss.str() << std::endl;
 }
+
+{  // istream and ostream
+  std::ostringstream oss;
+  {
+    yu::crypt::blowfish_cfb_enc_ostream oes(oss, "key", "Init Vec");
+    oes << "Hello blowfish!!";
+    oes.finish();
+  }
+
+  std::istringstream iss(oss.str());
+  {
+    yu::crypt::blowfish_cfb_dec_istream ids(iss, "key", "Init Vec");
+    std::vector<char> buffer(1024);
+    ids.read(buffer.data(), static_cast<std::streamsize>(buffer.size()));
+    std::string message(buffer.data(), static_cast<size_t>(ids.gcount()));
+    std::cout << message << std::endl;
+  }
+}
+// Hello blowfish!!
 // Hello blowfish!!
 // Hello blowfish!!
 ```
@@ -147,13 +229,14 @@ class sha256_stream : public std::ostream {
   std::string hash_hex();
   std::string hash_bin();
   std::string hash_base64();
+  void reset();
 };
 
 std::string sha256_hex(const std::string& str);
 std::string sha256_bin(const std::string& str);
 std::string sha256_base64(const std::string& str);
 
-// same as 224, 512, 384, 512_224 and 512_256
+// 224, 512, 384, 512_224 and 512_256 are same as 256
 }
 }
 ```
@@ -165,14 +248,14 @@ std::cout << yu::digest::sha256_hex(message) << std::endl;
 std::cout << yu::digest::sha224_hex(message) << std::endl;
 std::cout << yu::digest::sha512_hex(message) << std::endl;
 std::cout << yu::digest::sha384_hex(message) << std::endl;
-std::cout << yu::digest::sha512_224_hex(message) << std::endl;
 std::cout << yu::digest::sha512_256_hex(message) << std::endl;
+std::cout << yu::digest::sha512_224_hex(message) << std::endl;
 // f4bb1975bf1f81f76ce824f7536c1e101a8060a632a52289d530a6f600d52c92
 // f871ab68ccdf47a7afb935f9f2f05365a61dee3aa6ebb7ef22be5de1
 // fee4e02329c0e1c9005d0590f4773d8e519e0cda859775ac9c83641e3a960c57e7ad461354e4860722b6e3c161e493e04f5ef07d9169ff7bdab659d6a57cc316
 // ded020e0ea23fd2d983f7d833c44811f9e3fa96e412f84f7427250af07a5630e26366a69c44bac94fd31ec73b1b847d1
-// 53a8f45fd2b7631b90d2c84b5dd223389b90ef503059f4c86fe6857d
 // cc296ed308cbe384e0de66c8580b3373ac2ae88dd53a9bd8542df1431e87f01d
+// 53a8f45fd2b7631b90d2c84b5dd223389b90ef503059f4c86fe6857d
 ```
 
 ### yu/digest/bcrypt.hpp
@@ -211,9 +294,9 @@ T1 lexical_cast(const T2& val);
 
 example: `sample/lexical_cast_sample.cpp`
 ```cpp
-std::cout << yu::lang::lexical_cast<int>("42") << std::endl;
+std::cout << (yu::lang::lexical_cast<int>("42") * 10) << std::endl;
 std::cout << (yu::lang::lexical_cast<std::string>(42) + "0") << std::endl;
-// 42
+// 420
 // 420
 ```
 
@@ -287,16 +370,20 @@ example: `sample/stream_nullstream_sample.cpp`
 ```cpp
 yu::stream::nullstream ns;
 std::vector<char> buffer(1024);
+
+// empty read
 ns.read(buffer.data(), static_cast<std::streamsize>(buffer.size()));
-std::cout << "read = " << ns.gcount() << ", eof = " << ns.eof() << std::endl;
+std::cout << "read = " << ns.gcount() << " bytes, eof = " << ns.eof() << std::endl;
+
+// infinity write
 size_t write_count = 0;
 for (size_t i = 0; i < 1024 * 1024; ++i) {
   ns.write(buffer.data(), static_cast<std::streamsize>(buffer.size()));
   write_count += buffer.size();
 }
-std::cout << "write = " << write_count << std::endl;
-// read = 0, eof = 1
-// write = 1073741824
+std::cout << "write = " << write_count << " bytes" << std::endl;
+// read = 0 bytes, eof = 1
+// write = 1073741824 bytes
 ```
 
 ### yu/stream/teestream.hpp
@@ -325,7 +412,7 @@ example: `sample/stream_teestream_sample.cpp`
   std::ostringstream out2;
   std::ostringstream out3;
   yu::stream::oteestream ots(out1, out2, out3);
-  ots << "Hello " << "T-stream" << " World!";
+  ots << "Hello World!";
   std::cout << "out1 = " << out1.str() << std::endl;
   std::cout << "out2 = " << out2.str() << std::endl;
   std::cout << "out3 = " << out3.str() << std::endl;
@@ -341,9 +428,9 @@ example: `sample/stream_teestream_sample.cpp`
   its >> str;
   std::cout << "str = " << str << std::endl;
 }
-// out1 = Hello T-stream World!
-// out2 = Hello T-stream World!
-// out3 = Hello T-stream World!
+// out1 = Hello World!
+// out2 = Hello World!
+// out3 = Hello World!
 // str = Hello
 // oss = Hello World!
 // str = World!
@@ -366,7 +453,7 @@ class Encoder {
 
 // base64 encode
 std::string encode(const std::string& str, size_t wrap_width = 76);
-// base64 encode use '-' and '_' instead of '+' and '/'
+// base64 encode using '-' and '_' instead of '+' and '/'
 std::string encodeURL(const std::string& str);
 
 class Decoder {
@@ -379,7 +466,7 @@ class Decoder {
 
 // base64 decode
 std::string decode(const std::string& str);
-// base64 decode use '-' and '_' instead of '+' and '/'
+// base64 decode using '-' and '_' instead of '+' and '/'
 std::string decodeURL(const std::string& str);
 }
 }

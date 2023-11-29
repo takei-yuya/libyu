@@ -565,7 +565,7 @@ template <class Cipher, class Padding = yu::crypt::PKCS7Padding>
 class cipher_enc_istream : public std::istream {
  public:
   template <class... Args>
-  cipher_enc_istream(std::istream& out, Args... args) : std::istream(&buf_), buf_(out, false, args...) {}
+  cipher_enc_istream(std::istream& in, Args... args) : std::istream(&buf_), buf_(in, false, args...) {}
   void finish() { buf_.finish(); }
  private:
   cipher_istreambuf<Cipher, Padding> buf_;
@@ -575,7 +575,7 @@ template <class Cipher, class Padding = yu::crypt::PKCS7Padding>
 class cipher_dec_istream : public std::istream {
  public:
   template <class... Args>
-  cipher_dec_istream(std::istream& out, Args... args) : std::istream(&buf_), buf_(out, true, args...) {}
+  cipher_dec_istream(std::istream& in, Args... args) : std::istream(&buf_), buf_(in, true, args...) {}
   void finish() { buf_.finish(); }
  private:
   cipher_istreambuf<Cipher, Padding> buf_;
