@@ -6,6 +6,7 @@
 #include <cstdint>
 #include <iostream>
 #include <sstream>
+#include <stdexcept>
 
 namespace yu {
 namespace utf8 {

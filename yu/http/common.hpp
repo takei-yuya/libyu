@@ -5,6 +5,7 @@
 #include <iostream>
 #include <map>
 #include <sstream>
+#include <stdexcept>
 
 #include "yu/string/utils.hpp"
 

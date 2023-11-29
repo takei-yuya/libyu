@@ -5,6 +5,7 @@
 #include <iostream>
 #include <limits>
 #include <sstream>
+#include <stdexcept>
 
 #include "yu/lang/lexical_cast.hpp"
 
@@ -314,7 +315,7 @@ TEST(JSONParseTest, testMapSimple) {
 }
 
 TEST(JSONParseTest, testMapEmpty) {
-  std::unordered_map<std::string, double> expected = {};
+  std::unordered_map<std::string, double> expected;
   std::unordered_map<std::string, double> actual = yu::json::from_json<std::unordered_map<std::string, double>>(R"( { } )");
   EXPECT(expected, ==, actual);
 }

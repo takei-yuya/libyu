@@ -3,6 +3,7 @@
 #define YU_STREAM_REPEATSTREAM_HPP_
 
 #include <iostream>
+#include <stdexcept>
 #include <vector>
 
 namespace yu {

@@ -4,6 +4,7 @@
 
 #include <iostream>
 #include <memory>
+#include <stdexcept>
 
 #include "yu/http/common.hpp"
 #include "yu/lang/lexical_cast.hpp"
@@ -30,7 +31,7 @@ class ClientStream {
     stream_ << request_method << " " << request_target << " " << request_version << "\r\n";
     request_header_.add("Transfer-Encoding", "chunked");  // TODO: check Content-Length
     request_header_.write(stream_);
-    return std::make_unique<chunked_ostream>(stream_);
+    return std::unique_ptr<chunked_ostream>(new chunked_ostream(stream_));
   }
 
   // Response
@@ -54,17 +55,17 @@ class ClientStream {
 
     if (response_header_.has("Content-Length")) {
       std::streamsize n = yu::lang::lexical_cast<std::streamsize>(response_header_.field("Content-Length"));
-      return std::make_unique<sized_istream>(stream_, n);
+      return std::unique_ptr<sized_istream>(new sized_istream(stream_, n));
 
     } else if (response_header_.has("Transfer-Encoding")) {
       if (response_header_.field("Transfer-Encoding") == "chunked") {
-        return std::make_unique<chunked_istream>(stream_);
+        return std::unique_ptr<chunked_istream>(new chunked_istream(stream_));
       } else {
         throw std::runtime_error("Not impl");  // TODO: not impl
       }
 
     } else {
-      return std::make_unique<yu::stream::nullstream>();
+      return std::unique_ptr<yu::stream::nullstream>(new yu::stream::nullstream());
     }
   }
 

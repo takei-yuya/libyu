@@ -21,6 +21,6 @@ clean:
 depends: dep.Makefile
 
 dep.Makefile: $(SRCS)
-	$(CXX) $(CPPFLAGS) -MM $^ > $@
+	$(CXX) $(CXXFLAGS) $(CPPFLAGS) -MM $^ > $@
 
 -include dep.Makefile
