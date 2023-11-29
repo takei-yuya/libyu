@@ -1,4 +1,4 @@
-name: gcc-6 -std=23
+name: gcc-5 -std=17
 on:
   push:
     branches: [ main ]
@@ -8,8 +8,8 @@ jobs:
   build:
     runs-on: ubuntu-latest
     container:
-      image: gcc:6
+      image: gcc:5
     steps:
     - uses: actions/checkout@v3
     - name: make check
-      run: make check CXXFLAGS=-std=c++23
+      run: make check CXXFLAGS=-std=c++17
