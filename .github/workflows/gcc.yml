@@ -9,24 +9,25 @@ jobs:
     strategy:
       matrix:
         gcc_version: [4, 5, 6, 7, 8, 9, 10, 11, 12, 13]
-        std_options: ["", "-std=c++11", "-std=c++14", "-std=c++17", "-std=c++20", "-std=c++23"]
+        std_option: ["", "-std=c++11", "-std=c++14", "-std=c++17", "-std=c++20", "-std=c++23"]
         exclude:
-          - { "gcc_version": 4, std_options: "" }
-          - { "gcc_version": 4, std_options: "-std++17" }
-          - { "gcc_version": 4, std_options: "-std++20" }
-          - { "gcc_version": 4, std_options: "-std++23" }
-          - { "gcc_version": 5, std_options: "" }
-          - { "gcc_version": 5, std_options: "-std++20" }
-          - { "gcc_version": 5, std_options: "-std++23" }
-          - { "gcc_version": 6, std_options: "-std++20" }
-          - { "gcc_version": 6, std_options: "-std++23" }
-          - { "gcc_version": 7, std_options: "-std++20" }
-          - { "gcc_version": 7, std_options: "-std++23" }
-          - { "gcc_version": 8, std_options: "-std++20" }
-          - { "gcc_version": 8, std_options: "-std++23" }
-          - { "gcc_version": 9, std_options: "-std++20" }
-          - { "gcc_version": 9, std_options: "-std++23" }
-          - { "gcc_version": 10, std_options: "-std++23" }
+          - { "gcc_version": 4, "std_option": "" }
+          - { "gcc_version": 4, "std_option": "-std++14" }
+          - { "gcc_version": 4, "std_option": "-std++17" }
+          - { "gcc_version": 4, "std_option": "-std++20" }
+          - { "gcc_version": 4, "std_option": "-std++23" }
+          - { "gcc_version": 5, "std_option": "" }
+          - { "gcc_version": 5, "std_option": "-std++20" }
+          - { "gcc_version": 5, "std_option": "-std++23" }
+          - { "gcc_version": 6, "std_option": "-std++20" }
+          - { "gcc_version": 6, "std_option": "-std++23" }
+          - { "gcc_version": 7, "std_option": "-std++20" }
+          - { "gcc_version": 7, "std_option": "-std++23" }
+          - { "gcc_version": 8, "std_option": "-std++20" }
+          - { "gcc_version": 8, "std_option": "-std++23" }
+          - { "gcc_version": 9, "std_option": "-std++20" }
+          - { "gcc_version": 9, "std_option": "-std++23" }
+          - { "gcc_version": 10, "std_option": "-std++23" }
       max-parallel: 5
       fail-fast: false
     runs-on: ubuntu-latest
@@ -35,4 +36,4 @@ jobs:
     steps:
     - uses: actions/checkout@v3
     - name: make check
-      run: CXXFLAGS="${{ matrix.std_options }}" make -e check
+      run: CXXFLAGS="${{ matrix.std_option }}" make -e check
