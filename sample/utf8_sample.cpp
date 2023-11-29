@@ -8,7 +8,7 @@ int main() {
   std::string str = yu::utf8::encode(code_point);
   std::cout << str << std::endl;
 
-  std::istringstream iss(u8"ABCあいう\xff" + str );
+  std::istringstream iss("ABCあいう\xff" + str);
   yu::utf8::Decoder decoder(iss);
   while (decoder.has_next()) {
     std::cout << "U+" << std::hex << std::uppercase << decoder.next() << std::endl;
