@@ -9,6 +9,6 @@ int main() {
   std::cout << yu::digest::sha224_hex(message) << std::endl;
   std::cout << yu::digest::sha512_hex(message) << std::endl;
   std::cout << yu::digest::sha384_hex(message) << std::endl;
-  std::cout << yu::digest::sha512_224_hex(message) << std::endl;
   std::cout << yu::digest::sha512_256_hex(message) << std::endl;
+  std::cout << yu::digest::sha512_224_hex(message) << std::endl;
 }
