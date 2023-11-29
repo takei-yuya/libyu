@@ -208,8 +208,8 @@ example: `sample/crypt_blowfish_sample.cpp`
   {
     yu::crypt::blowfish_cfb_dec_istream ids(iss, "key", "Init Vec");
     std::vector<char> buffer(1024);
-    ids.read(buffer.data(), buffer.size());
-    std::string message(buffer.data(), ids.gcount());
+    ids.read(buffer.data(), static_cast<std::streamsize>(buffer.size()));
+    std::string message(buffer.data(), static_cast<size_t>(ids.gcount()));
     std::cout << message << std::endl;
   }
 }
