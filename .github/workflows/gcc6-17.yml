@@ -1,4 +1,4 @@
-name: gcc-6 -std=17
+name: gcc-6 -std=c++17
 on:
   push:
     branches: [ main ]

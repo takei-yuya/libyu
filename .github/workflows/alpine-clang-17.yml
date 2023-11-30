@@ -1,4 +1,4 @@
-name: alpine3-clang -std=17
+name: alpine3-clang -std=c++17
 on:
   push:
     branches: [ main ]

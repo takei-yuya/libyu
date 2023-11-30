@@ -1,4 +1,4 @@
-name: gcc-4 -std=11
+name: gcc-4 -std=c++11
 on:
   push:
     branches: [ main ]

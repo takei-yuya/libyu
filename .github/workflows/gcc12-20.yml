@@ -1,4 +1,4 @@
-name: gcc-12 -std=20
+name: gcc-12 -std=c++20
 on:
   push:
     branches: [ main ]

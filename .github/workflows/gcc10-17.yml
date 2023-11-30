@@ -1,4 +1,4 @@
-name: gcc-10 -std=17
+name: gcc-10 -std=c++17
 on:
   push:
     branches: [ main ]

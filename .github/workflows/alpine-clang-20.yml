@@ -1,4 +1,4 @@
-name: alpine3-clang -std=20
+name: alpine3-clang -std=c++20
 on:
   push:
     branches: [ main ]
