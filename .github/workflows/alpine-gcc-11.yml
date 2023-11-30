@@ -1,4 +1,4 @@
-name: alpine3-gcc -std=11
+name: alpine3-gcc -std=c++11
 on:
   push:
     branches: [ main ]
