@@ -1,4 +1,4 @@
-| env \ std | default | -std=c++11 | -std=c++14 | -std=c++17 | -std=c++20 | -std=c++23 |
+|  | default | -std=c++11 | -std=c++14 | -std=c++17 | -std=c++20 | -std=c++23 |
 | --- | --- | --- | --- | --- | --- | --- |
 | gcc-4 | - | [![gcc4-11](https://github.com/takei-yuya/libyu/actions/workflows/gcc4-11.yml/badge.svg)](https://github.com/takei-yuya/libyu/actions/workflows/gcc4-11.yml) | [![gcc4-14](https://github.com/takei-yuya/libyu/actions/workflows/gcc4-14.yml/badge.svg)](https://github.com/takei-yuya/libyu/actions/workflows/gcc4-14.yml) | - | - | - |
 | gcc-5 | - | [![gcc5-11](https://github.com/takei-yuya/libyu/actions/workflows/gcc5-11.yml/badge.svg)](https://github.com/takei-yuya/libyu/actions/workflows/gcc5-11.yml) | [![gcc5-14](https://github.com/takei-yuya/libyu/actions/workflows/gcc5-14.yml/badge.svg)](https://github.com/takei-yuya/libyu/actions/workflows/gcc5-14.yml) | [![gcc5-17](https://github.com/takei-yuya/libyu/actions/workflows/gcc5-17.yml/badge.svg)](https://github.com/takei-yuya/libyu/actions/workflows/gcc5-17.yml) | - | - |
