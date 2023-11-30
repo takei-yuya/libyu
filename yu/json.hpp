@@ -94,6 +94,15 @@ class Stringifier {
     endArray();
   }
 
+  void stringify(const std::vector<bool>& vec) {
+    beginArray();
+    for (bool it : vec) {
+      valueDelim();
+      stringify(it);
+    }
+    endArray();
+  }
+
   template <typename T>
   void stringify(const std::map<std::string, T>& map) {
     beginObject();
