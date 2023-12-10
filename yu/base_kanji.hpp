@@ -141,7 +141,7 @@ class Encoder {
   explicit Encoder(size_t wrap_width = 40, const std::string& newline = "\n")
     : wrap_width_(wrap_width), newline_(newline), buf_(0), filled_bits_(0), code_points_(), count_(0)
   {
-    static_assert(kBits <= 13);
+    static_assert(kBits <= 13, "kBits must be less than or equal to 13");
     initialize_table();
   }
 
@@ -213,7 +213,7 @@ class Decoder {
   explicit Decoder(const std::string& allowed_white_space = " \r\n")
     : kanji_table_(), buf_(0), filled_bits_(0), finished_(false)
   {
-    static_assert(kBits <= 13);
+    static_assert(kBits <= 13, "kBits must be less than or equal to 13");
     initialize_table(allowed_white_space);
   }
 
