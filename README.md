@@ -661,6 +661,60 @@ std::cout << yu::base64::decode("SGVsbG8gV29ybGQu") << std::endl;
 // Hello World.
 ```
 
+### yu/base_kanji.hpp
+
+```cpp
+namespace yu {
+namespace base_kanji {
+
+static const char kKanjis[];
+static const size_t kNumKanjiLevel1;
+static const size_t kNumKanjiLevel2;
+static const size_t kNumKanjiLevel3;
+static const size_t kNumKanjiLevel4;
+
+// kBits = 11, 12, 13
+template <int kBits>
+class Encoder {
+ public:
+  explicit Encoder(size_t wrap_width = 40, const std::string& newline = "\n");
+  void encode(std::istream& in, std::ostream& out);
+};
+
+template <int kBits>
+class Decoder {
+ public:
+  explicit Decoder(const std::string& allowed_white_space = " \r\n");
+  void decode(std::istream& in, std::ostream& out);
+};
+
+template <int kBits>
+inline std::string encode(const std::string& str, size_t wrap_width = 40);
+
+template <int kBits>
+inline std::string decode(const std::string& str);
+
+}
+}
+```
+
+example: `sample/base_kanji_sample.cpp`
+```cpp
+std::cout << yu::base_kanji::encode<11>("Hello World.") << std::endl;;
+std::cout << yu::base_kanji::encode<12>("Hello World.") << std::endl;;
+std::cout << yu::base_kanji::encode<13>("Hello World.") << std::endl;;
+
+std::cout << yu::base_kanji::decode<11>(yu::base_kanji::encode<11>("Hello World.")) << std::endl;;
+std::cout << yu::base_kanji::decode<12>(yu::base_kanji::encode<12>("Hello World.")) << std::endl;;
+std::cout << yu::base_kanji::decode<13>(yu::base_kanji::encode<13>("Hello World.")) << std::endl;;
+// 彊鰍化託位須前寺蒲
+// 漆冗陀掵杖斷陀仕
+// 否誡踵疵戉褹糊揔
+// Hello World.
+// Hello World.
+// Hello World.
+```
+
 ### yu/json.hpp
 
 ```cpp
