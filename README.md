@@ -221,6 +221,78 @@ example: `sample/crypt_blowfish_sample.cpp`
 // Hello blowfish!!
 ```
 
+### yu/data/heap.hpp
+
+```cpp
+namespace yu {
+namespace data {
+
+template <typename T, typename Compare = std::less<T>, typename Allocator = std::allocator<T>>
+class Heap {
+ public:
+  Heap();
+  explicit Heap(const std::vector<T>& values);
+  explicit Heap(std::vector<T>&& values);
+
+  Heap(const Heap&) = delete;
+  Heap& operator=(const Heap&) = delete;
+
+  Heap(Heap&&) = default;
+  Heap& operator=(Heap&&) = default;
+
+  void push(const T& value);
+  void push(T&& value);
+
+  template <class... Args>
+  void emplace(Args&&... args);
+
+  const T& top() const;
+
+  T pop();
+
+  void drain(std::vector<T>& values);
+
+  void clear();
+  size_t size() noexcept const;
+  bool empty() noexcept const;
+  size_t capacity() noexcept const;
+  void reserve(size_t size);
+};
+
+}  // namespace data
+}  // namespace yu
+
+```
+
+example: `sample/data_heap_sample.cpp`
+```cpp
+std::vector<int> vec{5, 2, 6, 1, 3, 4};
+{
+  yu::data::Heap<int> heap;
+  for (auto i : vec) {
+    heap.push(i);
+  }
+  std::cout << "asc: ";
+  while (!heap.empty()) {
+    std::cout << " " << heap.pop();
+  }
+  std::cout << std::endl;
+}
+{
+  yu::data::Heap<int, std::greater<int>> heap;
+  for (auto i : vec) {
+    heap.push(i);
+  }
+  std::cout << "desc:";
+  while (!heap.empty()) {
+    std::cout << " " << heap.pop();
+  }
+  std::cout << std::endl;
+}
+// asc:  1 2 3 4 5 6
+// desc: 6 5 4 3 2 1
+```
+
 ### yu/digest/sha2.hpp
 
 ```cpp
