@@ -2,8 +2,9 @@
 #ifndef YU_DATA_HEAP_HPP_
 #define YU_DATA_HEAP_HPP_
 
-#include <vector>
+#include <cstddef>
 #include <functional>
+#include <vector>
 
 namespace yu {
 namespace data {
