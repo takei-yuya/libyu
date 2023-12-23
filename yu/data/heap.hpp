@@ -43,10 +43,9 @@ class Heap {
   }
 
   template <class... Args>
-  T& emplace(Args&&... args) {
-    T& ret = heap_.emplace_back(std::forward<Args>(args)...);
+  void emplace(Args&&... args) {
+    heap_.emplace_back(std::forward<Args>(args)...);
     heap_up(heap_.size() - 1);
-    return ret;
   }
 
   const T& top() const { return heap_.front(); }

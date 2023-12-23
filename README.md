@@ -244,7 +244,7 @@ class Heap {
   void push(T&& value);
 
   template <class... Args>
-  T& emplace(Args&&... args);
+  void emplace(Args&&... args);
 
   const T& top() const;
 
