@@ -513,6 +513,112 @@ example: `sample/stream_teestream_sample.cpp`
 
 see also: `app/sha2.cpp`
 
+### yu/string/utils.hpp
+
+```cpp
+namespace yu {
+namespace string {
+
+
+inline std::string lstrip(const std::string& str, const std::string& spaces = "\r\n\t ");
+inline std::string rstrip(const std::string& str, const std::string& spaces = "\r\n\t ");
+inline std::string strip(const std::string& str, const std::string& spaces = "\r\n\t ");
+
+inline std::vector<std::string> split(const std::string& str, char delim = ',', bool strip_token = false, size_t max_tokens = 0);
+
+inline std::string join(const std::vector<std::string>& strs, const std::string& delim = ",");
+template <typename T>
+inline std::string join(const std::vector<T>& strs, const std::string& delim = ",");
+
+inline bool starts_with(const std::string& str, const std::string& prefix);
+inline bool ends_with(const std::string& str, const std::string& suffix);
+
+inline std::string remove_prefix(const std::string& str, const std::string& prefix);
+inline std::string remove_suffix(const std::string& str, const std::string& suffix);
+
+inline int icompare(const std::string& lhs, const std::string& rhs);
+
+inline bool iless(const std::string& lhs, const std::string& rhs);
+class iLess {
+ public:
+  bool operator()(const std::string& lhs, const std::string& rhs) const { return iless(lhs, rhs); }
+  using first_argument_type  = std::string;
+  using second_argument_type = std::string;
+  using result_type          = bool;
+};
+
+inline bool igreater(const std::string& lhs, const std::string& rhs);
+class iGreater {
+ public:
+  bool operator()(const std::string& lhs, const std::string& rhs) const { return igreater(lhs, rhs); }
+  using first_argument_type  = std::string;
+  using second_argument_type = std::string;
+  using result_type          = bool;
+};
+
+}  // namespace string
+}  // namespace yu
+```
+
+example: `sample/string_utils_sample.cpp`
+```cpp
+std::cout << "lstrip: [" << yu::string::lstrip("  hello world  ") << "]" << std::endl;
+std::cout << "rstrip: [" << yu::string::rstrip("  hello world  ") << "]" << std::endl;
+std::cout << " strip: [" << yu::string::strip("  hello world  ") << "]" << std::endl;
+std::vector<std::string> strs = yu::string::split("hello world", ' ');
+for (const auto& str : strs) {
+  std::cout << "split: [" << str << "]" << std::endl;
+}
+std::cout << "join: [" << yu::string::join(strs, ",") << "]" << std::endl;
+
+std::cout << "foobar is " << (yu::string::starts_with("foobar", "foo") ? "" : "not ") << "starts with foo" << std::endl;
+std::cout << "foobar is " << (yu::string::starts_with("foobar", "bar") ? "" : "not ") << "starts with bar" << std::endl;
+std::cout << "foobar is " << (yu::string::ends_with("foobar", "foo") ? "" : "not ") << "ends with foo" << std::endl;
+std::cout << "foobar is " << (yu::string::ends_with("foobar", "bar") ? "" : "not ") << "ends with bar" << std::endl;
+
+std::cout << "remove prefix foo from foobar: " << yu::string::remove_prefix("foobar", "foo") << std::endl;
+std::cout << "remove prefix bar from foobar: " << yu::string::remove_prefix("foobar", "bar") << std::endl;
+std::cout << "remove suffix foo from foobar: " << yu::string::remove_suffix("foobar", "foo") << std::endl;
+std::cout << "remove suffix bar from foobar: " << yu::string::remove_suffix("foobar", "bar") << std::endl;
+
+std::vector<std::string> vs = { "a", "B", "c", "D" };
+
+std::sort(vs.begin(), vs.end());
+
+std::cout << "asc (case   sensitive):";
+for (const auto& v : vs) { std::cout << " " << v; } std::cout << std::endl;
+
+std::sort(vs.begin(), vs.end(), yu::string::iLess());
+std::cout << "asc (case insensitive):";
+for (const auto& v : vs) { std::cout << " " << v; } std::cout << std::endl;
+
+std::sort(vs.begin(), vs.end(), std::greater<std::string>());
+std::cout << "desc(case   sensitive):";
+for (const auto& v : vs) { std::cout << " " << v; } std::cout << std::endl;
+
+std::sort(vs.begin(), vs.end(), yu::string::iGreater());
+std::cout << "desc(case insensitive):";
+for (const auto& v : vs) { std::cout << " " << v; } std::cout << std::endl;
+// lstrip: [hello world  ]
+// rstrip: [  hello world]
+//  strip: [hello world]
+// split: [hello]
+// split: [world]
+// join: [hello,world]
+// foobar is starts with foo
+// foobar is not starts with bar
+// foobar is not ends with foo
+// foobar is ends with bar
+// remove prefix foo from foobar: bar
+// remove prefix bar from foobar: foobar
+// remove suffix foo from foobar: foobar
+// remove suffix bar from foobar: foo
+// asc (case   sensitive): B D a c
+// asc (case insensitive): a B c D
+// desc(case   sensitive): c a D B
+// desc(case insensitive): D c B a
+```
+
 ### yu/base64.hpp
 
 ```cpp
