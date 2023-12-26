@@ -2,6 +2,7 @@
 
 #include "yu/test.hpp"
 
+#include <algorithm>
 #include <iostream>
 #include <sstream>
 
@@ -54,6 +55,21 @@ TEST(StringTest, testSplitStripMax) {
   EXPECT(expected, ==, actual);
 }
 
+TEST(StringTest, testJoinString) {
+  std::vector<std::string> v = { "foo", "bar", "baz" };
+  EXPECT("foo,bar,baz", ==, yu::string::join(v));
+}
+
+TEST(StringTest, testJoinPrintable) {
+  std::vector<int> v = { 1, 2, 3 };
+  EXPECT("1,2,3", ==, yu::string::join(v, ","));
+}
+
+TEST(StringTest, testJoinMultiCharDelim) {
+  std::vector<std::string> v = { "foo", "bar", "baz" };
+  EXPECT("foo, bar, baz", ==, yu::string::join(v, ", "));
+}
+
 TEST(StringTest, testStartsWith) {
   EXPECT(true, ==, yu::string::starts_with("foobar", "foo"));
   EXPECT(true, ==, yu::string::starts_with("foobar", "foobar"));
@@ -66,6 +82,18 @@ TEST(StringTest, testEndsWith) {
   EXPECT(true, ==, yu::string::ends_with("foobar", "foobar"));
   EXPECT(false, ==, yu::string::ends_with("foobar", "Bar"));
   EXPECT(false, ==, yu::string::ends_with("foobar", "__foobar"));
+}
+
+TEST(StringTest, testRemovePrefix) {
+  EXPECT("bar", ==, yu::string::remove_prefix("foobar", "foo"));
+  EXPECT("foobar", ==, yu::string::remove_prefix("foobar", "bar"));
+  EXPECT("foobar", ==, yu::string::remove_prefix("foobar", "foobarbaz"));
+}
+
+TEST(StringTest, testRemoveSuffix) {
+  EXPECT("foo", ==, yu::string::remove_suffix("foobar", "bar"));
+  EXPECT("foobar", ==, yu::string::remove_suffix("foobar", "foo"));
+  EXPECT("foobar", ==, yu::string::remove_suffix("foobar", "foobarbaz"));
 }
 
 TEST(StringTest, testICompareSimple) {
@@ -97,4 +125,20 @@ TEST(StringTest, testILessNullChar) {
   EXPECT(false, ==, yu::string::iless(s1, s2));
   EXPECT(false, ==, yu::string::iless(s1, s3));
   EXPECT(true, ==, yu::string::iless(s3, s1));
+}
+
+TEST(StringTest, testILessWithComparator) {
+  std::vector<std::string> v = { "a", "D", "B", "c" };
+  std::sort(v.begin(), v.end());
+  EXPECT(std::vector<std::string>({ "B", "D", "a", "c" }), ==, v);
+  std::sort(v.begin(), v.end(), yu::string::iLess());
+  EXPECT(std::vector<std::string>({ "a", "B", "c", "D" }), ==, v);
+}
+
+TEST(StringTest, testIGreaterWithComparator) {
+  std::vector<std::string> v = { "a", "D", "B", "c" };
+  std::sort(v.begin(), v.end(), std::greater<std::string>());
+  EXPECT(std::vector<std::string>({ "c", "a", "D", "B" }), ==, v);
+  std::sort(v.begin(), v.end(), yu::string::iGreater());
+  EXPECT(std::vector<std::string>({ "D", "c", "B", "a" }), ==, v);
 }

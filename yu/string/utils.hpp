@@ -4,6 +4,7 @@
 
 #include <string>
 #include <vector>
+#include <sstream>
 
 namespace yu {
 namespace string {
@@ -48,12 +49,41 @@ inline std::vector<std::string> split(const std::string& str, char delim = ',', 
   return result;
 }
 
+inline std::string join(const std::vector<std::string>& strs, const std::string& delim = ",") {
+  std::string result;
+  for (size_t i = 0; i < strs.size(); ++i) {
+    if (i != 0) result += delim;
+    result += strs[i];
+  }
+  return result;
+}
+
+template <typename T>
+inline std::string join(const std::vector<T>& strs, const std::string& delim = ",") {
+  std::ostringstream oss;
+  for (size_t i = 0; i < strs.size(); ++i) {
+    if (i != 0) oss << delim;
+    oss << strs[i];
+  }
+  return oss.str();
+}
+
 inline bool starts_with(const std::string& str, const std::string& prefix) {
   return str.size() >= prefix.size() && str.substr(0, prefix.size()) == prefix;
 }
 
 inline bool ends_with(const std::string& str, const std::string& suffix) {
   return str.size() >= suffix.size() && str.substr(str.size() - suffix.size()) == suffix;
+}
+
+inline std::string remove_prefix(const std::string& str, const std::string& prefix) {
+  if (starts_with(str, prefix)) return str.substr(prefix.size());
+  return str;
+}
+
+inline std::string remove_suffix(const std::string& str, const std::string& suffix) {
+  if (ends_with(str, suffix)) return str.substr(0, str.size() - suffix.size());
+  return str;
 }
 
 inline int icompare(const std::string& lhs, const std::string& rhs) {
@@ -74,6 +104,18 @@ inline bool iless(const std::string& lhs, const std::string& rhs) {
 class iLess {
  public:
   bool operator()(const std::string& lhs, const std::string& rhs) const { return iless(lhs, rhs); }
+  using first_argument_type  = std::string;
+  using second_argument_type = std::string;
+  using result_type          = bool;
+};
+
+inline bool igreater(const std::string& lhs, const std::string& rhs) {
+  return icompare(lhs, rhs) > 0;
+}
+
+class iGreater {
+ public:
+  bool operator()(const std::string& lhs, const std::string& rhs) const { return igreater(lhs, rhs); }
   using first_argument_type  = std::string;
   using second_argument_type = std::string;
   using result_type          = bool;
