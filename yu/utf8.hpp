@@ -15,7 +15,7 @@ inline std::string encode(uint32_t cp) {
   std::string result;
   if (0xD800 <= cp && cp <= 0xDFFF) {
     std::ostringstream oss;
-    oss << "UTF-8 not allow to encode surruogate code point: code_point = U+" << std::hex << std::uppercase << cp;
+    oss << "UTF-8 not allow to encode surrogate code point: code_point = U+" << std::hex << std::uppercase << cp;
     throw std::runtime_error(oss.str());
   }
   if (cp <= 0x7f) {
