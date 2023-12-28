@@ -29,7 +29,8 @@ class InvalidJson : public std::runtime_error {
 
 class Stringifier {
  public:
-  explicit Stringifier(std::ostream& out, bool pretty = false) : is_first_(), out_(out), pretty_(pretty) {}
+  explicit Stringifier(std::ostream& out, bool pretty = false, bool ascii_only = false)
+    : is_first_(), out_(out), pretty_(pretty), ascii_only_(ascii_only) {}
 
   template <typename T>
   void stringify(const T& value) {
@@ -63,19 +64,20 @@ class Stringifier {
 
   void stringify(const std::string& str) {
     out_ << '"';
-    for (const char ch : str) {
-      if (ch == '\\' || ch == '"') { out_ << '\\' << ch; }
-      else if (ch == '\b') { out_ << "\\b"; }
-      else if (ch == '\f') { out_ << "\\f"; }
-      else if (ch == '\n') { out_ << "\\n"; }
-      else if (ch == '\r') { out_ << "\\r"; }
-      else if (ch == '\t') { out_ << "\\t"; }
-      else if (0x00 <= ch && ch <= 0x1f) {
+    std::istringstream iss(str);
+    yu::utf8::Decoder decoder(iss);
+    while (decoder.has_next()) {
+      uint32_t cp = decoder.next();
+      std::string named_escape_char = namedEscapeChar(cp);
+      if (named_escape_char != "") {
+        out_ << named_escape_char;
+      } else if (isControlChar(cp) || (ascii_only_ && cp > 0x7F)) {
         std::ostringstream oss;  // do not set iomanip to out_, keep out_ default format
-        oss << "\\u" << std::hex << std::setfill('0') << std::setw(4) << static_cast<int>(ch);
+        oss << "\\u" << std::hex << std::setfill('0') << std::setw(4) << cp;
         out_ << oss.str();
+      } else {
+        out_ << yu::utf8::encode(cp);
       }
-      else { out_ << ch; }
     }
     out_ << '"';
   }
@@ -177,6 +179,27 @@ class Stringifier {
   };
 
  private:
+  std::string namedEscapeChar(uint32_t cp) {
+    if (cp == 0x22) return "\\\"";
+    if (cp == 0x5c) return "\\\\";
+    if (cp == 0x2f) return "\\/";
+    if (cp == 0x08) return "\\b";
+    if (cp == 0x0c) return "\\f";
+    if (cp == 0x0a) return "\\n";
+    if (cp == 0x0d) return "\\r";
+    if (cp == 0x09) return "\\t";
+    return "";
+  }
+
+  bool isControlChar(uint32_t cp) {
+    return (cp <= 0x1F)             // C0 control characters
+      || cp == 0x7F                 // DEL
+      || (0x80 <= cp && cp <= 0x9F) // C1 control characters
+      || cp == 0x2028               // LINE SEPARATOR (JSONエスケープは不要だが、安全のため常にエスケープする)
+      || cp == 0x2029               // PARAGRAPH SEPARATOR (JSONエスケープは不要だが、安全のため常にエスケープする)
+      || cp == 0xFEFF;              // BOM (JSONエスケープは不要だが、安全のため常にエスケープする)
+  }
+
   void beginObject() {
     out_ << "{";
     is_first_.push_back(true);
@@ -222,6 +245,7 @@ class Stringifier {
   std::vector<bool> is_first_;
   std::ostream& out_;
   bool pretty_;
+  bool ascii_only_;
 };
 
 class Parser {
@@ -595,8 +619,8 @@ class Parser {
 //
 
 template <typename T>
-inline void stringify(std::ostream& out, const T& val) {
-  Stringifier stringifier(out);
+inline void stringify(std::ostream& out, const T& val, bool pretty = false, bool ascii_only = false) {
+  Stringifier stringifier(out, pretty, ascii_only);
   stringifier.stringify(val);
 }
 
@@ -611,9 +635,9 @@ inline void parse(std::istream& in, T& val) {
 //
 
 template <typename T>
-inline std::string to_json(const T& v) {
+inline std::string to_json(const T& v, bool pretty = false, bool ascii_only = false) {
   std::ostringstream oss;
-  stringify(oss, v);
+  stringify(oss, v, pretty, ascii_only);
   return oss.str();
 }
 
