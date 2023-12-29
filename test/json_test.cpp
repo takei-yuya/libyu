@@ -41,6 +41,26 @@ TEST(JSONStringifyTest, testStringEscape) {
   EXPECT(R"("r\r n\n t\t b\b f\f u\u0001\u001f")", ==, actual);
 }
 
+TEST(JSONStringifyTest, testStringMutiByte) {
+  std::string str = "aЯあ";
+  std::string actual = yu::json::to_json(str);
+  EXPECT(R"("aЯあ")", ==, actual);
+}
+
+TEST(JSONStringifyTest, testStringMultiByteAsciiOnly) {
+  std::string str = "aЯあ";
+  std::string actual = yu::json::to_json(str, false, true);
+  EXPECT(R"("a\u042f\u3042")", ==, actual);
+}
+
+TEST(JSONStringifyTest, testUnicodeNewLine) {
+  std::string str = "LS: \u2028 PS: \u2029";
+  std::string actual = yu::json::to_json(str);
+  EXPECT(R"("LS: \u2028 PS: \u2029")", ==, actual);
+  std::string actual_ascii = yu::json::to_json(str, false, true);
+  EXPECT(R"("LS: \u2028 PS: \u2029")", ==, actual_ascii);
+}
+
 TEST(JSONStringifyTest, testVectorSimple) {
   std::vector<int> vec = { 1, 2, 3 };
   std::string actual = yu::json::to_json(vec);
