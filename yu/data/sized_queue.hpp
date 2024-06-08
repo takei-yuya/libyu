@@ -77,17 +77,17 @@ class SizedQueue {
     return true;
   }
 
-  bool Empty() const {
+  bool Empty() const noexcept {
     std::lock_guard<std::mutex> lock(mutex_);
     return buffer_.empty();
   }
 
-  bool Full() const {
+  bool Full() const noexcept {
     std::lock_guard<std::mutex> lock(mutex_);
     return buffer_.size() >= capacity_;
   }
 
-  size_t Size() const {
+  size_t Size() const noexcept {
     std::lock_guard<std::mutex> lock(mutex_);
     return buffer_.size();
   }
