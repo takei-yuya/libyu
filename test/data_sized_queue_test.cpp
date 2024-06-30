@@ -83,8 +83,8 @@ class NonCopyable {
   NonCopyable& operator=(const NonCopyable&) = delete;
 
   // movable
-  NonCopyable(NonCopyable&&) = default;
-  NonCopyable& operator=(NonCopyable&&) = default;
+  NonCopyable(NonCopyable&&) noexcept = default;
+  NonCopyable& operator=(NonCopyable&&) noexcept = default;
 
   int value() const { return value_; }
 

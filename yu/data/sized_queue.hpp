@@ -20,41 +20,23 @@ class SizedQueue {
   SizedQueue& operator=(const SizedQueue&) = delete;
 
   // movable
-  SizedQueue(SizedQueue&&) = default;
-  SizedQueue& operator=(SizedQueue&&) = default;
+  SizedQueue(SizedQueue&&) noexcept = default;
+  SizedQueue& operator=(SizedQueue&&) noexcept = default;
 
   void Push(const T& data) {
-    std::unique_lock<std::mutex> lock(mutex_);
-    full_cond_.wait(lock, [this]() { return buffer_.size() < capacity_; });
-    buffer_.push_back(data);
-    empty_cond_.notify_all();
+    PushImpl(data);
   }
 
   void Push(T&& data) {
-    std::unique_lock<std::mutex> lock(mutex_);
-    full_cond_.wait(lock, [this]() { return buffer_.size() < capacity_; });
-    buffer_.push_back(std::move(data));
-    empty_cond_.notify_all();
+    PushImpl(std::move(data));
   }
 
   bool TryPush(const T& data) {
-    std::lock_guard<std::mutex> lock(mutex_);
-    if (buffer_.size() >= capacity_) {
-      return false;
-    }
-    buffer_.push_back(data);
-    empty_cond_.notify_all();
-    return true;
+    return TryPushImpl(data);
   }
 
   bool TryPush(T&& data) {
-    std::lock_guard<std::mutex> lock(mutex_);
-    if (buffer_.size() >= capacity_) {
-      return false;
-    }
-    buffer_.push_back(std::move(data));
-    empty_cond_.notify_all();
-    return true;
+    return TryPushImpl(std::move(data));
   }
 
   T Pop() {
@@ -93,6 +75,25 @@ class SizedQueue {
   }
 
  private:
+  template <typename U>
+  void PushImpl(U&& data) {
+    std::unique_lock<std::mutex> lock(mutex_);
+    full_cond_.wait(lock, [this]() { return buffer_.size() < capacity_; });
+    buffer_.push_back(std::forward<U>(data));
+    empty_cond_.notify_all();
+  }
+
+  template <typename U>
+  bool TryPushImpl(U&& data) {
+    std::lock_guard<std::mutex> lock(mutex_);
+    if (buffer_.size() >= capacity_) {
+      return false;
+    }
+    buffer_.push_back(std::forward<U>(data));
+    empty_cond_.notify_all();
+    return true;
+  }
+
   mutable std::mutex mutex_;
   std::condition_variable full_cond_;
   std::condition_variable empty_cond_;

@@ -238,8 +238,8 @@ class SizedQueue {
   SizedQueue& operator=(const SizedQueue&) = delete;
 
   // movable
-  SizedQueue(SizedQueue&&) = default;
-  SizedQueue& operator=(SizedQueue&&) = default;
+  SizedQueue(SizedQueue&&) noexcept = default;
+  SizedQueue& operator=(SizedQueue&&) noexcept = default;
 
   void Push(const T& data);
   void Push(T&& data);
