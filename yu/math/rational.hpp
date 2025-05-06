@@ -84,11 +84,11 @@ class RationalBase {
   explicit operator float() const noexcept { return static_cast<float>(static_cast<long double>(*this)); }
 
   // Comparison operators
-  constexpr bool operator==(const RationalBase& other) const noexcept {
+  bool operator==(const RationalBase& other) const noexcept {
     if (is_nan() || other.is_nan()) return false;
     return positive_ == other.positive_ && numerator_ == other.numerator_ && denominator_ == other.denominator_;
   }
-  constexpr bool operator!=(const RationalBase& other) const noexcept {
+  bool operator!=(const RationalBase& other) const noexcept {
     if (is_nan() || other.is_nan()) return false;
     return !(*this == other);
   }
