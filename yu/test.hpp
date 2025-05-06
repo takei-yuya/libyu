@@ -6,6 +6,8 @@
 #include <sstream>
 #include <string>
 #include <vector>
+#include <utility>
+#include <type_traits>
 
 #include "yu/json.hpp"
 
@@ -90,13 +92,35 @@ class TestRunner {
   std::vector<std::pair<std::string, Test*>> tests_;
 };
 
+struct is_ostream_printable_impl {
+  template <typename T>
+  static auto check(T*) -> decltype(std::cout << std::declval<T>(), std::true_type());
+
+  template <typename T>
+  static auto check(...) -> std::false_type;
+};
+template <typename T>
+struct is_ostream_printable : decltype(is_ostream_printable_impl::check<T>(nullptr)) {};
+
+// Convert to printable type
+// 1. If T is printable, return T
+// 2. If T is serializable to JSON, return yu::json::to_json(T)
+template <typename T>
+auto ToPrintable(const T& value) -> typename std::enable_if<is_ostream_printable<T>::value, T>::type {
+  return value;
+}
+template <typename T>
+auto ToPrintable(const T& value) -> typename std::enable_if<!is_ostream_printable<T>::value, decltype(yu::json::to_json(value))>::type {
+  return yu::json::to_json(value);
+}
+
 #define EXPECT(expected, op, actual) \
   { \
     auto rhs = (actual); \
     decltype(rhs) lhs = (expected); \
-    if (!(lhs op rhs)) { \
+    if (!(lhs op (rhs))) { \
       std::ostringstream oss_; \
-      oss_ << __FILE__ ":" << __LINE__ << ": expect " << yu::json::to_json(lhs) << " " #op " " << yu::json::to_json(rhs) << ", but not"; \
+      oss_ << __FILE__ ":" << __LINE__ << ": expect " << ::yu::test::ToPrintable(lhs) << " " #op " " << ::yu::test::ToPrintable(rhs) << ", but not"; \
       errors_.push_back(oss_.str()); \
     } \
   }
@@ -105,9 +129,9 @@ class TestRunner {
   { \
     auto rhs = (actual); \
     decltype(rhs) lhs = (expected); \
-    if (!(lhs op rhs)) { \
+    if (!(lhs op (rhs))) { \
       std::ostringstream oss_; \
-      oss_ << __FILE__ ":" << __LINE__ << ": assert '" << yu::json::to_json(lhs) << "' " #op " '" << yu::json::to_json(rhs) << "', but not"; \
+      oss_ << __FILE__ ":" << __LINE__ << ": assert '" << ::yu::test::ToPrintable(lhs) << "' " #op " '" << ::yu::test::ToPrintable(rhs) << "', but not"; \
       errors_.push_back(oss_.str()); \
       throw yu::test::TestFailure(); \
     } \
@@ -131,14 +155,14 @@ int float_compare(T lhs, T rhs) {
 #define EXPECT_F(expected, op, actual) \
   if (!(yu::test::float_compare((expected), (actual)) op 0)) { \
     std::ostringstream oss_; \
-    oss_ << __FILE__ ":" << __LINE__ << ": expect " << yu::json::to_json(expected) << " " #op " " << yu::json::to_json(actual) << ", but not"; \
+    oss_ << __FILE__ ":" << __LINE__ << ": expect " << ::yu::test::ToPrintable(expected) << " " #op " " << ::yu::test::ToPrintable(actual) << ", but not"; \
     errors_.push_back(oss_.str()); \
   }
 
 #define ASSERT_F(expected, op, actual) \
   if (!(yu::test::float_compare((expected), (actual)) op 0)) { \
     std::ostringstream oss_; \
-    oss_ << __FILE__ ":" << __LINE__ << ": assert '" << yu::json::to_json(expected) << "' " #op " '" << yu::json::to_json(actual) << "', but not"; \
+    oss_ << __FILE__ ":" << __LINE__ << ": assert '" << ::yu::test::ToPrintable(expected) << "' " #op " '" << ::yu::test::ToPrintable(actual) << "', but not"; \
     errors_.push_back(oss_.str()); \
     throw yu::test::TestFailure(); \
   }
