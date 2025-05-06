@@ -6,6 +6,7 @@
 #include <sstream>
 #include <string>
 #include <vector>
+#include <utility>
 #include <type_traits>
 
 #include "yu/json.hpp"
@@ -117,7 +118,7 @@ auto ToPrintable(const T& value) -> typename std::enable_if<!is_ostream_printabl
   { \
     auto rhs = (actual); \
     decltype(rhs) lhs = (expected); \
-    if (!(lhs op rhs)) { \
+    if (!(lhs op (rhs))) { \
       std::ostringstream oss_; \
       oss_ << __FILE__ ":" << __LINE__ << ": expect " << ::yu::test::ToPrintable(lhs) << " " #op " " << ::yu::test::ToPrintable(rhs) << ", but not"; \
       errors_.push_back(oss_.str()); \
@@ -128,7 +129,7 @@ auto ToPrintable(const T& value) -> typename std::enable_if<!is_ostream_printabl
   { \
     auto rhs = (actual); \
     decltype(rhs) lhs = (expected); \
-    if (!(lhs op rhs)) { \
+    if (!(lhs op (rhs))) { \
       std::ostringstream oss_; \
       oss_ << __FILE__ ":" << __LINE__ << ": assert '" << ::yu::test::ToPrintable(lhs) << "' " #op " '" << ::yu::test::ToPrintable(rhs) << "', but not"; \
       errors_.push_back(oss_.str()); \

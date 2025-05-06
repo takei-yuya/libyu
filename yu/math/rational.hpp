@@ -85,13 +85,34 @@ class RationalBase {
 
   // Comparison operators
   constexpr bool operator==(const RationalBase& other) const noexcept {
+    if (is_nan() || other.is_nan()) return false;
     return positive_ == other.positive_ && numerator_ == other.numerator_ && denominator_ == other.denominator_;
   }
-  constexpr bool operator!=(const RationalBase& other) const noexcept { return !(*this == other); }
-  bool operator<(const RationalBase& other) const noexcept { return !((*this - other).is_positive()); }
-  bool operator>(const RationalBase& other) const noexcept { return other < *this; }
-  bool operator<=(const RationalBase& other) const noexcept { return !(*this > other); }
-  bool operator>=(const RationalBase& other) const noexcept { return !(*this < other); }
+  constexpr bool operator!=(const RationalBase& other) const noexcept {
+    if (is_nan() || other.is_nan()) return false;
+    return !(*this == other);
+  }
+  bool operator<(const RationalBase& other) const noexcept {
+    if (is_nan() || other.is_nan()) return false;
+    return !((*this - other).is_positive());
+  }
+  bool operator>(const RationalBase& other) const noexcept {
+    if (is_nan() || other.is_nan()) return false;
+    return other < *this;
+  }
+  bool operator<=(const RationalBase& other) const noexcept {
+    if (is_nan() || other.is_nan()) return false;
+    return !(*this > other);
+  }
+  bool operator>=(const RationalBase& other) const noexcept {
+    if (is_nan() || other.is_nan()) return false;
+    return !(*this < other);
+  }
+
+  // strict equality operator ((NaN == NaN) == false, but NaN.equals(NaN) == true)
+  constexpr bool equals(const RationalBase& other) const noexcept {
+    return positive_ == other.positive_ && numerator_ == other.numerator_ && denominator_ == other.denominator_;
+  }
 
   // Unary Arithmetic operators
   constexpr RationalBase operator+() const noexcept { return *this; }

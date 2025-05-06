@@ -334,28 +334,28 @@ TEST(RationalTest, testArithmeticInfNaN) {
     for (size_t j = 0; j < rationals.size(); ++j) {
       yu::math::Rational r1 = rationals[i];
       yu::math::Rational r2 = rationals[j];
-      EXPECT(add_table[i][j], ==, r1 + r2);
-      EXPECT(sub_table[i][j], ==, r1 - r2);
-      EXPECT(mul_table[i][j], ==, r1 * r2);
-      EXPECT(div_table[i][j], ==, r1 / r2);
+      EXPECT(add_table[i][j], .equals, r1 + r2);
+      EXPECT(sub_table[i][j], .equals, r1 - r2);
+      EXPECT(mul_table[i][j], .equals, r1 * r2);
+      EXPECT(div_table[i][j], .equals, r1 / r2);
     }
   }
 
   // negate
-  EXPECT(zero, ==, -zero);
-  EXPECT(neg_one, ==, -pos_one);
-  EXPECT(pos_one, ==, -neg_one);
-  EXPECT(neg_inf, ==, -pos_inf);
-  EXPECT(pos_inf, ==, -neg_inf);
-  EXPECT(nan, ==, -nan);
+  EXPECT(zero, .equals, -zero);
+  EXPECT(neg_one, .equals, -pos_one);
+  EXPECT(pos_one, .equals, -neg_one);
+  EXPECT(neg_inf, .equals, -pos_inf);
+  EXPECT(pos_inf, .equals, -neg_inf);
+  EXPECT(nan, .equals, -nan);
 
   // invert
-  EXPECT(pos_inf, ==, zero.invert());
-  EXPECT(pos_one, ==, pos_one.invert());
-  EXPECT(neg_one, ==, neg_one.invert());
-  EXPECT(zero, ==, pos_inf.invert());
-  EXPECT(zero, ==, neg_inf.invert());
-  EXPECT(nan, ==, nan.invert());
+  EXPECT(pos_inf, .equals, zero.invert());
+  EXPECT(pos_one, .equals, pos_one.invert());
+  EXPECT(neg_one, .equals, neg_one.invert());
+  EXPECT(zero, .equals, pos_inf.invert());
+  EXPECT(zero, .equals, neg_inf.invert());
+  EXPECT(nan, .equals, nan.invert());
 }
 
 TEST(RationalTest, testComparison) {
@@ -376,6 +376,52 @@ TEST(RationalTest, testComparison) {
     EXPECT(true, ==, r1 <= r1);
     EXPECT(false, ==, r1 > r1);
     EXPECT(true, ==, r1 >= r1);
+  }
+}
+
+TEST(RationalTest, testComparisonInfNaN) {
+  yu::math::Rational zero = yu::math::Rational::Zero();
+  yu::math::Rational pos_one = yu::math::Rational(1);
+  yu::math::Rational neg_one = yu::math::Rational(-1);
+  yu::math::Rational pos_inf = yu::math::Rational::PosInf();
+  yu::math::Rational neg_inf = yu::math::Rational::NegInf();
+  yu::math::Rational nan = yu::math::Rational::NaN();
+
+  // Comparison of +Inf and -Inf
+  std::vector<yu::math::Rational> ordered_rationals = {
+    neg_inf, neg_one, zero, pos_one, pos_inf,
+  };
+  for (size_t i = 0; i < ordered_rationals.size(); ++i) {
+    for (size_t j = 0; j < ordered_rationals.size(); ++j) {
+      const auto& r1 = ordered_rationals[i];
+      const auto& r2 = ordered_rationals[j];
+      EXPECT((i == j), ==, (r1 == r2));
+      EXPECT((i != j), ==, (r1 != r2));
+      EXPECT((i < j), ==, (r1 < r2));
+      EXPECT((i <= j), ==, (r1 <= r2));
+      EXPECT((i > j), ==, (r1 > r2));
+      EXPECT((i >= j), ==, (r1 >= r2));
+    }
+  }
+
+  // NaN comparison is always false
+  std::vector<yu::math::Rational> rationals = {
+    neg_inf, neg_one, zero, pos_one, pos_inf, nan,
+  };
+  for (const auto& r : rationals) {
+    EXPECT(false, ==, (r == nan));
+    EXPECT(false, ==, (r != nan));
+    EXPECT(false, ==, (r < nan));
+    EXPECT(false, ==, (r <= nan));
+    EXPECT(false, ==, (r > nan));
+    EXPECT(false, ==, (r >= nan));
+
+    EXPECT(false, ==, (nan == r));
+    EXPECT(false, ==, (nan != r));
+    EXPECT(false, ==, (nan < r));
+    EXPECT(false, ==, (nan <= r));
+    EXPECT(false, ==, (nan > r));
+    EXPECT(false, ==, (nan >= r));
   }
 }
 
