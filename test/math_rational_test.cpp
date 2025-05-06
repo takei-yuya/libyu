@@ -379,16 +379,16 @@ TEST(RationalTest, testComparison) {
   }
 }
 
-bool near_equal(long double a, long double b, long double epsilon = 1e-10) {
+template <typename T>
+bool near_equal(T a, T b, T epsilon = static_cast<T>(1e-6)) {
   return std::abs(a - b) < epsilon;
 }
 
 TEST(RationalTest, testConversion) {
   {
     yu::math::Rational r1(-3, 2);
-    EXPECT(true, ==, near_equal(static_cast<long double>(r1), -1.5));
+    EXPECT(true, ==, near_equal(static_cast<long double>(r1), -1.5l));
     EXPECT(true, ==, near_equal(static_cast<double>(r1), -1.5));
-    EXPECT(true, ==, near_equal(static_cast<float>(r1), -1.5));
-    EXPECT(true, ==, near_equal(static_cast<float>(r1), -1.5));
+    EXPECT(true, ==, near_equal(static_cast<float>(r1), -1.5f));
   }
 }

@@ -105,11 +105,11 @@ struct is_ostream_printable : decltype(is_ostream_printable_impl::check<T>(nullp
 // 1. If T is printable, return T
 // 2. If T is serializable to JSON, return yu::json::to_json(T)
 template <typename T>
-auto ToPrintable(const T& value) -> std::enable_if_t<is_ostream_printable<T>::value, T> {
+auto ToPrintable(const T& value) -> typename std::enable_if<is_ostream_printable<T>::value, T>::type {
   return value;
 }
 template <typename T>
-auto ToPrintable(const T& value) -> std::enable_if_t<!is_ostream_printable<T>::value, decltype(yu::json::to_json(value))> {
+auto ToPrintable(const T& value) -> typename std::enable_if<!is_ostream_printable<T>::value, decltype(yu::json::to_json(value))>::type {
   return yu::json::to_json(value);
 }
 

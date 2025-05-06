@@ -7,7 +7,7 @@
 #include <iostream>
 #include <limits>
 
-#include "utils.hpp"
+#include "yu/math/utils.hpp"
 
 namespace yu {
 namespace math {
@@ -36,7 +36,9 @@ class RationalBase {
   template <typename T>
   explicit RationalBase(T numerator, enable_if_is_signed_integral_t<T> denominator = 1) noexcept
       : positive_((numerator > 0) == (denominator > 0))
-      , numerator_(std::abs(numerator)), denominator_(std::abs(denominator)), reduced_(denominator == 1) {
+      , numerator_(static_cast<Uint>(std::abs(numerator)))
+      , denominator_(static_cast<Uint>(std::abs(denominator)))
+      , reduced_(denominator == 1) {
     Normalize();
   }
 

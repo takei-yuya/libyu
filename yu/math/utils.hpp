@@ -3,20 +3,21 @@
 #define YU_MATH_UTILS_HPP_
 
 #include <cstdlib>
+#include <type_traits>
+#include <numeric>
 
 namespace yu {
 namespace math {
 
 #if __cpp_lib_gcd_lcm >= 201606L
-#include <numeric>
 using std::gcd;
 using std::lcm;
 
 #else
 template <typename T>
 auto gcd(T lhs, T rhs) -> typename std::enable_if<std::is_integral<T>::value && std::is_signed<T>::value, T>::type {
-  lhs = std::abs(lhs);
-  rhs = std::abs(rhs);
+  lhs = static_cast<T>(std::abs(lhs));
+  rhs = static_cast<T>(std::abs(rhs));
   while (lhs != 0 && rhs != 0) {
     if (lhs > rhs) {
       lhs %= rhs;
