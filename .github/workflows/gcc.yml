@@ -7,9 +7,27 @@ on:
 jobs:
   build:
     strategy:
+      fail-fast: false
       matrix:
         image: [gcc:4, gcc:5, gcc:6, gcc:7, gcc:8, gcc:9, gcc:10, gcc:11, gcc:12, gcc:13]
         cxxflags: ["", -std=c++11, -std=c++14, -std=c++17, -std=c++20, -std=c++23]
+        exclude:
+          - {image: "gcc:4", cxxflags: ""}
+          - {image: "gcc:4", cxxflags: "-std=c++17"}
+          - {image: "gcc:4", cxxflags: "-std=c++20"}
+          - {image: "gcc:4", cxxflags: "-std=c++23"}
+          - {image: "gcc:5", cxxflags: ""}
+          - {image: "gcc:5", cxxflags: "-std=c++20"}
+          - {image: "gcc:5", cxxflags: "-std=c++23"}
+          - {image: "gcc:6", cxxflags: "-std=c++20"}
+          - {image: "gcc:6", cxxflags: "-std=c++23"}
+          - {image: "gcc:7", cxxflags: "-std=c++20"}
+          - {image: "gcc:7", cxxflags: "-std=c++23"}
+          - {image: "gcc:8", cxxflags: "-std=c++20"}
+          - {image: "gcc:8", cxxflags: "-std=c++23"}
+          - {image: "gcc:9", cxxflags: "-std=c++20"}
+          - {image: "gcc:9", cxxflags: "-std=c++23"}
+          - {image: "gcc:10", cxxflags: "-std=c++23"}
     runs-on: ubuntu-latest
     container:
       image: ${{ matrix.image }}
