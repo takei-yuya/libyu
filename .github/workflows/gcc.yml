@@ -9,18 +9,28 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        image: [gcc:4, gcc:5, gcc:6, gcc:7, gcc:8, gcc:9, gcc:10, gcc:11, gcc:12, gcc:13]
-        cxxflags: ["", -std=c++11, -std=c++14, -std=c++17, -std=c++20, -std=c++23]
+        image:
+          - "takei/libyu-dev:gcc4"
+          - "takei/libyu-dev:gcc5"
+          - "takei/libyu-dev:gcc6"
+          - "gcc:7"
+          - "gcc:8"
+          - "gcc:9"
+          - "gcc:10"
+          - "gcc:11"
+          - "gcc:12"
+          - "gcc:13"
+        cxxflags: ["", "-std=c++11", "-std=c++14", "-std=c++17", "-std=c++20", "-std=c++23"]
         exclude:
-          - {image: "gcc:4", cxxflags: ""}
-          - {image: "gcc:4", cxxflags: "-std=c++17"}
-          - {image: "gcc:4", cxxflags: "-std=c++20"}
-          - {image: "gcc:4", cxxflags: "-std=c++23"}
-          - {image: "gcc:5", cxxflags: ""}
-          - {image: "gcc:5", cxxflags: "-std=c++20"}
-          - {image: "gcc:5", cxxflags: "-std=c++23"}
-          - {image: "gcc:6", cxxflags: "-std=c++20"}
-          - {image: "gcc:6", cxxflags: "-std=c++23"}
+          - {image: "takei/libyu-dev:gcc4", cxxflags: ""}
+          - {image: "takei/libyu-dev:gcc4", cxxflags: "-std=c++17"}
+          - {image: "takei/libyu-dev:gcc4", cxxflags: "-std=c++20"}
+          - {image: "takei/libyu-dev:gcc4", cxxflags: "-std=c++23"}
+          - {image: "takei/libyu-dev:gcc5", cxxflags: ""}
+          - {image: "takei/libyu-dev:gcc5", cxxflags: "-std=c++20"}
+          - {image: "takei/libyu-dev:gcc5", cxxflags: "-std=c++23"}
+          - {image: "takei/libyu-dev:gcc6", cxxflags: "-std=c++20"}
+          - {image: "takei/libyu-dev:gcc6", cxxflags: "-std=c++23"}
           - {image: "gcc:7", cxxflags: "-std=c++20"}
           - {image: "gcc:7", cxxflags: "-std=c++23"}
           - {image: "gcc:8", cxxflags: "-std=c++20"}
