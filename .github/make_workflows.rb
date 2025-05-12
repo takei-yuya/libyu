@@ -25,7 +25,7 @@ WORKFLOW_DIR = "#{File.dirname(__FILE__)}/workflows/"
 
 def gen_yaml(gcc_version, standard)
   image = IMAGES[gcc_version] || "gcc:#{gcc_version}"
-  cxxflags = standard ? "-std=#{gcc_version}" : ""
+  cxxflags = standard ? "-std=#{standard}" : ""
   basename = "gcc#{gcc_version}-#{standard || "default"}"
 
   yaml = <<~YAML
