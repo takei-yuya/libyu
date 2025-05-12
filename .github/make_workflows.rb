@@ -20,8 +20,11 @@ SUPPORTED = {
   14 =>     [ true,    true,    true,    true,    true,    true, ],
   15 =>     [ true,    true,    true,    true,    true,    true, ],
 }
-BASE_URL = "https://github.com/takei-yuya/libyu/actions/workflows"
+OWNER = "takei-yuya"
+REPOSITORY = "libyu"
+BASE_URL = "https://github.com/#{OWNER}/#{REPOSITORY}/actions/workflows"
 WORKFLOW_DIR = "#{File.dirname(__FILE__)}/workflows/"
+BADGE_BRANCH = "main"
 
 def gen_yaml(gcc_version, standard)
   image = IMAGES[gcc_version] || "gcc:#{gcc_version}"
@@ -41,7 +44,7 @@ def gen_yaml(gcc_version, standard)
       container:
         image: #{image}
       steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: make check
         run: make check CXXFLAGS=#{cxxflags}
   YAML
@@ -56,7 +59,7 @@ SUPPORTED.each do |gcc_version, supported_row|
     if supported
       basename = gen_yaml(gcc_version, standard)
       workflow_url = "#{BASE_URL}/#{basename}.yml"
-      badge_url = "#{workflow_url}/badge.svg"
+      badge_url = "#{workflow_url}/badge.svg?branch=#{BADGE_BRANCH}"
       row << "[![#{basename}](#{badge_url})](#{workflow_url})"
     else
       row << "-"
@@ -64,5 +67,3 @@ SUPPORTED.each do |gcc_version, supported_row|
   end
   puts "| #{row.join(" | ")} |"
 end
-
-p WORKFLOW_DIR
