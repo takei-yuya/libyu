@@ -13,8 +13,6 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     - name: make check
-      run: make check
-      env:
-        CXXFLAGS: "-std=c++17"
+      run: make check CXXFLAGS='-std=c++17'
     container:
       image: gcc:13

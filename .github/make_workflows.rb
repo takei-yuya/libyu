@@ -65,7 +65,7 @@ def gen_yaml(basename, runson, image, standard)
   spec["name"] = basename
   spec["jobs"]["build"]["runs-on"] = runson
   spec["jobs"]["build"]["container"] = { "image" => image } if image
-  spec["jobs"]["build"]["steps"][-1]["env"] = { "CXXFLAGS" => "-std=#{standard}" } if standard
+  spec["jobs"]["build"]["steps"][-1]["run"] = "make check CXXFLAGS='-std=#{standard}'" if standard
   yaml = spec.to_yaml
   write_or_die("#{WORKFLOW_DIR}/#{basename}.yml", yaml)
 end
