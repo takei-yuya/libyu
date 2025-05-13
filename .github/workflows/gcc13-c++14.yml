@@ -1,6 +1,6 @@
 ---
 name: gcc13-c++14
-true:
+'on':
   push:
     branches:
     - main

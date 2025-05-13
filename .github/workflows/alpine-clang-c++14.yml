@@ -1,6 +1,6 @@
 ---
 name: alpine-clang-c++14
-true:
+'on':
   push:
     branches:
     - main

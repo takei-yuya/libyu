@@ -43,10 +43,12 @@ BASE_URL = "https://github.com/#{OWNER}/#{REPOSITORY}/actions/workflows"
 WORKFLOW_DIR = "#{File.dirname(__FILE__)}/workflows/"
 BADGE_BRANCH = "main"
 
+Dir.mkdir(WORKFLOW_DIR) unless Dir.exist?(WORKFLOW_DIR)
+
 def gen_yaml(basename, runson, image, standard)
   template = <<~YAML
   name: XXX
-  on:
+  "on":
     push:
       branches: [ main ]
     pull_request:
@@ -71,8 +73,8 @@ end
 def write_or_die(file, content)
   File.write(file, content)
 rescue => e
-  STDERR.puts "Failed to write: file=#{file}"
-  throw
+  STDERR.puts "Failed to write: file=#{file}, error=#{e}"
+  throw e
 end
 
 def badge_link(basename)

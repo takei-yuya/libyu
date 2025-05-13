@@ -1,6 +1,6 @@
 ---
 name: alpine-gcc-default
-true:
+'on':
   push:
     branches:
     - main

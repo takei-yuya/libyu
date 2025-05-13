@@ -1,6 +1,6 @@
 ---
 name: gcc5-c++11
-true:
+'on':
   push:
     branches:
     - main

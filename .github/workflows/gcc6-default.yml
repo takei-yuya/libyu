@@ -1,6 +1,6 @@
 ---
 name: gcc6-default
-true:
+'on':
   push:
     branches:
     - main

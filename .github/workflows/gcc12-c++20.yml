@@ -1,6 +1,6 @@
 ---
 name: gcc12-c++20
-true:
+'on':
   push:
     branches:
     - main

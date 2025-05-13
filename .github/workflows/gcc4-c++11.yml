@@ -1,6 +1,6 @@
 ---
 name: gcc4-c++11
-true:
+'on':
   push:
     branches:
     - main

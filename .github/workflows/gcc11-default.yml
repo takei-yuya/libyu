@@ -1,6 +1,6 @@
 ---
 name: gcc11-default
-true:
+'on':
   push:
     branches:
     - main

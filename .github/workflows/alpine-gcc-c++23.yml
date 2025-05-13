@@ -1,6 +1,6 @@
 ---
 name: alpine-gcc-c++23
-true:
+'on':
   push:
     branches:
     - main

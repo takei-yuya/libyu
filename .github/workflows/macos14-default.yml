@@ -1,6 +1,6 @@
 ---
 name: macos14-default
-true:
+'on':
   push:
     branches:
     - main

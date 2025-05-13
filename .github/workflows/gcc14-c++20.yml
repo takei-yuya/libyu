@@ -1,6 +1,6 @@
 ---
 name: gcc14-c++20
-true:
+'on':
   push:
     branches:
     - main

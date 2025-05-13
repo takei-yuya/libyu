@@ -1,6 +1,6 @@
 ---
 name: gcc9-c++17
-true:
+'on':
   push:
     branches:
     - main

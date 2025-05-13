@@ -1,6 +1,6 @@
 ---
 name: gcc14-default
-true:
+'on':
   push:
     branches:
     - main

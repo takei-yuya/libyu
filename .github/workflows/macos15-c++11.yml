@@ -1,6 +1,6 @@
 ---
 name: macos15-c++11
-true:
+'on':
   push:
     branches:
     - main

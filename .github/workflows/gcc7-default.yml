@@ -1,6 +1,6 @@
 ---
 name: gcc7-default
-true:
+'on':
   push:
     branches:
     - main

@@ -1,6 +1,6 @@
 ---
 name: gcc15-default
-true:
+'on':
   push:
     branches:
     - main

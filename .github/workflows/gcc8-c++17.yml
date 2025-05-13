@@ -1,6 +1,6 @@
 ---
 name: gcc8-c++17
-true:
+'on':
   push:
     branches:
     - main

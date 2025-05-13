@@ -1,6 +1,6 @@
 ---
 name: alpine-gcc-c++11
-true:
+'on':
   push:
     branches:
     - main

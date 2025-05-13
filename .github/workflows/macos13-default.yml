@@ -1,6 +1,6 @@
 ---
 name: macos13-default
-true:
+'on':
   push:
     branches:
     - main

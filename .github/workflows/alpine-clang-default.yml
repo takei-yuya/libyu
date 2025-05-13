@@ -1,6 +1,6 @@
 ---
 name: alpine-clang-default
-true:
+'on':
   push:
     branches:
     - main

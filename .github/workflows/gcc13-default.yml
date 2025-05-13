@@ -1,6 +1,6 @@
 ---
 name: gcc13-default
-true:
+'on':
   push:
     branches:
     - main

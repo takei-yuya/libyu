@@ -1,6 +1,6 @@
 ---
 name: gcc10-default
-true:
+'on':
   push:
     branches:
     - main

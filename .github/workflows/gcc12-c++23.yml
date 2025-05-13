@@ -1,6 +1,6 @@
 ---
 name: gcc12-c++23
-true:
+'on':
   push:
     branches:
     - main

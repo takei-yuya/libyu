@@ -1,6 +1,6 @@
 ---
 name: gcc8-default
-true:
+'on':
   push:
     branches:
     - main

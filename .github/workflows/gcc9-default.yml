@@ -1,6 +1,6 @@
 ---
 name: gcc9-default
-true:
+'on':
   push:
     branches:
     - main

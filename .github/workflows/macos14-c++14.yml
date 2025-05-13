@@ -1,6 +1,6 @@
 ---
 name: macos14-c++14
-true:
+'on':
   push:
     branches:
     - main

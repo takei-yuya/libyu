@@ -1,6 +1,6 @@
 ---
 name: alpine-gcc-c++20
-true:
+'on':
   push:
     branches:
     - main
