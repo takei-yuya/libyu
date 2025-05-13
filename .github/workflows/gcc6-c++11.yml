@@ -1,15 +1,20 @@
-name: gcc-6 c++11
-on:
+---
+name: gcc6-c++11
+true:
   push:
-    branches: [ main ]
+    branches:
+    - main
   pull_request:
-    branches: [ main ]
+    branches:
+    - main
 jobs:
   build:
     runs-on: ubuntu-latest
-    container:
-      image: takei/libyu-dev:gcc6
     steps:
     - uses: actions/checkout@v4
     - name: make check
-      run: make check CXXFLAGS=-std=c++11
+      run: make check
+      env:
+        CXXFLAGS: "-std=c++11"
+    container:
+      image: takei/libyu-dev:gcc6

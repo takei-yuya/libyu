@@ -1,15 +1,18 @@
-name: gcc-9 default
-on:
+---
+name: gcc9-default
+true:
   push:
-    branches: [ main ]
+    branches:
+    - main
   pull_request:
-    branches: [ main ]
+    branches:
+    - main
 jobs:
   build:
     runs-on: ubuntu-latest
-    container:
-      image: gcc:9
     steps:
     - uses: actions/checkout@v4
     - name: make check
-      run: make check CXXFLAGS=
+      run: make check
+    container:
+      image: gcc:9

@@ -1,15 +1,20 @@
-name: gcc-12 c++14
-on:
+---
+name: gcc12-c++14
+true:
   push:
-    branches: [ main ]
+    branches:
+    - main
   pull_request:
-    branches: [ main ]
+    branches:
+    - main
 jobs:
   build:
     runs-on: ubuntu-latest
-    container:
-      image: gcc:12
     steps:
     - uses: actions/checkout@v4
     - name: make check
-      run: make check CXXFLAGS=-std=c++14
+      run: make check
+      env:
+        CXXFLAGS: "-std=c++14"
+    container:
+      image: gcc:12

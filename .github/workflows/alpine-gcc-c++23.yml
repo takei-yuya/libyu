@@ -1,0 +1,20 @@
+---
+name: alpine-gcc-c++23
+true:
+  push:
+    branches:
+    - main
+  pull_request:
+    branches:
+    - main
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - name: make check
+      run: make check
+      env:
+        CXXFLAGS: "-std=c++23"
+    container:
+      image: takei/libyu-dev:alpine3-gcc

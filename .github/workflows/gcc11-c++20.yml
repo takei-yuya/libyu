@@ -1,15 +1,20 @@
-name: gcc-11 c++20
-on:
+---
+name: gcc11-c++20
+true:
   push:
-    branches: [ main ]
+    branches:
+    - main
   pull_request:
-    branches: [ main ]
+    branches:
+    - main
 jobs:
   build:
     runs-on: ubuntu-latest
-    container:
-      image: gcc:11
     steps:
     - uses: actions/checkout@v4
     - name: make check
-      run: make check CXXFLAGS=-std=c++20
+      run: make check
+      env:
+        CXXFLAGS: "-std=c++20"
+    container:
+      image: gcc:11
