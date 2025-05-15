@@ -32,9 +32,9 @@ ALPINE_SUPPORTED = {
   "clang" =>[ true,    true,    true,    true,    true,    true, ],
 }
 MACOS_SUPPORTED = {
-  13 =>     [ true,    true,    true,    true,    true,    true, ],
-  14 =>     [ true,    true,    true,    true,    true,    true, ],
-  15 =>     [ true,    true,    true,    true,    true,    true, ],
+  13 =>     [false,    true,    true,    true,    true,   false, ],
+  14 =>     [false,    true,    true,    true,    true,   false, ],
+  15 =>     [false,    true,    true,    true,    true,    true, ],
 }
 
 OWNER = "takei-yuya"
