@@ -74,7 +74,7 @@ def write_or_die(file, content)
   File.write(file, content)
 rescue => e
   STDERR.puts "Failed to write: file=#{file}, error=#{e}"
-  throw e
+  raise
 end
 
 def badge_link(basename)
@@ -93,7 +93,7 @@ end
 
 def gen_alpine_yaml(compiler, standard)
   basename = "alpine-#{compiler}-#{standard || "default"}"
-  image = ALPINE_IMAGES[compiler] or throw "Unknown compiler for alpine"
+  image = ALPINE_IMAGES[compiler] or raise "Unknown compiler for alpine"
 
   gen_yaml(basename, "ubuntu-latest", image, standard)
   return basename
