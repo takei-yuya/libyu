@@ -28,10 +28,10 @@ TEST(UTF8Test, testEncodeSimple) {
 
 TEST(UTF8Test, testEncodeError) {
   EXPECT_THROW_WHAT(yu::utf8::encode(0x110000), std::runtime_error, "Invalid code point: code_point = U+110000");
-  EXPECT_THROW_WHAT(yu::utf8::encode(0xD800), std::runtime_error, "UTF-8 not allow to encode surruogate code point: code_point = U+D800");
-  EXPECT_THROW_WHAT(yu::utf8::encode(0xDFFF), std::runtime_error, "UTF-8 not allow to encode surruogate code point: code_point = U+DFFF");
-  EXPECT_THROW_WHAT(yu::utf8::encode(0xDC00), std::runtime_error, "UTF-8 not allow to encode surruogate code point: code_point = U+DC00");
-  EXPECT_THROW_WHAT(yu::utf8::encode(0xDFFF), std::runtime_error, "UTF-8 not allow to encode surruogate code point: code_point = U+DFFF");
+  EXPECT_THROW_WHAT(yu::utf8::encode(0xD800), std::runtime_error, "UTF-8 not allow to encode surrogate code point: code_point = U+D800");
+  EXPECT_THROW_WHAT(yu::utf8::encode(0xDFFF), std::runtime_error, "UTF-8 not allow to encode surrogate code point: code_point = U+DFFF");
+  EXPECT_THROW_WHAT(yu::utf8::encode(0xDC00), std::runtime_error, "UTF-8 not allow to encode surrogate code point: code_point = U+DC00");
+  EXPECT_THROW_WHAT(yu::utf8::encode(0xDFFF), std::runtime_error, "UTF-8 not allow to encode surrogate code point: code_point = U+DFFF");
 }
 
 TEST(UTF8Test, testDecoder) {
