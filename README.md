@@ -223,6 +223,86 @@ example: `sample/crypt_blowfish_sample.cpp`
 // Hello blowfish!!
 ```
 
+### yu/data/sized_queue.hpp
+
+```cpp
+namespace yu {
+namespace data {
+
+template <typename T, class Allocator = std::allocator<T>>
+class SizedQueue {
+ public:
+  explicit SizedQueue(size_t capacity);
+  ~SizedQueue();
+
+  // not copyable
+  SizedQueue(const SizedQueue&) = delete;
+  SizedQueue& operator=(const SizedQueue&) = delete;
+
+  // movable
+  SizedQueue(SizedQueue&&) noexcept = default;
+  SizedQueue& operator=(SizedQueue&&) noexcept = default;
+
+  void Push(const T& data);
+  void Push(T&& data);
+  bool TryPush(const T& data);
+  bool TryPush(T&& data);
+
+  T Pop();
+  bool TryPop(T& data);
+
+  bool Empty() const;
+  bool Full() const;
+  size_t Size() const;
+};
+
+}  // namespace data
+}  // namespace yu
+
+```
+
+example: `sample/data_sized_queue_sample.cpp`
+```cpp
+yu::data::SizedQueue<int> queue(5);
+std::thread t([&queue]() {
+  for (int i = 0; i < 10; ++i) {
+    queue.Push(i);
+    std::ostringstream oss;
+    oss << "<< " << i << std::endl;
+    std::cout << oss.str();
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+  }
+});
+std::this_thread::sleep_for(std::chrono::milliseconds(500));
+for (int i = 0; i < 10; ++i) {
+  std::ostringstream oss;
+  oss << ">> " << queue.Pop() << std::endl;
+  std::cout << oss.str();
+  std::this_thread::sleep_for(std::chrono::milliseconds(50));
+}
+t.join();
+// << 0
+// << 1
+// << 2
+// << 3
+// << 4
+// >> 0
+// << 5
+// >> 1
+// >> 2
+// << 6
+// >> 3
+// >> 4
+// << 7
+// >> 5
+// >> 6
+// << 8
+// >> 7
+// << 9
+// >> 8
+// >> 9
+```
+
 ### yu/data/heap.hpp
 
 ```cpp
