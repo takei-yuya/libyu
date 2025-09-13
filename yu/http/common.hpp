@@ -57,8 +57,8 @@ class Header {
     for (const auto& set_cookie : set_cookies_) {
       out << "Set-Cookie: " << set_cookie << "\r\n";
     }
-    for (const auto& field_name : field_names()) {
-      out << field_name << ": " << fields_.at(field_name) << "\r\n";
+    for (const auto& field : fields_) {
+      out << field.first << ": " << field.second << "\r\n";
     }
     out << "\r\n";
   }
@@ -97,7 +97,6 @@ class Header {
     for (const auto& field : fields_) {
       names.push_back(field.first);
     }
-    std::sort(names.begin(), names.end());
     return names;
   }
 
@@ -129,7 +128,7 @@ class chunked_ostreambuf : public std::streambuf {
   int overflow(int ch = traits_type::eof()) override {
     if (!send_all()) return traits_type::eof();
     if (ch != traits_type::eof()) {
-      *pbase() = static_cast<char>(ch);
+      *pptr() = static_cast<char>(ch);
       pbump(1);
     }
     return traits_type::not_eof(ch);
@@ -204,6 +203,7 @@ class chunked_istreambuf : public std::streambuf {
       if (in_.get() != '\n') throw TransferError("Invalid chunk end: expect '\\n', but not");
     }
     setg(buffer_.data(), buffer_.data(), buffer_.data() + read_count);
+    if (read_count == 0) return traits_type::eof();
     return traits_type::to_int_type(*gptr());
   }
 
@@ -236,6 +236,7 @@ class sized_istreambuf : public std::streambuf {
     std::streamsize read_count = in_.gcount();
     size_ -= read_count;
     setg(buffer_.data(), buffer_.data(), buffer_.data() + read_count);
+    if (read_count == 0) return traits_type::eof();
     return traits_type::to_int_type(*gptr());
   }
 
