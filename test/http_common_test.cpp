@@ -17,13 +17,19 @@ TEST(HTTPCommonTest, testHeaderSetGet) {
   EXPECT("foo", ==, header.field("Test"));
   EXPECT("foo", ==, header.field("tesT"));  // ignore case
 
+  EXPECT(std::vector<std::string>({ "Test" }), ==, header.field_names());
+
   header.add("test", "bar");
   EXPECT(true, ==, header.has("Test"));
   EXPECT("foo,bar", ==, header.field("Test"));  // field folding
 
+  EXPECT(std::vector<std::string>({ "Test" }), ==, header.field_names());
+
   header.add("test", " baz ");
   EXPECT(true, ==, header.has("Test"));
   EXPECT("foo,bar,baz", ==, header.field("Test"));  // striped
+
+  EXPECT(std::vector<std::string>({ "Test" }), ==, header.field_names());  // no dup
 
   // Set-Cookie
   header.add("Set-Cookie", "foo=1; path=/");
@@ -44,6 +50,7 @@ TEST(HTTPCommonTest, testHeaderReadWeite) {
     << "Set-Cookie: foo=1; path=/\r\n"
     << "tesT:bar     \r\n"
     << "set-cookie: bar=2; path=/\r\n"
+    << "Another: value\r\n"
     << "\r\n";
   std::istringstream iss(oss.str());
   yu::http::Header header;
@@ -53,11 +60,13 @@ TEST(HTTPCommonTest, testHeaderReadWeite) {
   EXPECT("foo,bar", ==, header.field("test"));
   std::vector<std::string> expected_set_cookies = { "foo=1; path=/", "bar=2; path=/" };
   EXPECT(expected_set_cookies, ==, header.get_set_cookies());
+  EXPECT(std::vector<std::string>({ "Another", "Test" }), ==, header.field_names());  // no dup, sorted
 
   std::ostringstream expected_output;
   expected_output
     << "Set-Cookie: foo=1; path=/\r\n"
     << "Set-Cookie: bar=2; path=/\r\n"
+    << "Another: value\r\n"
     << "Test: foo,bar\r\n"
     << "\r\n";
   std::ostringstream actual_output;

@@ -5,7 +5,9 @@
 #include <iostream>
 #include <map>
 #include <sstream>
+#include <string>
 #include <stdexcept>
+#include <algorithm>
 
 #include "yu/string/utils.hpp"
 
@@ -89,6 +91,15 @@ class Header {
     return set_cookies_;
   }
 
+  std::vector<std::string> field_names() const {
+    std::vector<std::string> names;
+    names.reserve(fields_.size());
+    for (const auto& field : fields_) {
+      names.push_back(field.first);
+    }
+    return names;
+  }
+
  private:
   std::vector<std::string> set_cookies_;
   Fields fields_;
@@ -105,19 +116,19 @@ class chunked_ostreambuf : public std::streambuf {
 
   void finish() {
     if (finished_) return;
-    send_all();
+    if (!send_all()) return;
     out_ << "0\r\n";  // last-chunk
     // TODO: trailer
     out_ << "\r\n";
     out_.flush();
-    finished_ = true;
+    finished_ = out_.good();
   }
 
  private:
   int overflow(int ch = traits_type::eof()) override {
-    send_all();
+    if (!send_all()) return traits_type::eof();
     if (ch != traits_type::eof()) {
-      *pbase() = static_cast<char>(ch);
+      *pptr() = static_cast<char>(ch);
       pbump(1);
     }
     return traits_type::not_eof(ch);
@@ -132,7 +143,8 @@ class chunked_ostreambuf : public std::streambuf {
     out_.write(pbase(), static_cast<std::streamsize>(size));  // chunk
     out_ << "\r\n";  // chunk boundary
     out_.flush();
-    pbump(static_cast<int>(-size));
+    if (!out_.good()) return false;
+    pbump(-static_cast<int>(size));
     return true;
   }
 
@@ -191,6 +203,7 @@ class chunked_istreambuf : public std::streambuf {
       if (in_.get() != '\n') throw TransferError("Invalid chunk end: expect '\\n', but not");
     }
     setg(buffer_.data(), buffer_.data(), buffer_.data() + read_count);
+    if (read_count == 0) return traits_type::eof();
     return traits_type::to_int_type(*gptr());
   }
 
@@ -218,10 +231,12 @@ class sized_istreambuf : public std::streambuf {
     if (gptr() < egptr()) return *gptr();
     if (size_ == 0) return traits_type::eof();
 
-    in_.read(buffer_.data(), size_);
+    std::streamsize sz = std::min(static_cast<std::streamsize>(buffer_.size()), size_);
+    in_.read(buffer_.data(), sz);
     std::streamsize read_count = in_.gcount();
     size_ -= read_count;
     setg(buffer_.data(), buffer_.data(), buffer_.data() + read_count);
+    if (read_count == 0) return traits_type::eof();
     return traits_type::to_int_type(*gptr());
   }
 
