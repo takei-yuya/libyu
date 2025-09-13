@@ -117,12 +117,12 @@ class chunked_ostreambuf : public std::streambuf {
 
   void finish() {
     if (finished_) return;
-    send_all();
+    if (!send_all()) return;
     out_ << "0\r\n";  // last-chunk
     // TODO: trailer
     out_ << "\r\n";
     out_.flush();
-    finished_ = true;
+    finished_ = out_.good();
   }
 
  private:
@@ -231,7 +231,8 @@ class sized_istreambuf : public std::streambuf {
     if (gptr() < egptr()) return *gptr();
     if (size_ == 0) return traits_type::eof();
 
-    in_.read(buffer_.data(), size_);
+    std::streamsize sz = std::min(static_cast<std::streamsize>(buffer_.size()), size_);
+    in_.read(buffer_.data(), sz);
     std::streamsize read_count = in_.gcount();
     size_ -= read_count;
     setg(buffer_.data(), buffer_.data(), buffer_.data() + read_count);
