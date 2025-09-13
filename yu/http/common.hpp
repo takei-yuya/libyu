@@ -5,7 +5,9 @@
 #include <iostream>
 #include <map>
 #include <sstream>
+#include <string>
 #include <stdexcept>
+#include <algorithm>
 
 #include "yu/string/utils.hpp"
 
@@ -55,8 +57,8 @@ class Header {
     for (const auto& set_cookie : set_cookies_) {
       out << "Set-Cookie: " << set_cookie << "\r\n";
     }
-    for (const auto& field : fields_) {
-      out << field.first << ": " << field.second << "\r\n";
+    for (const auto& field_name : field_names()) {
+      out << field_name << ": " << fields_.at(field_name) << "\r\n";
     }
     out << "\r\n";
   }
@@ -89,8 +91,14 @@ class Header {
     return set_cookies_;
   }
 
-  const Fields& list() const {
-    return fields_;
+  std::vector<std::string> field_names() const {
+    std::vector<std::string> names;
+    names.reserve(fields_.size());
+    for (const auto& field : fields_) {
+      names.push_back(field.first);
+    }
+    std::sort(names.begin(), names.end());
+    return names;
   }
 
  private:
