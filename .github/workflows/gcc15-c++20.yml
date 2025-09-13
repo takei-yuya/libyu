@@ -1,0 +1,18 @@
+---
+name: gcc15-c++20
+'on':
+  push:
+    branches:
+    - main
+  pull_request:
+    branches:
+    - main
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - name: make check
+      run: make check CXXFLAGS='-std=c++20'
+    container:
+      image: gcc:15

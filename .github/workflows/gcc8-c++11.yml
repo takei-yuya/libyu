@@ -1,0 +1,18 @@
+---
+name: gcc8-c++11
+'on':
+  push:
+    branches:
+    - main
+  pull_request:
+    branches:
+    - main
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - name: make check
+      run: make check CXXFLAGS='-std=c++11'
+    container:
+      image: gcc:8
