@@ -136,8 +136,9 @@ class chunked_ostreambuf : public std::streambuf {
     out_.write(pbase(), static_cast<std::streamsize>(size));  // chunk
     out_ << "\r\n";  // chunk boundary
     out_.flush();
-    pbump(static_cast<int>(-size));
-    return out_.good();
+    if (!out_.good()) return false;
+    pbump(-static_cast<int>(size));
+    return true;
   }
 
   int sync() override {
