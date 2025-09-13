@@ -89,6 +89,10 @@ class Header {
     return set_cookies_;
   }
 
+  const Fields& list() const {
+    return fields_;
+  }
+
  private:
   std::vector<std::string> set_cookies_;
   Fields fields_;
@@ -115,7 +119,7 @@ class chunked_ostreambuf : public std::streambuf {
 
  private:
   int overflow(int ch = traits_type::eof()) override {
-    send_all();
+    if (!send_all()) return traits_type::eof();
     if (ch != traits_type::eof()) {
       *pbase() = static_cast<char>(ch);
       pbump(1);
@@ -133,7 +137,7 @@ class chunked_ostreambuf : public std::streambuf {
     out_ << "\r\n";  // chunk boundary
     out_.flush();
     pbump(static_cast<int>(-size));
-    return true;
+    return out_.good();
   }
 
   int sync() override {
