@@ -21,9 +21,25 @@ namespace http {
 namespace detail {
 const static std::unordered_map<int,std::string> kResponseStatusMessage = {
   { 200, "OK" },
+  { 201, "Created" },
+  { 202, "Accepted" },
+  { 204, "No Content" },
   { 300, "Multiple Choices" },
+  { 301, "Moved Permanently" },
+  { 302, "Found" },
+  { 303, "See Other" },
+  { 304, "Not Modified" },
+  { 307, "Temporary Redirect" },
+  { 308, "Permanent Redirect" },
   { 400, "Bad Request" },
+  { 401, "Unauthorized" },
+  { 402, "Payment Required" },
+  { 403, "Forbidden" },
+  { 404, "Not Found" },
+  { 405, "Method Not Allowed" },
+  { 408, "Request Timeout" },
   { 500, "Internal Server Error" },
+  { 503, "Service Unavailable" },
 };
 }  // detail
 
@@ -45,7 +61,7 @@ class ServerStream {
     line = yu::string::rstrip(line, "\r");
     std::vector<std::string> requst_line_tokens = yu::string::split(line, ' ', false, 3);
     if (requst_line_tokens.size() != 3) {
-      throw TransferError("invalid request line: fee tokens");
+      throw TransferError("invalid request line: fee tokens: request line='" + line + "'");
     }
 
     Header header;
@@ -75,6 +91,12 @@ class ServerStream {
   const std::string& request_method() const { return request_method_; }
   const std::string& request_target() const { return request_target_; }
   const std::string& request_version() const { return request_version_; }
+  std::string request_line() const {
+    if (!request_parsed_ && !response_header_sent_) {
+      throw std::runtime_error("request not parsed yet");
+    }
+    return request_method_ + " " + request_target_ + " " + request_version_;
+  }
   const Header& request_header() const { return request_header_; }
 
   // Response
@@ -91,6 +113,11 @@ class ServerStream {
     } else {
       response_status_message_ = messgae;
     }
+  }
+  int get_status() const { return response_status_; }
+  const std::string& get_status_message() const { return response_status_message_; }
+  std::string status_line() const {
+    return std::to_string(response_status_) + " " + response_status_message_;
   }
 
   void set_header(const std::string& key, const std::string& value) {
