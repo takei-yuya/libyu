@@ -237,8 +237,9 @@ class SimpleServer {
       if (client_fd < 0) {
         detail::raise_errno("accept");
       }
-      std::string client_ip = "[unknown]";
+      std::string client_ip = "unknown_ip";
       std::string client_port = "0";
+      std::string client_ip_port = "unknown_ip:0";
       {
         char host[NI_MAXHOST];
         char service[NI_MAXSERV];
@@ -249,37 +250,53 @@ class SimpleServer {
         if (rc == 0) {
           client_ip = host;
           client_port = service;
+          if (client_ip.find(':') != std::string::npos) {
+            client_ip_port = "[" + client_ip + "]:" + client_port;
+          } else {
+            client_ip_port = client_ip + ":" + client_port;
+          }
         }
       }
-      std::cerr << client_fd << ": Accepted connection from " << client_ip << ":" << client_port << std::endl;
+      std::cerr << client_fd << ": Accepted connection from " << client_ip_port << std::endl;
 
       std::thread(&SimpleServer::process, this, client_fd).detach();
     }
   }
 
-  void process(int client_fd) {
+  void process(int raw_client_fd) {
+    auto client_fd = yu::lang::make_unique_resource(raw_client_fd, ::close);
     auto start_time = std::chrono::system_clock::now();
     std::cerr << client_fd << ": Start thread for client_fd: " << client_fd << " at " << detail::format_time(start_time) << std::endl;
-    detail::FDCloser client_fd_closer(client_fd);
     try {
       yu::stream::fdstream stream(client_fd);
       yu::http::ServerStream server_stream(stream);
-      auto request_stream = server_stream.parse_request();
+      try {
+        auto request_stream = server_stream.parse_request();
 
-      std::cerr << client_fd << ":   Processing request: " << server_stream.request_line() << std::endl;
-      std::cerr << client_fd << ":   Headers:" << std::endl;
-      for (const auto& field : server_stream.request_header().field_names()) {
-        std::cerr << client_fd << ":     " << field << ": " << server_stream.request_header().field(field) << std::endl;
-      }
-      if (!widget_->handle(server_stream, *request_stream)) {
-        // Not handled, return catch-all status
-        server_stream.set_status(catch_all_status_);
+        std::cerr << client_fd << ":   Processing request: " << server_stream.request_line() << std::endl;
+        std::cerr << client_fd << ":   Headers:" << std::endl;
+        for (const auto& field : server_stream.request_header().field_names()) {
+          std::cerr << client_fd << ":     " << field << ": " << server_stream.request_header().field(field) << std::endl;
+        }
+
+        if (!widget_->handle(server_stream, *request_stream)) {
+          // Not handled, return catch-all status
+          server_stream.set_status(catch_all_status_);
+          server_stream.set_header("Content-Type", "text/plain; charset=utf-8");
+          server_stream.set_header("Connection", "close");
+          auto response_stream = server_stream.send_header();
+          *response_stream << server_stream.status_line() << "\n";
+        }
+        std::cerr << client_fd << ":   Finished request: " << server_stream.status_line() << std::endl;
+
+      } catch (const std::exception& e) {
+        std::cerr << client_fd << ":   Error while processing request: " << e.what() << std::endl;
+        server_stream.set_status(500, "Internal Server Error");
         server_stream.set_header("Content-Type", "text/plain; charset=utf-8");
         server_stream.set_header("Connection", "close");
         auto response_stream = server_stream.send_header();
-        *response_stream << server_stream.status_line() << "\n";
+        *response_stream << "500 Internal Server Error\n";
       }
-      std::cerr << client_fd << ":   Finished request: " << server_stream.status_line() << std::endl;
     } catch (const std::exception& e) {
       std::cerr << client_fd << ":   Error: " << e.what() << std::endl;
     }
