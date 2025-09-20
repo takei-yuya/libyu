@@ -12,6 +12,7 @@
 #include <string>
 #include <vector>
 
+#include "../lang/unique_resource.hpp"
 #include "../stream/fdstream.hpp"
 #include "server_stream.hpp"
 
@@ -19,27 +20,6 @@ namespace yu {
 namespace http {
 
 namespace detail {
-class FDCloser {
- public:
-  explicit FDCloser(int fd) : fd_(fd) {}
-  ~FDCloser() { Close(); }
-
-  int Release() {
-    int old = fd_;
-    fd_ = -1;
-    return old;
-  }
-
-  void Close() {
-    if (fd_ != -1) {
-      ::close(Release());
-    }
-  }
-
- private:
-  int fd_;
-};
-
 void raise_errno(const std::string& func) {
   std::vector<char> buf(256);
   std::string err = strerror_r(errno, buf.data(), buf.size());
@@ -69,6 +49,7 @@ std::string format_time(const std::chrono::system_clock::time_point& tp,
 }
 }  // namespace detail
 
+
 class WidgetBase {
  public:
   virtual ~WidgetBase() = default;
@@ -94,6 +75,13 @@ class SimpleWidget : public WidgetBase {
       return false;
     }
     std::string path = server_stream.request_target();
+    std::string query;
+    size_t pos = path.find('?');
+    if (pos != std::string::npos) {
+      query = path.substr(pos + 1);
+      path = path.substr(0, pos);
+    }
+
     auto it = contents_.find(path);
     if (it == contents_.end()) {
       return false;
@@ -115,7 +103,7 @@ class SimpleWidget : public WidgetBase {
     if (expand_template_) {
       std::unordered_map<std::string, std::string> variables;
 
-      std::string host = "unknown";
+      std::string host = "unknown_host";
       if (server_stream.request_header().has("Host")) {
         host = server_stream.request_header().field("Host");
       }
@@ -152,6 +140,7 @@ class SimpleWidget : public WidgetBase {
 };
 using SimpleWidgetPtr = std::shared_ptr<SimpleWidget>;
 
+
 class ChainWidget : public WidgetBase {
  public:
   ChainWidget(WidgetPtr first, WidgetPtr second)
@@ -184,6 +173,7 @@ WidgetPtr operator|(WidgetPtr first, WidgetPtr second) {
     exit(EXIT_FAILURE); \
   }
 
+
 class SimpleServer {
  public:
   static constexpr int kBacklog = 5;
@@ -203,12 +193,12 @@ class SimpleServer {
     int ret;
 
     // create socket
-    int server_fd;
-    SYSCALL(server_fd, ::socket(AF_INET6, SOCK_STREAM, 0));
-    if (server_fd < 0) {
+    int raw_server_fd;
+    SYSCALL(raw_server_fd, ::socket(AF_INET6, SOCK_STREAM, 0));
+    if (raw_server_fd < 0) {
       detail::raise_errno("socket");
     }
-    detail::FDCloser server_fd_closer(server_fd);
+    auto server_fd = yu::lang::make_unique_resource(raw_server_fd, ::close);
 
     // set socket options
     int opt = 1;
