@@ -3,6 +3,7 @@
   push:
     branches:
     - main
+  workflow_dispatch:
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -17,7 +18,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Install doxygen
-        run: sudo apt-get install -y doxygen
+        run: sudo apt-get update -y && sudo apt-get install -y doxygen graphviz
       - name: Generate Doxygen documentation
         run: doxygen
       - name: Upload Doxygen documentation as artifact
