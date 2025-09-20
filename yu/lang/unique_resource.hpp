@@ -43,8 +43,12 @@ class UniqueResource {
   /**
    * @brief Destructor. Calls the deleter on the resource if it has not been released.
    */
-  ~UniqueResource() {
-    reset();
+  ~UniqueResource() noexcept {
+    try {
+      reset();
+    } catch (...) {
+      // swallow exceptions in destructor
+    }
   }
 
   // Movable

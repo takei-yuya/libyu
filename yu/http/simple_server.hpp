@@ -6,11 +6,23 @@
 #include <cstring>
 #include <csignal>
 
-#include <thread>
+#include <chrono>
+#include <iomanip>
+#include <iostream>
 #include <memory>
+#include <sstream>
 #include <stdexcept>
 #include <string>
+#include <thread>
+#include <unordered_map>
 #include <vector>
+
+#include <arpa/inet.h>
+#include <netdb.h>
+#include <netinet/in.h>
+#include <sys/socket.h>
+#include <sys/types.h>
+#include <unistd.h>
 
 #include "../lang/unique_resource.hpp"
 #include "../stream/fdstream.hpp"
@@ -21,26 +33,25 @@ namespace http {
 
 namespace detail {
 void raise_errno(const std::string& func) {
-  std::vector<char> buf(256);
-  std::string err = strerror_r(errno, buf.data(), buf.size());
-  throw std::runtime_error(func + " failed: " + err);
+  std::error_code ec(errno, std::generic_category());
+  throw std::system_error(ec, func + " failed");
 }
 
 std::string format_time(const std::chrono::system_clock::time_point& tp,
                         const std::string& format = "%Y-%m-%d %H:%M:%S.%N") {
-  time_t t = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
-  auto subsec = tp - std::chrono::system_clock::from_time_t(t);
+  std::time_t t = std::chrono::system_clock::to_time_t(tp);
+  auto tp_sec = std::chrono::time_point_cast<std::chrono::seconds>(tp);
+  auto ns = std::chrono::duration_cast<std::chrono::nanoseconds>(tp - tp_sec).count();
   struct tm tm;
   localtime_r(&t, &tm);
 
   // support %N (nanoseconds)
   std::ostringstream nano_oss;
-  nano_oss << std::setw(9) << std::setfill('0')
-           << std::chrono::duration_cast<std::chrono::nanoseconds>(subsec).count();
+  nano_oss << std::setw(9) << std::setfill('0') << ns;
+  std::string nano_str = nano_oss.str();
   std::string fmt = format;
-  size_t pos = fmt.find("%N");
-  if (pos != std::string::npos) {
-    fmt.replace(pos, 2, nano_oss.str());
+  for (size_t pos = 0; (pos = fmt.find("%N", pos)) != std::string::npos; pos += nano_str.size() + 1) {
+    fmt.replace(pos, 2, nano_str);
   }
 
   std::ostringstream oss;
@@ -96,7 +107,6 @@ class SimpleWidget : public WidgetBase {
     auto response_stream = server_stream.send_header();
 
     if (server_stream.request_method() == "HEAD") {
-      server_stream.send_header();  // send header only
       return true;
     }
 
@@ -169,8 +179,7 @@ WidgetPtr operator|(WidgetPtr first, WidgetPtr second) {
 #define SYSCALL(ret, expr) \
   while ((ret = (expr)) == -1) { \
     if (errno == EINTR) continue; \
-    perror(#expr); \
-    exit(EXIT_FAILURE); \
+    yu::http::detail::raise_errno(#expr); \
   }
 
 
@@ -195,22 +204,13 @@ class SimpleServer {
     // create socket
     int raw_server_fd;
     SYSCALL(raw_server_fd, ::socket(AF_INET6, SOCK_STREAM, 0));
-    if (raw_server_fd < 0) {
-      detail::raise_errno("socket");
-    }
     auto server_fd = yu::lang::make_unique_resource(raw_server_fd, ::close);
 
     // set socket options
     int opt = 1;
     SYSCALL(ret, ::setsockopt(server_fd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)));
-    if (ret < 0) {
-      detail::raise_errno("setsockopt");
-    }
     opt = 0;
     SYSCALL(ret, ::setsockopt(server_fd, IPPROTO_IPV6, IPV6_V6ONLY, &opt, sizeof(opt)));
-    if (ret < 0) {
-      detail::raise_errno("setsockopt");
-    }
 
     // bind
     struct sockaddr_in6 addr;
@@ -219,24 +219,17 @@ class SimpleServer {
     addr.sin6_addr = in6addr_any;  // :: (all interfaces)
     addr.sin6_port = htons(port_);
     SYSCALL(ret, ::bind(server_fd, (struct sockaddr*)&addr, sizeof(addr)));
-    if (ret < 0) {
-      detail::raise_errno("bind");
-    }
 
     // listen
     SYSCALL(ret, ::listen(server_fd, backlog_));
-    if (ret < 0) {
-      detail::raise_errno("listen");
-    }
 
     while (true) {
+      // accept
       struct sockaddr_in6 client_addr;
       socklen_t client_addr_len = sizeof(client_addr);
       int client_fd;
       SYSCALL(client_fd, ::accept(server_fd, (struct sockaddr*)&client_addr, &client_addr_len));
-      if (client_fd < 0) {
-        detail::raise_errno("accept");
-      }
+
       std::string client_ip = "unknown_ip";
       std::string client_port = "0";
       std::string client_ip_port = "unknown_ip:0";
